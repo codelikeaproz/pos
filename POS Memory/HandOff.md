@@ -516,6 +516,104 @@ This is a future enhancement and must not affect the current desktop MVP.
 
 # 18. Current Phase
 
+## Phase 10.1 — Employee Management
+
+Status:
+
+```
+COMPLETE
+```
+
+### Phase 10.1 deliverables
+
+- Employee Management implemented against the existing `users` table and `User` model
+- No `employees` table, Employee model, schema migration, or new package added
+- Canonical REST endpoints: `GET/POST /api/users` and `GET/PUT/DELETE /api/users/{user}`
+- Laravel Sanctum authentication plus one simple `EnsureUserIsAdmin` middleware enforce Admin-only access
+- Existing roles remain exactly `admin` and `end_user`
+- Paginated, name-sorted employee list with 350 ms debounced live name/email search and an inline clear control
+- Add, edit, optional password replacement, and centered delete confirmation
+- Backend-authoritative Form Request validation and safe `UserResource` responses
+- Employee Form Requests are kept directly under `app/Http/Requests`; API controllers remain conventionally grouped
+- User CRUD uses Eloquent directly without a Service, Repository, or unnecessary transaction wrapper
+- Passwords remain write-only and are hashed by the existing User model cast
+- Signed-in Admin cannot delete their own account
+- Last remaining Admin cannot be deleted or demoted
+- Human-readable validation, authorization, conflict, server, and network feedback
+- Station, Supplier, Items, Consignee, and Consignment remain unimplemented
+- Hardware and advanced authentication remain postponed
+
+### Phase 10.1 verification — 2026-09-26
+
+| Check | Result |
+|---|---|
+| Laravel user-management/auth/health feature tests | PASS — 32 tests, 115 assertions |
+| Admin-only API authorization (401/403) | PASS |
+| `/api/users` middleware order (`auth:sanctum` then `EnsureUserIsAdmin`) | PASS |
+| Create Admin/End User, validation, hashing, and safe responses | PASS |
+| Update with unchanged/replacement password | PASS |
+| Delete, self-delete, and last-Admin safeguards | PASS |
+| Live MySQL API create/update/replacement-login/delete with cleanup; 401/403 checks | PASS |
+| `npm run typecheck` | PASS |
+| `npm run build` (Electron main, preload, and renderer) | PASS |
+| Live Admin list/search/edit, validation, self-delete UI, and centered delete dialog | PASS |
+| Live 350 ms search debounce and inline X clear behavior | PASS |
+| Live End User navigation and manual `/employees` route denial | PASS |
+| Dashboard, Orders placeholder, and logout regression | PASS |
+| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| Migration status | PASS — existing migrations applied; no new migration required |
+
+### Architecture simplification — 2026-09-26
+
+- Replaced the Employee Management Gate with the `EnsureUserIsAdmin` route middleware
+- Preserved `auth:sanctum` before role authorization and the existing 401/403 behavior
+- Flattened `StoreUserRequest` and `UpdateUserRequest` into `app/Http/Requests`
+- Removed transaction and row-lock wrappers from single-model user update/delete operations
+- Preserved self-delete and last-Admin application checks
+- Replaced Search/Clear buttons with 350 ms debounced live search and an inline X clear control
+- Established Controller-to-Eloquent as the default CRUD path; Services remain reserved for real multi-step operations and Repositories are not used
+
+Windows environment note: the native Electron development process currently exits before exposing a window because Chromium cannot create its cache under `%APPDATA%\university-homestay-pos` (`Access is denied`). The same main/preload/renderer sources compile successfully, the IPC implementation was not changed, and the live Vite renderer was exercised through the in-app browser. Resolve the local AppData cache permissions before repeating a native-window IPC click-through.
+
+## Phase 9 — Dashboard & Role-Aware Navigation Foundation
+
+Status:
+
+```
+COMPLETE
+```
+
+### Phase 9 deliverables
+
+- Simple Dashboard using authenticated `currentUser` name, email, and human-readable role
+- Canonical authenticated landing route: `/dashboard`
+- Admin navigation: Dashboard, Employee, Items, Station, Orders / POS, Consignee, Consignment, Supplier
+- End User navigation: Dashboard and Orders / POS only
+- Admin-only frontend routes redirect End Users to `/dashboard`
+- Unauthenticated application routes remain protected by the Phase 8 auth guard
+- Existing Phase 4 application shell, header, sidebar, placeholders, Lucide icons, and design tokens reused
+- Existing Phase 8 logout flow reused; no duplicate authentication state or logout mechanism
+- No fake Dashboard statistics, business CRUD, Dashboard APIs, database changes, or new packages
+- Hardware and advanced authentication remain postponed
+- Frontend role visibility is UX only; Laravel authorization remains mandatory for future protected APIs
+
+### Phase 9 verification — 2026-09-26
+
+| Check | Result |
+|---|---|
+| Admin login, Dashboard, eight navigation entries, and all placeholder routes | PASS |
+| End User login, Dashboard, and Orders / POS navigation only | PASS |
+| End User manual access to `/employees` redirects to `/dashboard` | PASS |
+| Active sidebar state (`aria-current` plus visible selected treatment) | PASS |
+| Unauthenticated, unknown, and authenticated-login route handling | PASS |
+| Admin and End User logout | PASS |
+| `/api/health` and `/api/current-user` regression checks | PASS |
+| Electron main/preload build and development launch; IPC bridge unchanged | PASS |
+| `npm run typecheck` | PASS |
+| `npm run build` | PASS |
+| `php artisan test` | PASS — 16 tests, 60 assertions |
+| Laravel version | PASS — 12.69.2 |
+
 ## Phase 8 — Simple Authentication / Login Foundation
 
 Status:
@@ -532,6 +630,9 @@ COMPLETE
 - Login rate limited (`throttle:login`, 5/min per email+IP)
 - Development seed users (dev-only passwords — see seeder)
 - Frontend Login page, AuthProvider/`currentUser`, protected routes, header logout
+- Logout revokes only the current Sanctum token so other sessions remain valid
+- Authenticated HTTP 401 responses centrally clear the token/user and return protected routes to Login
+- Backend-unavailable logout still clears the local session and displays a warning on Login
 - **Not** implemented: OTP, 2FA, password reset, email verification, employee CRUD, social login
 
 ### Phase 7/8 verification and hardening — 2026-09-26
@@ -542,6 +643,10 @@ The shared frontend/backend connection was reviewed before further product work.
 - Laravel CORS allows only the two documented Vite origins plus `pos://app`; untrusted `Origin: null` remains rejected.
 - `ImportMeta.env` declarations were corrected so the full frontend TypeScript check passes.
 - The shared API client now preserves normal Laravel 422 validation messages and handles HTTP 429 without applying login-specific wording to every module.
+- Sanctum logout now revokes only the active token instead of every token owned by the user.
+- Invalid or expired authenticated sessions now clear centralized frontend auth state and return the user to Login.
+- A startup network failure reports that the saved session could not be checked without discarding its token.
+- Logout remains locally safe when Laravel is unavailable and reports that remote revocation could not be confirmed.
 - Laravel Pint formatting was applied with PHP 8.3.33.
 
 Verification results:
@@ -550,14 +655,19 @@ Verification results:
 |---|---|
 | `npm run typecheck` | PASS |
 | `npm run build` | PASS |
-| `php artisan test` (PATH PHP 8.2.12 with SQLite) | PASS — 12 tests, 39 assertions |
+| `php artisan test` (PATH PHP 8.2.12 with SQLite) | PASS — 16 tests, 60 assertions |
 | PHP 8.3 `vendor/bin/pint --test` | PASS after formatting |
 | Packaged `pos://app` CORS test | PASS |
 | Untrusted `Origin: null` rejection test | PASS |
+| Configured MySQL/MariaDB migrations and development users | PASS |
+| Live HTTP login/current-user/logout/revoked-token/validation/health flow | PASS |
+| Live renderer login, dashboard, logout, and protected-route flow | PASS |
+| Invalid-token redirect with session-ended feedback | PASS |
+| Backend-unavailable local logout with warning | PASS |
 
 PHP 8.3 environment note: the WinGet installation has `pdo_mysql`, but its `pdo_sqlite` and `sqlite3` extensions are currently disabled. Until those are enabled, use PATH PHP 8.2.12 for the SQLite-backed test suite and WinGet PHP 8.3.33 for Pint.
 
-Repository note: this workspace currently has no `.git` metadata. Restore or initialize the intended repository before claiming the Definition of Done item requiring a commit. Do not create unrelated history without confirming the desired remote/repository.
+Repository note: the workspace is connected to `https://github.com/codelikeaproz/pos.git`; the Phase 8 baseline is on `main`. Authentication hardening changes remain local until an explicit commit/push request.
 
 ### Development credentials (local only — never use in production)
 
@@ -582,7 +692,7 @@ Repository note: this workspace currently has no `.git` metadata. Restore or ini
 2. **PHP:** 8.3.33 is installed with `zip` / `pdo_mysql`, but the current shell PATH resolves XAMPP PHP 8.2.12 first. Use the WinGet PHP 8.3 executable for Pint until PATH is corrected.
 3. **Database (local):** XAMPP MariaDB 10.4.32; DB `pos_homestay`; target MySQL 8.4 LTS for production.
 4. **Node:** v22.14.0 acceptable for frontend development.
-5. **Phase boundary:** Phase 8 complete. Do not start Phase 9 until explicitly requested.
+5. **Phase boundary:** Phase 10.1 complete. Do not start Phase 10.2 until explicitly requested.
 
 Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
@@ -592,7 +702,7 @@ Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
 Immediate next phase (**awaiting explicit go-ahead**):
 
-1. **Phase 9** — Master data / next product phase (as defined by product priorities)
+1. **Phase 10.2 — Station Management**
 
 Then:
 

@@ -13,8 +13,21 @@ import {
   login as loginRequest,
   logout as logoutRequest
 } from '../../services/authService'
-import { clearAuthToken, getAuthToken } from '../../services/authToken'
+import { ApiError } from '../../services/apiClient'
+import {
+  AUTH_SESSION_INVALIDATED_EVENT,
+  clearAuthToken,
+  getAuthToken,
+  type AuthSessionInvalidatedDetail
+} from '../../services/authToken'
+import type { AlertTone } from '../../components/feedback/Alert'
 import type { AuthStatus, CurrentUser } from '../../types/auth'
+
+type AuthNotice = {
+  tone: AlertTone
+  title: string
+  message: string
+}
 
 type AuthContextValue = {
   status: AuthStatus
@@ -22,6 +35,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   bootstrapError: string | null
+  authNotice: AuthNotice | null
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -32,6 +46,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [bootstrapError, setBootstrapError] = useState<string | null>(null)
+  const [authNotice, setAuthNotice] = useState<AuthNotice | null>(null)
+
+  useEffect(() => {
+    const handleSessionInvalidated = (event: Event): void => {
+      const detail = (event as CustomEvent<AuthSessionInvalidatedDetail>).detail
+
+      setCurrentUser(null)
+      setStatus('unauthenticated')
+      setAuthNotice({
+        tone: 'warning',
+        title: 'Session ended',
+        message:
+          detail?.message ??
+          'Your session is no longer valid. Please sign in again.'
+      })
+    }
+
+    window.addEventListener(
+      AUTH_SESSION_INVALIDATED_EVENT,
+      handleSessionInvalidated
+    )
+
+    return () => {
+      window.removeEventListener(
+        AUTH_SESSION_INVALIDATED_EVENT,
+        handleSessionInvalidated
+      )
+    }
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -51,12 +94,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setStatus('authenticated')
           setBootstrapError(null)
         }
-      } catch {
+      } catch (error) {
         if (!controller.signal.aborted) {
-          clearAuthToken()
           setCurrentUser(null)
           setStatus('unauthenticated')
-          setBootstrapError(null)
+
+          if (
+            error instanceof ApiError &&
+            (error.kind === 'network' || error.kind === 'timeout')
+          ) {
+            setBootstrapError('Unable to connect to the server.')
+            setAuthNotice({
+              tone: 'warning',
+              title: 'Server unavailable',
+              message:
+                'Your saved session could not be checked. Restore the server connection and try again.'
+            })
+          } else if (!(error instanceof ApiError && error.status === 401)) {
+            clearAuthToken()
+            setBootstrapError(null)
+            setAuthNotice({
+              tone: 'warning',
+              title: 'Session ended',
+              message: 'Your saved session could not be restored. Please sign in again.'
+            })
+          }
         }
       }
     }
@@ -70,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     setStatus('authenticating')
     setBootstrapError(null)
+    setAuthNotice(null)
 
     try {
       const result = await loginRequest(email, password)
@@ -84,10 +147,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
+    setAuthNotice(null)
+
     try {
       await logoutRequest()
     } catch {
       clearAuthToken()
+      setAuthNotice({
+        tone: 'warning',
+        title: 'Signed out locally',
+        message:
+          'The server could not confirm logout. You have still been signed out on this device.'
+      })
     } finally {
       setCurrentUser(null)
       setStatus('unauthenticated')
@@ -100,9 +171,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       currentUser,
       login,
       logout,
-      bootstrapError
+      bootstrapError,
+      authNotice
     }),
-    [status, currentUser, login, logout, bootstrapError]
+    [status, currentUser, login, logout, bootstrapError, authNotice]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

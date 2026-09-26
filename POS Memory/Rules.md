@@ -134,6 +134,70 @@ ORDERS
 │                              │        [ PAY ]               │
 └──────────────────────────────┴──────────────────────────────┘
 
+
+==================================================
+DATABASE ACCESS & TRANSACTION RULES
+==================================================
+
+Use Laravel Eloquent as the default database access layer.
+
+Preferred:
+
+Model::query()
+Model::create()
+$model->update()
+$model->delete()
+$model->relationship()
+
+Do not use raw SQL unless there is a clear and documented
+technical reason.
+
+Do not use DB::statement(), DB::select(), or manually
+constructed SQL for normal CRUD operations.
+
+DATABASE TRANSACTIONS:
+
+`DB::transaction()` is NOT considered raw SQL.
+
+It is Laravel's transaction-management mechanism.
+
+However, do not wrap every CRUD operation in a database
+transaction unnecessarily.
+
+Simple operations such as:
+
+- create one user
+- update one user
+- delete one user
+
+normally do not require an explicit DB::transaction().
+
+Use DB::transaction() when multiple related database writes
+must succeed or fail together.
+
+Example future POS operation:
+
+Create Order
+    ↓
+Create Order Items
+    ↓
+Record Payment
+    ↓
+Update Inventory
+
+These operations should be atomic.
+
+If one critical operation fails, the transaction should roll
+back.
+
+Rule:
+
+Eloquent by default.
+Transactions only when atomic multi-step writes require them.
+Raw SQL only when technically justified and documented.
+
+
+
 # 1. Core Development Principle
 
 Build the system phase-by-phase.
@@ -182,21 +246,25 @@ Laravel handles:
 - Transactions
 - API responses
 
-Controllers should remain thin.
+Controllers should remain focused and readable. For normal CRUD, controllers may use Eloquent directly.
 
-Business logic should not become concentrated inside controllers.
+Default structure:
 
-Preferred structure:
-
+Route
+    ↓
+Middleware
+    ↓
+Form Request (when validation is needed)
+    ↓
 Controller
     ↓
-Service
-    ↓
-Repository / Eloquent
+Eloquent
     ↓
 Database
 
-A repository should only be introduced where it provides meaningful value. Do not create unnecessary abstraction simply for the sake of having more layers.
+Do not create a Service for every module. Add one only when business logic involves multiple steps, models, or reusable operations, such as future order completion and inventory updates.
+
+Do not introduce a Repository layer. Eloquent is the application's data-access abstraction unless a future technical requirement provides a strong documented reason otherwise.
 
 # 4. React Responsibilities
 
@@ -468,11 +536,11 @@ Request flow:
 ```
 Route
   ↓
-Controller (thin)
+Middleware
   ↓
-Form Request validation
+Form Request (when validation is needed)
   ↓
-Service when needed
+Controller
   ↓
 Eloquent model
   ↓
@@ -481,15 +549,17 @@ Database
 
 Controllers stay thin. Class names: `ItemController`, `StationController`, `OrderController`.
 
-Form Requests own validation (e.g. `StoreItemRequest`, `UpdateItemRequest`). Backend validation is authoritative; frontend validation is UX only.
+Use Form Requests when create/update validation is substantial (e.g. `StoreItemRequest`, `UpdateItemRequest`). Do not create them for trivial endpoints without request validation. Backend validation is authoritative; frontend validation is UX only.
 
-API Resources control JSON serialization (e.g. `ItemResource`, `OrderResource`). Do not expose raw Eloquent models blindly once domain APIs exist.
+Use API Resources when they control exposed fields, transform output, or maintain a useful public response structure. A clean explicit JSON response is acceptable for a trivial internal response. Never expose sensitive model fields.
 
 Services hold complex business logic (e.g. `OrderService`, `InventoryService`). Create services when logic requires them — do not create empty stubs for every future module.
 
-Eloquent is the default database access approach. Use `DB::transaction(...)` for multi-write operations (orders, inventory, payments). Avoid raw SQL unless there is a clear reason.
+Do not add a Repository layer over Eloquent. Use `DB::transaction(...)` for atomic multi-write operations (orders, inventory, payments), not ordinary single-model CRUD. Avoid raw SQL unless there is a clear documented reason.
 
-Authentication is implemented in a later phase. Do not mix Electron IPC (hardware / desktop) with Laravel HTTP API (application data / business rules).
+Authentication uses Laravel Sanctum. For the current `admin` and `end_user` roles, use one simple Admin-only middleware on Admin management routes. Do not add permission tables, role tables, Spatie Permission, complex Gates, or a Policy for every simple resource. Do not mix Electron IPC (hardware / desktop) with Laravel HTTP API (application data / business rules).
+
+Searchable Master Data pages use live asynchronous search: wait 350 ms after typing, request the existing paginated API with `?search=...`, and provide an inline X when clearing is useful. Do not add separate Search and Clear buttons or request on every individual keystroke.
 
 ## 14.2 Success response conventions
 
@@ -655,7 +725,9 @@ Frontend (UX)
   ↓
 Laravel Form Request (authoritative)
   ↓
-Business rules / Service
+Controller
+  ↓
+Eloquent (or a Service only for real multi-step business logic)
   ↓
 Database
 ```

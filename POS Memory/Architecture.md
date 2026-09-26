@@ -357,16 +357,18 @@ Laravel API request flow:
 ```
 Route
   ↓
+Middleware
+  ↓
+Form Request (when validation is needed)
+  ↓
 Controller
-  ↓
-Form Request validation
-  ↓
-Service (when needed)
   ↓
 Eloquent
   ↓
 Database
 ```
+
+This is the default flow. Controllers may use Eloquent directly for normal CRUD. Add a service only when a real operation spans multiple steps, models, or reusable business rules. Do not add a Repository layer over Eloquent.
 
 Do not allow:
 
@@ -404,7 +406,9 @@ Endpoints:
 
 - `POST /api/login` — public
 - `GET /api/current-user` — authenticated (do **not** use `/api/me`)
-- `POST /api/logout` — authenticated (revokes tokens)
+- `POST /api/logout` — authenticated (revokes only the token used for the current session)
+
+Authentication state is centralized in the frontend auth provider and token service. An HTTP 401 from an authenticated API request clears the local token and current user, changes the application to the unauthenticated state, and returns protected routes to Login with a readable session-ended message. A startup network failure preserves the saved token while reporting that the session could not be checked. If the backend is unreachable during logout, the local session is still cleared and Login displays a warning that server-side revocation could not be confirmed.
 
 Roles on `users.role`:
 
@@ -414,6 +418,73 @@ Roles on `users.role`:
 Both roles share the same `users` table. No separate employee auth table.
 
 Advanced authentication (OTP, 2FA, password reset, email verification, social login) is intentionally postponed.
+
+# 9.2 Role-Aware Application Navigation (Phase 9)
+
+```
+Login
+  ↓
+Current User
+  ↓
+Role
+  ├── Admin
+  │     ├── Dashboard
+  │     ├── Employee
+  │     ├── Items
+  │     ├── Station
+  │     ├── Orders / POS
+  │     ├── Consignee
+  │     ├── Consignment
+  │     └── Supplier
+  │
+  └── End User
+        ├── Dashboard
+        └── Orders / POS
+```
+
+The canonical authenticated landing route is `/dashboard`. The sidebar, Dashboard quick access, and frontend routes use the authenticated `currentUser.role`. End Users who manually request an Admin-only frontend route are redirected to `/dashboard`.
+
+Role-aware frontend navigation is a UX boundary, not backend authorization. Laravel must enforce permissions on protected business APIs when those endpoints are implemented. Phase 9 does not introduce permission tables, a complex RBAC package, business CRUD, or Dashboard statistics APIs.
+
+## 9.3 Employee Management (Phase 10.1)
+
+Employee Management reuses the authentication domain. An employee is a `User`; there is no separate Employee model or `employees` table.
+
+```
+Employee Management UI
+        ↓
+/api/users
+        ↓
+auth:sanctum
+        ↓
+EnsureUserIsAdmin middleware
+        ↓
+StoreUserRequest / UpdateUserRequest
+        ↓
+UserController
+        ↓
+UserResource
+        ↓
+User Eloquent Model
+        ↓
+users table
+```
+
+Canonical authenticated endpoints:
+
+- `GET /api/users` — paginated list with optional name/email `search`
+- `POST /api/users` — create an Admin or End User
+- `GET /api/users/{user}` — retrieve one user
+- `PUT /api/users/{user}` — update identity, role, and optionally password
+- `DELETE /api/users/{user}` — delete another user
+
+All `/api/users` routes require Sanctum authentication followed by the simple `EnsureUserIsAdmin` middleware. The middleware permits only the existing `admin` role. Unauthenticated requests receive HTTP 401 and authenticated End Users receive HTTP 403. No permission tables, complex RBAC package, Gate, or per-resource Policy is needed for the current two-role system.
+
+Employee search is asynchronous: the renderer waits 350 ms after typing, requests `GET /api/users?search=...`, and displays the paginated Eloquent results. The input uses an inline X to clear the query; separate Search and Clear buttons are not used.
+
+Passwords are accepted only as write-only input, are hashed by the `User` model, and are never emitted by `UserResource`. Omitting the password during update keeps the stored hash. The backend rejects deletion of the signed-in account and rejects deleting or demoting the last remaining Admin with HTTP 409. These protections are authoritative even though the frontend also disables self-delete.
+
+Phase 10.1 does not add a migration, package, service layer, repository layer, station assignment, other Master Data CRUD, POS behavior, hardware integration, or advanced authentication.
 
 
 # 10. Future Architecture

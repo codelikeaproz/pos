@@ -34,6 +34,8 @@
 .app-sidebar__link.is-active {
   background: var(--color-brand-green);
   color: #fff;
+  font-weight: 700;
+  box-shadow: inset 4px 0 0 var(--color-brand-yellow);
 }
 
 .app-sidebar__link:focus-visible {

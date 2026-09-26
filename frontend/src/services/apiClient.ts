@@ -1,16 +1,23 @@
-import { getAuthToken } from './authToken'
+import { getAuthToken, invalidateAuthSession } from './authToken'
 
 export type ApiErrorKind = 'network' | 'http' | 'invalid' | 'timeout'
 
 export class ApiError extends Error {
   readonly kind: ApiErrorKind
   readonly status: number | null
+  readonly errors: Record<string, string[]>
 
-  constructor(kind: ApiErrorKind, message: string, status: number | null = null) {
+  constructor(
+    kind: ApiErrorKind,
+    message: string,
+    status: number | null = null,
+    errors: Record<string, string[]> = {}
+  ) {
     super(message)
     this.name = 'ApiError'
     this.kind = kind
     this.status = status
+    this.errors = errors
   }
 }
 
@@ -72,11 +79,45 @@ function messageForHttpStatus(status: number, data: unknown): string {
     return 'Too many attempts. Please wait and try again.'
   }
 
+  if (
+    data &&
+    typeof data === 'object' &&
+    'message' in data &&
+    typeof data.message === 'string'
+  ) {
+    return data.message
+  }
+
   if (status >= 500) {
     return 'The backend encountered an unexpected error.'
   }
 
   return 'Unable to complete the request.'
+}
+
+function validationErrorsFrom(data: unknown): Record<string, string[]> {
+  if (!data || typeof data !== 'object' || !('errors' in data)) {
+    return {}
+  }
+
+  const errors = data.errors
+  if (!errors || typeof errors !== 'object' || Array.isArray(errors)) {
+    return {}
+  }
+
+  return Object.fromEntries(
+    Object.entries(errors).flatMap(([field, messages]) => {
+      if (!Array.isArray(messages)) {
+        return []
+      }
+
+      const strings = messages.filter(
+        (message): message is string => typeof message === 'string'
+      )
+
+      return strings.length > 0 ? [[field, strings]] : []
+    })
+  )
 }
 
 export type ApiRequestOptions = {
@@ -86,6 +127,8 @@ export type ApiRequestOptions = {
   timeoutMs?: number
   /** When false, do not send Authorization (e.g. login). Default true. */
   auth?: boolean
+  /** When false, a 401 does not broadcast session invalidation. Default true. */
+  invalidateSessionOnUnauthorized?: boolean
 }
 
 export async function apiRequest<T>(
@@ -97,7 +140,8 @@ export async function apiRequest<T>(
     body,
     signal,
     timeoutMs = DEFAULT_TIMEOUT_MS,
-    auth = true
+    auth = true,
+    invalidateSessionOnUnauthorized = true
   } = options
   const url = `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`
 
@@ -155,10 +199,20 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
+      if (
+        response.status === 401 &&
+        auth &&
+        invalidateSessionOnUnauthorized &&
+        getAuthToken()
+      ) {
+        invalidateAuthSession()
+      }
+
       throw new ApiError(
         'http',
         messageForHttpStatus(response.status, data),
-        response.status
+        response.status,
+        validationErrorsFrom(data)
       )
     }
 

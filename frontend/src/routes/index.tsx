@@ -1,5 +1,6 @@
 import { Navigate, RouteObject } from 'react-router-dom'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
+import { RoleRoute } from '../features/auth/RoleRoute'
 import { LoginPage } from '../features/auth/LoginPage'
 import { AppShell } from '../layouts/AppShell'
 import { ConsigneesPage } from '../pages/ConsigneesPage'
@@ -23,15 +24,21 @@ export const appRoutes: RouteObject[] = [
       {
         element: <AppShell />,
         children: [
-          { index: true, element: <DashboardPage /> },
-          { path: 'employees', element: <EmployeesPage /> },
-          { path: 'items', element: <ItemsPage /> },
-          { path: 'stations', element: <StationsPage /> },
+          { index: true, element: <Navigate to="/dashboard" replace /> },
+          { path: 'dashboard', element: <DashboardPage /> },
+          {
+            element: <RoleRoute allowedRoles={['admin']} />,
+            children: [
+              { path: 'employees', element: <EmployeesPage /> },
+              { path: 'items', element: <ItemsPage /> },
+              { path: 'stations', element: <StationsPage /> },
+              { path: 'consignees', element: <ConsigneesPage /> },
+              { path: 'consignments', element: <ConsignmentsPage /> },
+              { path: 'suppliers', element: <SuppliersPage /> }
+            ]
+          },
           { path: 'orders', element: <OrdersPage /> },
-          { path: 'consignees', element: <ConsigneesPage /> },
-          { path: 'consignments', element: <ConsignmentsPage /> },
-          { path: 'suppliers', element: <SuppliersPage /> },
-          { path: '*', element: <Navigate to="/" replace /> }
+          { path: '*', element: <Navigate to="/dashboard" replace /> }
         ]
       }
     ]

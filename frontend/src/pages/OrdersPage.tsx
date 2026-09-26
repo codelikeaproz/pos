@@ -4,7 +4,7 @@ export function OrdersPage() {
   return (
     <PlaceholderPage
       title="Orders / POS"
-      description="Point of sale and transaction history. POS workflow comes later."
+      description="The point-of-sale workflow will be implemented in a later phase."
     />
   )
 }

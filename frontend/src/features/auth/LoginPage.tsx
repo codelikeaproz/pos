@@ -8,14 +8,14 @@ import { useAuth } from './AuthContext'
 import './login-page.css'
 
 export function LoginPage() {
-  const { status, login } = useAuth()
+  const { status, login, authNotice } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   if (status === 'authenticated') {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -48,6 +48,12 @@ export function LoginPage() {
         <p className="login-page__subtitle">
           Sign in with your email and password to continue.
         </p>
+
+        {authNotice ? (
+          <Alert tone={authNotice.tone} title={authNotice.title}>
+            {authNotice.message}
+          </Alert>
+        ) : null}
 
         {error ? (
           <Alert tone="error" title="Sign in failed">

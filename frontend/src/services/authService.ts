@@ -56,8 +56,13 @@ export async function fetchCurrentUser(
 export async function logout(): Promise<void> {
   try {
     await apiRequest<{ message?: string }>('/api/logout', {
-      method: 'POST'
+      method: 'POST',
+      invalidateSessionOnUnauthorized: false
     })
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 401)) {
+      throw error
+    }
   } finally {
     clearAuthToken()
   }

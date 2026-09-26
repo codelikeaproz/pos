@@ -76,6 +76,32 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('errors.email.0', 'Invalid credentials.');
     }
 
+    public function test_login_validates_email_and_password(): void
+    {
+        $this->postJson('/api/login', [
+            'email' => 'not-an-email',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email', 'password']);
+    }
+
+    public function test_login_is_rate_limited_after_five_attempts(): void
+    {
+        $credentials = [
+            'email' => 'throttled@example.com',
+            'password' => 'wrong-password',
+        ];
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $this->postJson('/api/login', $credentials)
+                ->assertUnprocessable()
+                ->assertJsonPath('errors.email.0', 'Invalid credentials.');
+        }
+
+        $this->postJson('/api/login', $credentials)
+            ->assertTooManyRequests();
+    }
+
     public function test_current_user_requires_authentication(): void
     {
         $this->getJson('/api/current-user')->assertUnauthorized();
@@ -95,6 +121,18 @@ class AuthApiTest extends TestCase
             ->assertJsonMissingPath('token');
     }
 
+    public function test_expired_token_is_rejected(): void
+    {
+        $user = User::factory()->create();
+        $expiredToken = $user
+            ->createToken('expired-pos-desktop', ['*'], now()->subMinute())
+            ->plainTextToken;
+
+        $this->withToken($expiredToken)
+            ->getJson('/api/current-user')
+            ->assertUnauthorized();
+    }
+
     public function test_logout_revokes_token(): void
     {
         $user = User::factory()->create();
@@ -112,5 +150,31 @@ class AuthApiTest extends TestCase
         $this->withToken($token)
             ->getJson('/api/current-user')
             ->assertUnauthorized();
+    }
+
+    public function test_logout_revokes_only_the_current_token(): void
+    {
+        $user = User::factory()->create();
+        $currentToken = $user->createToken('current-pos-desktop')->plainTextToken;
+        $otherToken = $user->createToken('other-pos-desktop')->plainTextToken;
+
+        $this->withToken($currentToken)
+            ->postJson('/api/logout')
+            ->assertOk();
+
+        $this->assertDatabaseCount('personal_access_tokens', 1);
+
+        $this->app['auth']->forgetGuards();
+
+        $this->withToken($currentToken)
+            ->getJson('/api/current-user')
+            ->assertUnauthorized();
+
+        $this->app['auth']->forgetGuards();
+
+        $this->withToken($otherToken)
+            ->getJson('/api/current-user')
+            ->assertOk()
+            ->assertJsonPath('user.id', $user->id);
     }
 }

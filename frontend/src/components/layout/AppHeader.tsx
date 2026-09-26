@@ -40,6 +40,7 @@ export function AppHeader() {
         </span>
         <Button
           variant="outline"
+          icon={<AppIcons.logout size={iconSize} strokeWidth={iconStroke} />}
           onClick={() => {
             void handleLogout()
           }}

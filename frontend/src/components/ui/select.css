@@ -1,0 +1,23 @@
+.ui-select {
+  display: block;
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-input);
+  cursor: pointer;
+}
+
+.ui-select:focus {
+  outline: none;
+  border-color: var(--color-pos-blue-primary);
+  box-shadow: 0 0 0 3px rgba(47, 111, 159, 0.18);
+}
+
+.ui-select--error {
+  border-color: var(--color-danger);
+}

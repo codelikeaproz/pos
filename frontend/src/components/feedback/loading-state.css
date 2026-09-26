@@ -1,0 +1,17 @@
+.ui-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-secondary);
+}
+
+.ui-loading__icon {
+  animation: ui-loading-spin 0.9s linear infinite;
+}
+
+@keyframes ui-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

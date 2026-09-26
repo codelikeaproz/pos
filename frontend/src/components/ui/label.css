@@ -1,0 +1,13 @@
+.ui-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ui-label__required {
+  color: var(--color-danger);
+}

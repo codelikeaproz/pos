@@ -1,0 +1,30 @@
+{
+  "name": "university-homestay-pos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "University HomeStay POS — Electron desktop shell",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
+    "postinstall": "node node_modules/electron/install.js"
+  },
+  "dependencies": {
+    "lucide-react": "^1.48.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "electron": "^44.4.5",
+    "electron-vite": "^3.1.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.0"
+  }
+}

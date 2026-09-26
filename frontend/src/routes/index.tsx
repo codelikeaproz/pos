@@ -1,0 +1,39 @@
+import { Navigate, RouteObject } from 'react-router-dom'
+import { ProtectedRoute } from '../features/auth/ProtectedRoute'
+import { LoginPage } from '../features/auth/LoginPage'
+import { AppShell } from '../layouts/AppShell'
+import { ConsigneesPage } from '../pages/ConsigneesPage'
+import { ConsignmentsPage } from '../pages/ConsignmentsPage'
+import { DashboardPage } from '../pages/DashboardPage'
+import { EmployeesPage } from '../pages/EmployeesPage'
+import { ItemsPage } from '../pages/ItemsPage'
+import { OrdersPage } from '../pages/OrdersPage'
+import { StationsPage } from '../pages/StationsPage'
+import { SuppliersPage } from '../pages/SuppliersPage'
+
+export const appRoutes: RouteObject[] = [
+  {
+    path: '/login',
+    element: <LoginPage />
+  },
+  {
+    path: '/',
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AppShell />,
+        children: [
+          { index: true, element: <DashboardPage /> },
+          { path: 'employees', element: <EmployeesPage /> },
+          { path: 'items', element: <ItemsPage /> },
+          { path: 'stations', element: <StationsPage /> },
+          { path: 'orders', element: <OrdersPage /> },
+          { path: 'consignees', element: <ConsigneesPage /> },
+          { path: 'consignments', element: <ConsignmentsPage /> },
+          { path: 'suppliers', element: <SuppliersPage /> },
+          { path: '*', element: <Navigate to="/" replace /> }
+        ]
+      }
+    ]
+  }
+]

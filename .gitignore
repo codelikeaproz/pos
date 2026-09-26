@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/out/
+frontend/.release/
+frontend/*.tsbuildinfo
+dist/
+out/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+backend/.env
+
+# Logs / OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+POS Memory/.obsidian/workspace.json
+
+# Electron
+*.asar
+
+# PHP / Laravel (future)
+backend/vendor/
+backend/storage/*.key
+backend/bootstrap/cache/*.php

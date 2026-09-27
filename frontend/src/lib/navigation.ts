@@ -57,7 +57,15 @@ export const navItems: NavItem[] = [
     label: 'Orders / POS',
     icon: AppIcons.orders,
     title: 'Orders / POS',
-    description: 'Point of sale access. The POS workflow comes in a later phase.',
+    description: 'Build current orders using inventory from the assigned Station.',
+    allowedRoles: ['admin', 'end_user']
+  },
+  {
+    path: '/transactions',
+    label: 'Transactions',
+    icon: AppIcons.consignment,
+    title: 'Transaction History',
+    description: 'View completed sales and payment details.',
     allowedRoles: ['admin', 'end_user']
   },
   {

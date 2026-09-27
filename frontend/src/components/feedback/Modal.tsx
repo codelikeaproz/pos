@@ -9,9 +9,10 @@ export type ModalProps = {
   children: ReactNode
   onClose: () => void
   actions?: ReactNode
+  size?: 'default' | 'large'
 }
 
-export function Modal({ open, title, children, onClose, actions }: ModalProps) {
+export function Modal({ open, title, children, onClose, actions, size = 'default' }: ModalProps) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
 
@@ -50,7 +51,7 @@ export function Modal({ open, title, children, onClose, actions }: ModalProps) {
       />
       <div
         ref={dialogRef}
-        className="ui-modal__dialog"
+        className={`ui-modal__dialog${size === 'large' ? ' ui-modal__dialog--large' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

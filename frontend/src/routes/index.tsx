@@ -12,6 +12,7 @@ import { OrdersPage } from '../pages/OrdersPage'
 import { StationsPage } from '../pages/StationsPage'
 import { StationInventoryPage } from '../pages/StationInventoryPage'
 import { SuppliersPage } from '../pages/SuppliersPage'
+import { TransactionsPage } from '../pages/TransactionsPage'
 
 export const appRoutes: RouteObject[] = [
   {
@@ -40,6 +41,7 @@ export const appRoutes: RouteObject[] = [
             ]
           },
           { path: 'orders', element: <OrdersPage /> },
+          { path: 'transactions', element: <TransactionsPage /> },
           { path: '*', element: <Navigate to="/dashboard" replace /> }
         ]
       }

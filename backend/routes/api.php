@@ -5,6 +5,9 @@ use App\Http\Controllers\Api\ConsigneeController;
 use App\Http\Controllers\Api\ConsignmentAccountController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ItemController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PosCheckoutController;
+use App\Http\Controllers\Api\PosItemController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationItemController;
 use App\Http\Controllers\Api\SupplierController;
@@ -32,6 +35,11 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/current-user', [AuthController::class, 'currentUser']);
+
+    Route::get('/pos/items', [PosItemController::class, 'index']);
+    Route::post('/pos/checkout', [PosCheckoutController::class, 'store']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
 
     Route::get('/employee-options', [UserController::class, 'options'])->middleware('admin');
 

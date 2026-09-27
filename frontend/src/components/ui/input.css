@@ -17,7 +17,7 @@
 }
 
 .ui-input:hover:not(:disabled) {
-  border-color: var(--color-pos-blue-border);
+  border-color: var(--color-border-strong);
 }
 
 .ui-input:focus {

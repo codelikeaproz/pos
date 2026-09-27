@@ -42,3 +42,9 @@
   outline: 2px solid var(--color-pos-blue-primary);
   outline-offset: 1px;
 }
+
+@media (max-width: 800px) {
+  .app-sidebar { width: 100%; padding: var(--space-2); border-right: 0; border-bottom: 1px solid var(--color-border); }
+  .app-sidebar__nav { flex-direction: row; overflow-x: auto; gap: var(--space-2); }
+  .app-sidebar__link { flex: 0 0 auto; white-space: nowrap; }
+}

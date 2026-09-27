@@ -635,11 +635,74 @@ Station 1:N StationItem N:1 Item
 
 `station_items.quantity` is the source of truth for station-specific inventory. Existing `items.quantity` remains a transitional global quantity for backward compatibility and is not synchronized automatically. A future controlled cleanup must decide whether to remove or redefine it.
 
-Admin Station Inventory management supports Station filtering, item-code/name/unit search, 10-record pagination, explicit assignment, quantity editing, computed Low Stock status when station quantity is less than or equal to the Item's reorder point, and safe removal of only the assignment. Future End User POS reads will follow User → assigned Station → Station Inventory. Automatic alerts, replenishment, stock deduction, and movement history remain deferred.
+Admin Station Inventory management supports Station filtering, item-code/name/unit search, 10-record pagination, explicit assignment, quantity editing, computed Low Stock status when station quantity is less than or equal to the Item's reorder point, and safe removal of only the assignment. The reorder point remains an internal Item field and is not displayed in Item or Station Inventory interfaces. Future End User POS reads will follow User → assigned Station → Station Inventory. Automatic alerts, replenishment, stock deduction, and movement history remain deferred.
 
 Legacy Item `units` values are identifiers rather than quantities, while `unitsbackup` preserves the readable label. The clean schema retains these meanings as `items.unit` and `items.units_backup`. Legacy `expiry_notification` remains deferred until Receiving or batch inventory records an actual expiration date.
 
 The confirmed Supplier status correction is stored as `suppliers.is_active BOOLEAN DEFAULT TRUE` in the original Supplier schema; inactive Suppliers remain records rather than being deleted.
+
+## 9.10 Orders / POS Foundation (Phase 10.8)
+
+The POS inventory path is authenticated and Station-scoped:
+
+```text
+Authenticated User
+        ↓
+users.station_id
+        ↓
+Station
+        ↓
+StationItem
+        ↓
+Item
+        ↓
+GET /api/pos/items
+        ↓
+React in-memory Cart
+```
+
+`GET /api/pos/items` uses `auth:sanctum` without Admin-only middleware because both Admin and End User roles may operate the POS. The backend derives the Station only from the authenticated User and ignores arbitrary Station query parameters. An account without a Station receives HTTP `409`; it never falls back to all Items or another Station.
+
+`station_items.quantity` is the exclusive POS availability source. Transitional `items.quantity` is not queried for POS availability. Zero-stock assignments remain visible but cannot be added. `items.price` is the temporary POS selling-price source until the legacy Price workflow is understood, and the readable POS unit comes from `items.units_backup`.
+
+The Phase 10.8 cart exists only in React state. Add, edit, remove, search, and New Order actions perform no database writes and do not reserve or deduct stock. Line subtotals use price cents multiplied by quantity thousandths with half-up cent rounding; the displayed total is the sum of rounded line subtotals. Refreshing or restarting may clear the cart.
+
+Phase 10.9 must distrust all frontend prices and totals. Finalization must re-resolve the authenticated User's Station, re-fetch Items and Station inventory, validate quantities, calculate authoritative prices/subtotals/total, generate the permanent order number server-side, and create the Order, Order Items, and inventory deductions in one database transaction.
+
+## 9.11 Payment and Order Finalization (Phase 10.9)
+
+```
+React Cart
+    ↓ POST /api/pos/checkout
+auth:sanctum
+    ↓
+Authenticated User → Assigned Station
+    ↓
+DB::transaction()
+    ↓
+lockForUpdate() StationItem rows
+    ↓
+authoritative Item price + stock revalidation
+    ↓
+Order + OrderItem snapshots
+    ↓
+station_items.quantity deduction
+```
+
+Checkout accepts only Item IDs, quantities, `paymentMethod = cash`, and Cash received. Laravel resolves the Cashier and Station from the authenticated User, calculates each rounded line subtotal and total from current Item prices, generates `ORD-YYYYMMDD-######` after the Order receives its database ID, calculates Change, and returns a safe receipt-ready summary.
+
+`station_items.quantity` is the authoritative stock and is locked and deducted atomically. `items.quantity` remains transitional legacy data and is never modified by checkout. Completed Orders and their snapshot rows are immutable in this phase; Transaction History, voids, refunds, stock reversal, Customer, Remit, receipt printing, and Cash Drawer integration remain deferred.
+
+## 9.12 Transaction History (Phase 10.10)
+
+```
+Transaction History → GET /api/orders → role/Station scope → Order + Station + Cashier
+Order Details       → GET /api/orders/{order} → role/Station scope → OrderItem snapshots
+```
+
+Admins may view all Stations and optionally filter by Station. End Users are always restricted server-side to their assigned Station, and accounts without a Station receive the established HTTP `409` response. Search covers Order Number, Cashier name, and Station name; From/To dates provide basic filtering; results are paginated ten per page newest-first.
+
+History is read-only. Order creation remains exclusively `POST /api/pos/checkout`; there is no generic Order store, update, or delete route. Details use stored Order Item code, name, unit, price, quantity, and subtotal snapshots rather than current Item master values.
 
 
 # 10. Future Architecture
@@ -663,6 +726,10 @@ This can be added later without replacing the Laravel backend.
 
 
 # 11. Architecture Principle
+
+Frontend presentation follows shared tokens in `frontend/src/styles/tokens.css` and small reusable controls in `frontend/src/components/ui`. Page-specific business behavior stays in feature/page code; only repeated presentation patterns are shared. The Electron UI keeps its green/yellow identity, with blue used for supporting surfaces and focus states.
+
+The shared quantity formatter removes trailing decimal zeroes in tables, availability messages, Order Details, and quantity edit controls. The underlying API values and fixed-point calculations continue using three-decimal precision, so the formatting change does not alter inventory or checkout values.
 
 The first objective is not to create a completely new POS.
 

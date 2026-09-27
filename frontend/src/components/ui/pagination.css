@@ -1,0 +1,3 @@
+.ui-pagination { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: var(--space-3); color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
+.ui-pagination .ui-btn { min-height: var(--control-height-sm); }
+@media (max-width: 620px) { .ui-pagination { justify-content: center; } }

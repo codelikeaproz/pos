@@ -4,7 +4,8 @@ import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { SearchField } from '../components/ui/SearchField'
+import { Pagination } from '../components/ui/Pagination'
 import { StationForm, type StationFieldErrors } from '../features/stations/StationForm'
 import { StationTable } from '../features/stations/StationTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -135,27 +136,7 @@ export function StationsPage() {
         </Button>
       </header>
 
-      <div className="station-page__search" role="search">
-        <div className="station-page__search-input">
-          <AppIcons.search size={iconSize} strokeWidth={iconStroke} aria-hidden="true" />
-          <Input
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search stations by name, location, or description..."
-            aria-label="Search stations by name, location, or description"
-          />
-          {searchInput ? (
-            <button
-              type="button"
-              className="station-page__search-clear"
-              aria-label="Clear station search"
-              onClick={() => { setSearchInput(''); setSearch(''); setPage(1) }}
-            >
-              <AppIcons.close size={iconSize} strokeWidth={iconStroke} aria-hidden="true" />
-            </button>
-          ) : null}
-        </div>
-      </div>
+      <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search stations by name, location, or description..." label="Search stations by name, location, or description" />
 
       {pageError ? (
         <Alert tone="error" title="Stations could not be loaded">
@@ -180,13 +161,7 @@ export function StationsPage() {
             }}
             onDelete={(station) => { setFormError(null); setDeleteTarget(station) }}
           />
-          {stationList.lastPage > 1 ? (
-            <nav className="station-page__pagination" aria-label="Station pages">
-              <Button variant="outline" disabled={stationList.currentPage <= 1} onClick={() => setPage((value) => value - 1)}>Previous</Button>
-              <span>Page {stationList.currentPage} of {stationList.lastPage}</span>
-              <Button variant="outline" disabled={stationList.currentPage >= stationList.lastPage} onClick={() => setPage((value) => value + 1)}>Next</Button>
-            </nav>
-          ) : null}
+          <Pagination currentPage={stationList.currentPage} lastPage={stationList.lastPage} label="Station" onPageChange={setPage} />
         </>
       )}
 

@@ -18,3 +18,8 @@
   padding: var(--space-5) var(--space-6);
   overflow: auto;
 }
+
+@media (max-width: 800px) {
+  .app-shell__body { flex-direction: column; }
+  .app-shell__content { padding: var(--space-4); }
+}

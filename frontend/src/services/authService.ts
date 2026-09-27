@@ -12,11 +12,20 @@ function isCurrentUser(value: unknown): value is CurrentUser {
   }
 
   const record = value as Record<string, unknown>
+  const station = record.station
+  const hasValidStation = station === null || (
+    typeof station === 'object' &&
+    station !== null &&
+    typeof (station as Record<string, unknown>).id === 'number' &&
+    typeof (station as Record<string, unknown>).name === 'string'
+  )
+
   return (
     typeof record.id === 'number' &&
     typeof record.name === 'string' &&
     typeof record.email === 'string' &&
-    (record.role === 'admin' || record.role === 'end_user')
+    (record.role === 'admin' || record.role === 'end_user') &&
+    hasValidStation
   )
 }
 

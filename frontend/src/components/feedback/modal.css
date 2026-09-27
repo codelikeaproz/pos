@@ -23,6 +23,15 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   outline: none;
+  max-height: calc(100vh - (var(--space-6) * 2));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ui-modal__dialog--large {
+  width: min(100%, 900px);
 }
 
 .ui-modal__header {
@@ -43,6 +52,8 @@
 .ui-modal__body {
   padding: var(--space-5);
   font-size: var(--font-size-body);
+  overflow: auto;
+  min-width: 0;
 }
 
 .ui-modal__actions {
@@ -51,4 +62,10 @@
   gap: var(--space-2);
   padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 620px) {
+  .ui-modal { padding: var(--space-3); }
+  .ui-modal__header, .ui-modal__body, .ui-modal__actions { padding: var(--space-4); }
+  .ui-modal__actions { flex-wrap: wrap; }
 }

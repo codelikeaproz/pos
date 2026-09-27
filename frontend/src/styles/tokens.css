@@ -7,6 +7,7 @@
   /* Surfaces */
   --color-bg-offwhite: #fbfbfa;
   --color-bg-surface: #ffffff;
+  --color-bg-subtle: #f5f7f6;
 
   /* POS */
   --color-pos-blue: #eaf2f8;
@@ -19,6 +20,7 @@
   --color-text-secondary: #5c5c5c;
   --color-text-muted: #6b6b6b;
   --color-border: #d8d8d4;
+  --color-border-strong: #bfc8c2;
   --color-danger: #b42318;
   --color-danger-hover: #912018;
   --color-danger-bg: #fef3f2;
@@ -41,7 +43,8 @@
   --font-size-section: 18px;
   --font-size-modal-title: 20px;
   --font-size-alert: 16px;
-  --line-height: 1.45;
+  --line-height: 1.5;
+  --line-height-heading: 1.25;
 
   /* Spacing */
   --space-1: 4px;
@@ -57,6 +60,7 @@
   --control-height-sm: 36px;
   --radius-sm: 4px;
   --radius-md: 6px;
+  --radius-lg: 10px;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
 

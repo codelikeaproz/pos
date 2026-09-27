@@ -4,7 +4,8 @@ import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { SearchField } from '../components/ui/SearchField'
+import { Pagination } from '../components/ui/Pagination'
 import {
   EmployeeForm,
   type EmployeeFieldErrors
@@ -194,39 +195,7 @@ export function EmployeesPage() {
         </Button>
       </header>
 
-      <div className="employee-page__search" role="search">
-        <div className="employee-page__search-input">
-          <AppIcons.search
-            size={iconSize}
-            strokeWidth={iconStroke}
-            aria-hidden="true"
-          />
-          <Input
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search employees by name or email..."
-            aria-label="Search employees by name or email"
-          />
-          {searchInput ? (
-            <button
-              type="button"
-              className="employee-page__search-clear"
-              aria-label="Clear employee search"
-              onClick={() => {
-                setSearchInput('')
-                setSearch('')
-                setPage(1)
-              }}
-            >
-              <AppIcons.close
-                size={iconSize}
-                strokeWidth={iconStroke}
-                aria-hidden="true"
-              />
-            </button>
-          ) : null}
-        </div>
-      </div>
+      <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search employees by name or email..." label="Search employees by name or email" />
 
       {pageError ? (
         <Alert tone="error" title="Employees could not be loaded">
@@ -255,27 +224,7 @@ export function EmployeesPage() {
               setDeleteTarget(employee)
             }}
           />
-          {employeeList.lastPage > 1 ? (
-            <nav className="employee-page__pagination" aria-label="Employee pages">
-              <Button
-                variant="outline"
-                disabled={employeeList.currentPage <= 1}
-                onClick={() => setPage((currentPage) => currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <span>
-                Page {employeeList.currentPage} of {employeeList.lastPage}
-              </span>
-              <Button
-                variant="outline"
-                disabled={employeeList.currentPage >= employeeList.lastPage}
-                onClick={() => setPage((currentPage) => currentPage + 1)}
-              >
-                Next
-              </Button>
-            </nav>
-          ) : null}
+          <Pagination currentPage={employeeList.currentPage} lastPage={employeeList.lastPage} label="Employee" onPageChange={setPage} />
         </>
       )}
 

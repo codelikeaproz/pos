@@ -698,6 +698,32 @@ Authentication credentials belong only to `users`; never create duplicate creden
 
 Inventory quantities are Station-specific and use fixed-precision `DECIMAL`, never FLOAT/DOUBLE. The reorder point belongs to the Item, matching the legacy Item schema. Each Station+Item assignment must be unique. Treat station quantity less than or equal to the Item reorder point as Low Stock for display only; alerts and automatic replenishment remain deferred. `StationItem` is a real Eloquent model, and removing it must never delete the underlying Station or Item. Do not add `expiry_notification` until batch or Receiving inventory records an actual expiration date.
 
+POS availability must come from `station_items.quantity`, never transitional `items.quantity`. Resolve the POS Station from the authenticated User; End Users and Admins must not select or override arbitrary Station IDs. Accounts without a Station receive a readable conflict response rather than access to another Station or the full catalog.
+
+Until finalization exists, cart state is frontend-only. Adding, editing, removing, searching, and starting a new order must never reserve, deduct, or otherwise modify database inventory. Refreshing or restarting may clear the cart.
+
+Permanent checkout must re-fetch authoritative Item prices and Station quantities. Never trust frontend `unitPrice`, subtotal, total, Station ID, or permanent order number. Laravel must validate stock, calculate authoritative money values, generate the order number server-side, and perform Order, Order Item, and inventory writes atomically.
+
+### Checkout finalization rules
+
+- Never trust frontend price, subtotal, total, change, Station ID, Cashier ID, or Order Number.
+- Resolve Cashier and Station from the authenticated User and reject accounts without a Station.
+- Re-fetch and lock the authenticated Station's `station_items` rows during checkout, then revalidate every requested quantity.
+- Generate the permanent Order Number server-side.
+- Create the Order, create immutable Order Item snapshots, and deduct Station stock in one `DB::transaction()` operation.
+- A failed checkout must roll back the Order, Order Items, and every stock change. The frontend must preserve its cart for correction or retry.
+- Checkout modifies `station_items.quantity`, never `items.quantity`.
+- Completed Orders cannot be edited or deleted until explicit void/refund and stock-reversal rules are approved.
+
+### Transaction History rules
+
+- Completed Orders and Order Items are immutable, and Transaction History is read-only.
+- Order creation occurs only through `POST /api/pos/checkout`; never add generic Order create/update/delete routes.
+- Admins may read all Orders; End Users may read only Orders belonging to their assigned Station.
+- End User scope is derived server-side and cannot be overridden by a Station query parameter or guessed Order ID.
+- Historical displays use the Order Item snapshot fields, never current Item master names, codes, units, or prices.
+- Do not introduce Customer, `is_settled`, or Remit fields merely to match the legacy Transaction List.
+
 Recommended:
 
 DECIMAL(12, 2)
@@ -781,6 +807,10 @@ Prioritize:
 - Clear validation messages
 - Obvious primary actions
 - Minimal unnecessary decoration
+
+Frontend presentation conventions: use the shared design tokens and reusable SearchField, Pagination, Table, Button, Input, and Modal for repeated patterns. Keep feature-specific forms and POS calculations within their features. Search remains debounced and cancellable; presentation refactors must not change API contracts, quantity precision, or payment behavior. At narrow desktop widths, stack page actions and POS panels, allow tables to scroll within their containers, and keep dialog content within the viewport.
+
+Quantity values retain `DECIMAL(12,3)` storage and accept up to three fractional digits, but the frontend must omit unnecessary trailing zeroes. Display and edit controls show `5` instead of `5.000`, `1.5` instead of `1.500`, and preserve meaningful precision such as `1.125`. This is presentation normalization only; API validation, calculations, and database precision remain unchanged.
 
 The POS screen should prioritize speed.
 

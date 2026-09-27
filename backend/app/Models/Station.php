@@ -23,4 +23,9 @@ class Station extends Model
     {
         return $this->hasMany(StationItem::class);
     }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

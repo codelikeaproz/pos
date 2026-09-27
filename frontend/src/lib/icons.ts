@@ -7,6 +7,7 @@ import {
   CircleX,
   ClipboardList,
   Contact,
+  FilePlus,
   Info,
   LayoutDashboard,
   LogOut,
@@ -59,7 +60,8 @@ export const AppIcons = {
   print: Printer,
   payment: Banknote,
   cashDrawer: Archive,
-  refresh: RefreshCw
+  refresh: RefreshCw,
+  newOrder: FilePlus
 } as const satisfies Record<string, LucideIcon>
 
 export type AppIconName = keyof typeof AppIcons

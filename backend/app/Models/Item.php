@@ -32,4 +32,9 @@ class Item extends Model
     {
         return $this->hasMany(StationItem::class);
     }
+
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

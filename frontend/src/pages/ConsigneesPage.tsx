@@ -4,7 +4,8 @@ import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { SearchField } from '../components/ui/SearchField'
+import { Pagination } from '../components/ui/Pagination'
 import { ConsigneeForm, type ConsigneeFieldErrors } from '../features/consignees/ConsigneeForm'
 import { ConsigneeTable } from '../features/consignees/ConsigneeTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -67,9 +68,9 @@ export function ConsigneesPage() {
   return (
     <section className="page consignee-page">
       <header className="page__header consignee-page__header"><div><h1 className="page__title">Consignee Management</h1><p className="page__description">Manage consignee contact information for future consignment workflows.</p></div><Button onClick={() => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'create' }) }} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Consignee</Button></header>
-      <div className="consignee-page__search" role="search"><div className="consignee-page__search-input"><AppIcons.search size={iconSize} strokeWidth={iconStroke} aria-hidden="true" /><Input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search consignees..." aria-label="Search consignees" />{searchInput ? <button type="button" className="consignee-page__search-clear" aria-label="Clear consignee search" onClick={() => { setSearchInput(''); setSearch(''); setPage(1) }}><AppIcons.close size={iconSize} strokeWidth={iconStroke} /></button> : null}</div></div>
+      <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search consignees..." label="Search consignees" />
       {pageError ? <Alert tone="error" title="Consignees could not be loaded">{pageError}<div className="consignee-page__retry"><Button variant="outline" onClick={() => void refresh()}>Try Again</Button></div></Alert> : null}
-      {loading ? <LoadingState label="Loading consignees…" /> : <><div className="consignee-page__summary">{list.total} consignee{list.total === 1 ? '' : 's'}</div><ConsigneeTable consignees={list.consignees} onEdit={(consignee) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', consignee }) }} onDelete={(consignee) => { setFormError(null); setDeleteTarget(consignee) }} />{list.lastPage > 1 ? <nav className="consignee-page__pagination" aria-label="Consignee pages"><Button variant="outline" disabled={list.currentPage <= 1} onClick={() => setPage((value) => value - 1)}>Previous</Button><span>Page {list.currentPage} of {list.lastPage}</span><Button variant="outline" disabled={list.currentPage >= list.lastPage} onClick={() => setPage((value) => value + 1)}>Next</Button></nav> : null}</>}
+      {loading ? <LoadingState label="Loading consignees…" /> : <><div className="consignee-page__summary">{list.total} consignee{list.total === 1 ? '' : 's'}</div><ConsigneeTable consignees={list.consignees} onEdit={(consignee) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', consignee }) }} onDelete={(consignee) => { setFormError(null); setDeleteTarget(consignee) }} /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Consignee" onPageChange={setPage} /></>}
       <Modal open={formDialog !== null} title={editing ? 'Edit Consignee' : 'Add Consignee'} onClose={closeForm} actions={<><Button variant="outline" onClick={closeForm} disabled={submitting}>Cancel</Button><Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editing ? 'Save Changes' : 'Save Consignee'}</Button></>}>
         {formError ? <Alert tone="error" title="Consignee could not be saved">{formError}</Alert> : null}{formDialog ? <ConsigneeForm key={formId} formId={formId} consignee={editing} errors={fieldErrors} disabled={submitting} onSubmit={(input) => void save(input)} /> : null}
       </Modal>

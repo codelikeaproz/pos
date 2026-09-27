@@ -516,6 +516,72 @@ This is a future enhancement and must not affect the current desktop MVP.
 
 # 18. Current Phase
 
+## Frontend UI cleanup — 2026-09-27
+
+- Refined the existing typography, spacing, surface, focus, table, modal, Login, Dashboard, application-shell, POS, and Transaction History styles without changing routes or workflows
+- Added shared `SearchField` and `Pagination` components and removed the duplicated page-specific search and pagination presentation rules
+- Improved narrow-window stacking, table overflow, action wrapping, and Order Details dialog containment
+- Corrected the Payment panel to use defined design tokens
+- Standardized quantity presentation across Item, Station Inventory, POS, validation feedback, and Transaction History: whole values omit `.000`, trailing fractional zeroes are removed, and meaningful values up to three decimal places remain visible
+- Quantity storage, API payloads, validation, Station availability, and fixed-point checkout calculations remain three-decimal and unchanged
+
+Verification: frontend TypeScript checking, Electron production build, and `git diff --check` pass. Live visual click-through remains pending because the available desktop/browser inspection runtime could not initialize in the Codex session.
+
+## Phase 10.10 — Transaction History
+
+Status: **COMPLETE**
+
+- Added authenticated read-only `GET /api/orders` and `GET /api/orders/{order}` endpoints
+- Admins can view all transactions and filter by Station; End Users are forcibly scoped to their assigned Station
+- Added live 350 ms search across Order Number, Cashier, and Station, basic From/To date filters, ten-row pagination, and newest-first sorting
+- Added Transaction History navigation, POS `View Transactions`, a read-only transaction table, and centered Order Details
+- Details display historical Order Item code, name, unit, quantity, unit-price, and subtotal snapshots plus Total, Cash, and Change
+- Generic Order POST, PUT, PATCH, and DELETE methods are not exposed; no editing, deletion, void, refund, or stock reversal exists
+- Resolved: Transaction History, transaction search, and transaction details
+- Still deferred: Customer, `is_settled`, Remit/remittance/settlement, void/refund/correction/stock reversal, Receipt Printer, Cash Drawer/ESC-POS, additional or split payments, payments table, legacy Price table verification, `items.quantity` cleanup, Receiving, Withdrawal, Spoilage, inventory movement history, OTP/2FA, and customer web/mobile ordering
+
+Verification: **96 tests, 577 assertions passed**, including **7 Transaction History tests, 56 assertions**. Checkout row-locking, forced rollback, stock deduction, POS inventory, authentication, and all existing CRUD regressions remain green. PHP 8.3 Pint, frontend TypeScript checking, the Electron production build, route inspection, and `git diff --check` passed.
+
+Next phase is intentionally unspecified pending review. Hardware and deferred financial workflows must not start automatically.
+
+## Phase 10.9 — Payment & Order Finalization
+
+Status: **COMPLETE**
+
+- Added `orders` and `order_items` with restrictive master-data foreign keys and historical Item snapshots
+- Added `Order`, `OrderItem`, and their Station, Cashier, and Item relationships
+- Added `POST /api/pos/checkout` behind `auth:sanctum` for Admin and End User accounts assigned to a Station
+- Checkout trusts only Item IDs, quantities, Cash payment method, and Cash received; Station, Cashier, prices, subtotals, total, Change, and Order Number are server-authoritative
+- Added `ORD-YYYYMMDD-######` permanent Order Numbers generated after database identity allocation
+- Added locked Station stock revalidation, half-up line rounding, atomic Order/Order Item creation, and `station_items.quantity` deduction inside `DB::transaction()`
+- `items.quantity` is not modified
+- Added Cash Received, Change preview, protected Pay action, success summary, inventory refresh, and cart reset only after successful payment
+- Failed validation, stale stock, network errors, and backend errors preserve the cart; stale-stock validation refreshes available inventory
+- Resolved: Orders persistence, Order Items persistence, permanent Order Number, Cash payment, Cash Received, Change, authoritative totals, and automatic Station inventory deduction
+- Still deferred: `items.quantity` cleanup, legacy Price table verification, Customer, Remit, settlement/remittance, Transaction History/search/details, void/refund/stock reversal, other or split payment methods, a payments table, Receipt Printer, Cash Drawer/ESC-POS, Receiving, Withdrawal, Spoilage, inventory movement history, OTP/2FA, and customer web/mobile ordering
+
+Verification: **89 tests, 521 assertions passed**, including **10 checkout tests, 63 assertions**. Forced Order Item and Station stock-update failures prove transaction rollback. PHP 8.3 Pint, frontend TypeScript checking, the Electron production build, both development migrations, route middleware inspection, and `git diff --check` passed.
+
+Next: **Phase 10.10 — Transaction History**. It is not implemented and requires explicit approval.
+
+## Phase 10.8 — Orders / POS Foundation
+
+Status: **COMPLETE**
+
+- Replaced the Orders placeholder with an authenticated, station-scoped desktop POS interface
+- Added `GET /api/pos/items` behind `auth:sanctum`; both Admin and End User accounts use their assigned Station, and accounts without one receive HTTP `409`
+- Station resolution comes only from the authenticated User; client-supplied `station_id` values are ignored
+- Available quantity comes only from `station_items.quantity`; current Item price and readable `items.units_backup` are returned for the temporary cart
+- Added 350 ms cancellable live search, pagination, zero-stock visibility with disabled Add controls, User/Station context, and backend-unavailable handling
+- Added a frontend-only cart with duplicate-free Add/increment, three-decimal quantity editing and validation, Remove, New Order confirmation, and integer fixed-decimal peso totals
+- The cart does not persist and performs no inventory, order, order-item, or payment writes
+- Reorder Point remains available internally for Station Inventory status logic but is not displayed in the current UI; `units_backup` also remains implemented internally and supplies the readable POS unit
+- Added no migrations, packages, Services, Repositories, transactions, payment controls, order numbers, transaction history, printing, or keyboard shortcuts
+
+Verification: **79 tests, 458 assertions passed**; the POS endpoint tests cover authentication, Admin and End User access, authenticated Station isolation, missing-Station `409`, manipulated `station_id`, Station quantity as the availability source, current price and readable unit mapping, search, pagination, ordering, and zero-stock inclusion. PHP 8.3 Pint, TypeScript checking, the Electron production build, migration status, and `git diff --check` passed.
+
+Next: **Phase 10.9 — Payment & Order Finalization**. It must re-fetch Station inventory and Item prices, validate quantities, calculate authoritative totals, generate the order number, and perform order, payment, and inventory writes atomically. Phase 10.9 is not implemented.
+
 ## Phase 10.7 — Station Inventory Foundation
 
 Status: **COMPLETE**
@@ -626,6 +692,7 @@ COMPLETE
 - Added 350 ms live item-code/name/unit-name search, request cancellation, inline X clearing, zero-result feedback, and 10-record pagination
 - Added suggested readable unit labels while allowing custom `units_backup` values, preserved the separate legacy unit code, and added no units table
 - Kept legacy unit-code and reorder-point fields hidden from Item Management; the UI retains the simple Item Code, Item Name, Quantity, Unit, and Price display
+- Kept the Item reorder point hidden from Station Inventory as well; only the computed Low Stock/In Stock status is displayed
 - Kept API prices as two-decimal strings and kept the peso symbol out of database values
 - Allowed duplicate Item names because no uniqueness requirement has been established
 - Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
@@ -909,7 +976,7 @@ Repository note: the workspace is connected to `https://github.com/codelikeaproz
 2. **PHP:** 8.3.33 is installed with `zip` / `pdo_mysql`, but the current shell PATH resolves XAMPP PHP 8.2.12 first. Use the WinGet PHP 8.3 executable for Pint until PATH is corrected.
 3. **Database (local):** XAMPP MariaDB 10.4.32; DB `pos_homestay`; target MySQL 8.4 LTS for production.
 4. **Node:** v22.14.0 acceptable for frontend development.
-5. **Phase boundary:** Phase 10.7 complete. Do not start Phase 10.8 Orders/POS until explicitly requested.
+5. **Phase boundary:** Phase 10.10 is complete. No next phase has been approved.
 
 Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
@@ -919,13 +986,12 @@ Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
 Immediate next phase (**awaiting explicit go-ahead**):
 
-1. **Potential Phase 10.8 — Orders / POS Foundation (requires explicit approval)**
+1. Review and approve Phase 10.10 Transaction History
 
 Then:
 
 2. Remaining confirmed Master Data modules
-3. POS
-4. Hardware
+3. Hardware integration
 
 Frontend run:
 

@@ -4,7 +4,8 @@ import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { SearchField } from '../components/ui/SearchField'
+import { Pagination } from '../components/ui/Pagination'
 import { ItemForm, type ItemFieldErrors } from '../features/items/ItemForm'
 import { ItemTable } from '../features/items/ItemTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -89,17 +90,13 @@ export function ItemsPage() {
         <Button onClick={() => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'create' }) }} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Item</Button>
       </header>
 
-      <div className="item-page__search" role="search"><div className="item-page__search-input">
-        <AppIcons.search size={iconSize} strokeWidth={iconStroke} aria-hidden="true" />
-        <Input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by item code, item name, or unit name..." aria-label="Search items" />
-        {searchInput ? <button type="button" className="item-page__search-clear" aria-label="Clear item search" onClick={() => { setSearchInput(''); setSearch(''); setPage(1) }}><AppIcons.close size={iconSize} strokeWidth={iconStroke} aria-hidden="true" /></button> : null}
-      </div></div>
+      <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search by item code, item name, or unit name..." label="Search items" />
 
       {pageError ? <Alert tone="error" title="Items could not be loaded">{pageError}<div className="item-page__retry"><Button variant="outline" onClick={() => void refreshItems()}>Try Again</Button></div></Alert> : null}
       {loading ? <LoadingState label="Loading items…" /> : <>
         <div className="item-page__summary">{itemList.total} item{itemList.total === 1 ? '' : 's'}</div>
         <ItemTable items={itemList.items} onEdit={(item) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', item }) }} onDelete={(item) => { setFormError(null); setDeleteTarget(item) }} />
-        {itemList.lastPage > 1 ? <nav className="item-page__pagination" aria-label="Item pages"><Button variant="outline" disabled={itemList.currentPage <= 1} onClick={() => setPage((value) => value - 1)}>Previous</Button><span>Page {itemList.currentPage} of {itemList.lastPage}</span><Button variant="outline" disabled={itemList.currentPage >= itemList.lastPage} onClick={() => setPage((value) => value + 1)}>Next</Button></nav> : null}
+        <Pagination currentPage={itemList.currentPage} lastPage={itemList.lastPage} label="Item" onPageChange={setPage} />
       </>}
 
       <Modal open={formDialog !== null} title={editingItem ? 'Edit Item' : 'Add Item'} onClose={closeForm} actions={<><Button variant="outline" onClick={closeForm} disabled={submitting}>Cancel</Button><Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingItem ? 'Save Changes' : 'Save Item'}</Button></>}>

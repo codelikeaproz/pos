@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
+import { formatQuantity } from '../../lib/posCalculations'
 import { ITEM_UNITS, type Item, type ItemInput } from '../../types/item'
 
 export type ItemFieldErrors = Partial<Record<'item_code' | 'name' | 'quantity' | 'units_backup' | 'unit' | 'reorder_point' | 'price', string>>
@@ -10,7 +11,7 @@ type Props = { formId: string; item?: Item; errors: ItemFieldErrors; disabled?: 
 export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: Props) {
   const [itemCode, setItemCode] = useState(item?.item_code ?? '')
   const [name, setName] = useState(item?.name ?? '')
-  const [quantity, setQuantity] = useState(item?.quantity ?? '')
+  const [quantity, setQuantity] = useState(item ? formatQuantity(item.quantity) : '')
   const [unitsBackup, setUnitsBackup] = useState(item?.units_backup ?? 'pcs')
   const [price, setPrice] = useState(item?.price ?? '')
 

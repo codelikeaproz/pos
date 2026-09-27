@@ -1,14 +1,18 @@
 .ui-table-wrap {
   width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
 
 .ui-table {
   width: 100%;
+  min-width: 580px;
   border-collapse: collapse;
   font-size: var(--font-size-body);
+  line-height: 1.4;
 }
 
 .ui-table th,
@@ -23,15 +27,20 @@
   background: var(--color-pos-blue);
   color: var(--color-text);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .ui-table tbody tr:hover {
-  background: #f5f9fc;
+  background: var(--color-bg-subtle);
 }
 
 .ui-table tbody tr:last-child td {
   border-bottom: none;
 }
+
+.ui-table td { overflow-wrap: anywhere; }
+.ui-table td:has(.ui-btn) { overflow-wrap: normal; }
+.ui-table td .ui-btn { min-height: var(--control-height-sm); }
 
 .ui-table__cell--right {
   text-align: right;

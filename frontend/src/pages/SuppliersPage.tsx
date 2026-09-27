@@ -4,7 +4,8 @@ import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { SearchField } from '../components/ui/SearchField'
+import { Pagination } from '../components/ui/Pagination'
 import { SupplierForm, type SupplierFieldErrors } from '../features/suppliers/SupplierForm'
 import { SupplierTable } from '../features/suppliers/SupplierTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -106,21 +107,13 @@ export function SuppliersPage() {
         <Button onClick={() => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'create' }) }} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Supplier</Button>
       </header>
 
-      <div className="supplier-page__search" role="search"><div className="supplier-page__search-input">
-        <AppIcons.search size={iconSize} strokeWidth={iconStroke} aria-hidden="true" />
-        <Input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search suppliers..." aria-label="Search suppliers" />
-        {searchInput ? <button type="button" className="supplier-page__search-clear" aria-label="Clear supplier search" onClick={() => { setSearchInput(''); setSearch(''); setPage(1) }}><AppIcons.close size={iconSize} strokeWidth={iconStroke} aria-hidden="true" /></button> : null}
-      </div></div>
+      <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search suppliers..." label="Search suppliers" />
 
       {pageError ? <Alert tone="error" title="Suppliers could not be loaded">{pageError}<div className="supplier-page__retry"><Button variant="outline" onClick={() => void refreshSuppliers()}>Try Again</Button></div></Alert> : null}
       {loading ? <LoadingState label="Loading suppliers…" /> : <>
         <div className="supplier-page__summary">{supplierList.total} supplier{supplierList.total === 1 ? '' : 's'}</div>
         <SupplierTable suppliers={supplierList.suppliers} onEdit={(supplier) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', supplier }) }} onDelete={(supplier) => { setFormError(null); setDeleteTarget(supplier) }} />
-        {supplierList.lastPage > 1 ? <nav className="supplier-page__pagination" aria-label="Supplier pages">
-          <Button variant="outline" disabled={supplierList.currentPage <= 1} onClick={() => setPage((value) => value - 1)}>Previous</Button>
-          <span>Page {supplierList.currentPage} of {supplierList.lastPage}</span>
-          <Button variant="outline" disabled={supplierList.currentPage >= supplierList.lastPage} onClick={() => setPage((value) => value + 1)}>Next</Button>
-        </nav> : null}
+        <Pagination currentPage={supplierList.currentPage} lastPage={supplierList.lastPage} label="Supplier" onPageChange={setPage} />
       </>}
 
       <Modal open={formDialog !== null} title={editingSupplier ? 'Edit Supplier' : 'Add Supplier'} onClose={closeForm} actions={<><Button variant="outline" onClick={closeForm} disabled={submitting}>Cancel</Button><Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingSupplier ? 'Save Changes' : 'Save Supplier'}</Button></>}>

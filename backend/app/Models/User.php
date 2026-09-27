@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -24,6 +25,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'station_id',
+        'consignee_id',
     ];
 
     /**
@@ -48,5 +51,15 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
+    }
+
+    public function station(): BelongsTo
+    {
+        return $this->belongsTo(Station::class);
+    }
+
+    public function consignee(): BelongsTo
+    {
+        return $this->belongsTo(Consignee::class);
     }
 }

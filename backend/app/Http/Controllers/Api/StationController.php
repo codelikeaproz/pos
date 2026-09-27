@@ -61,6 +61,9 @@ class StationController extends Controller
 
     public function destroy(Station $station): JsonResponse
     {
+        if ($station->users()->exists()) {
+            return response()->json(['message' => 'This station is assigned to an account and cannot be deleted.'], 409);
+        }
         $station->delete();
 
         return response()->json([

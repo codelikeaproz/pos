@@ -23,6 +23,9 @@ class UserResource extends JsonResource
             'role' => $this->role instanceof \BackedEnum
                 ? $this->role->value
                 : (string) $this->role,
+            'station' => $this->station
+                ? ['id' => $this->station->id, 'name' => $this->station->name]
+                : null,
         ];
     }
 }

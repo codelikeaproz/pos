@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
+use App\Models\Station;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,12 +18,13 @@ class UserController extends Controller
     {
         $search = $request->string('search')->trim()->toString();
 
-        $users = User::query()
+        $users = User::query()->with('station')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($searchQuery) use ($search) {
                     $searchQuery
                         ->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhereHas('station', fn ($stationQuery) => $stationQuery->where('name', 'like', "%{$search}%"));
                 });
             })
             ->orderBy('name')
@@ -32,20 +34,27 @@ class UserController extends Controller
         return UserResource::collection($users)->response();
     }
 
+    public function options(): JsonResponse
+    {
+        return response()->json([
+            'stations' => Station::query()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
     public function store(StoreUserRequest $request): JsonResponse
     {
         $user = User::query()->create($request->validated());
 
         return response()->json([
             'message' => 'Employee created successfully.',
-            'user' => (new UserResource($user))->resolve(),
+            'user' => (new UserResource($user->load('station')))->resolve(),
         ], 201);
     }
 
     public function show(User $user): JsonResponse
     {
         return response()->json([
-            'user' => (new UserResource($user))->resolve(),
+            'user' => (new UserResource($user->load('station')))->resolve(),
         ]);
     }
 
@@ -69,7 +78,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Employee updated successfully.',
-            'user' => (new UserResource($user->fresh()))->resolve(),
+            'user' => (new UserResource($user->fresh()->load('station')))->resolve(),
         ]);
     }
 

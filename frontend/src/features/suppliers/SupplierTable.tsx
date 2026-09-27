@@ -11,6 +11,7 @@ export function SupplierTable({ suppliers, onEdit, onDelete }: Props) {
     { key: 'contactPerson', header: 'Contact Person', render: (supplier) => supplier.contactPerson || '—' },
     { key: 'contactNumber', header: 'Contact Number', render: (supplier) => supplier.contactNumber || '—' },
     { key: 'email', header: 'Email', render: (supplier) => supplier.email || '—' },
+    { key: 'address', header: 'Address', render: (supplier) => supplier.address || '—' },
     {
       key: 'actions', header: 'Actions', align: 'right', render: (supplier) => (
         <div className="supplier-table__actions">

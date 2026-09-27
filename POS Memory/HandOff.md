@@ -516,6 +516,122 @@ This is a future enhancement and must not affect the current desktop MVP.
 
 # 18. Current Phase
 
+## Phase 10.6 — Consignment Account Management
+
+Status: **COMPLETE**
+
+- Reviewed the legacy Consignment screen and confirmed it manages accounts, not goods transactions
+- Reused `users`, `stations`, and `consignees`; added nullable restrictive `users.station_id` and `users.consignee_id`
+- Added User-to-Station and User-to-Consignee relationships and inverse relationships
+- Extended Employee Management with a Station column and optional Station dropdown backed by `users.station_id`; raw IDs remain hidden from users
+- Added Admin-only `/api/consignment-accounts` CRUD plus a complete authorized options endpoint
+- Added `ConsignmentAccountController`, Store/Update Form Requests, and a password-safe Resource
+- New accounts retain the existing `end_user` role; no third role was introduced
+- Passwords remain hashed, confirmation is never persisted, existing passwords are never loaded, and blank edit passwords preserve the hash
+- Added Station/Consignee selection, Add Consignee shortcut, live 350 ms search, cancellation, pagination, and centered deletion
+- Assigned Stations and Consignees now return a safe 409 instead of leaking a foreign-key error
+- Added no `consignments`, `consignment_items`, Service, Repository, transaction wrapper, or inventory behavior
+
+Verification: **69 tests, 364 assertions passed**; TypeScript and Electron production build passed. Employee Station assignment, reassignment, clearing, Station-name search, complete options, and invalid IDs are covered. The relationship columns live in the base users schema, while the existing Station and Consignee migrations add their constraints only after those referenced tables exist; no separate Phase 10.6 migration file is retained.
+
+Resolved: Employee/User-to-Station, Consignment Account-to-Station, and Consignment Account-to-Consignee associations.
+
+Still deferred: traditional Consignment transaction workflow and Consignment-to-Item relationship (requires additional confirmed business requirements/screens); Supplier-to-Item; quantity deduction; stock-in/out; inventory history; low-stock behavior; availability; Station-to-Order; End User Item read access; Orders, Order Items, Checkout, Payments; printing/cash drawer; advanced auth; customer menu.
+
+## Phase 10.5 — Consignee Management
+
+Status:
+
+```
+COMPLETE
+```
+
+### Phase 10.5 deliverables
+
+- Introduced the `consignees` table with required `name`; nullable string `contact_number`, nullable `email`, nullable text `address`; and timestamps
+- Added the `Consignee` Eloquent model without speculative relationships
+- Added `Api\ConsigneeController`, `StoreConsigneeRequest`, `UpdateConsigneeRequest`, and `ConsigneeResource`
+- Added `GET/POST /api/consignees` and `GET/PUT/PATCH/DELETE /api/consignees/{consignee}`
+- Reused `auth:sanctum`, the `admin` alias, and `EnsureUserIsAdmin`
+- Added list, create, edit, and centered delete-confirmation UI
+- Added 350 ms live name/contact-number/email search, request cancellation, inline X clearing, zero-result feedback, and 10-record pagination
+- Preserved contact numbers as strings and normalized blank optional fields to `null`
+- Used direct Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or transaction
+- Added no Consignee-to-Item or Consignee-to-Consignment relationship; deletion must be revisited in Phase 10.6
+
+### Phase 10.5 verification — 2026-09-27
+
+| Check | Result |
+|---|---|
+| Complete Laravel test suite | PASS — 65 tests, 322 assertions |
+| Consignee API authorization | PASS — unauthenticated 401; End User 403; Admin allowed |
+| Create/show/PUT/PATCH/delete, required name, optional fields, valid/invalid email | PASS |
+| String contact number, three-field search, zero results, empty search, and pagination | PASS |
+| Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
+| MySQL/MariaDB migration | PASS — `2026_09_27_030000_create_consignees_table` applied |
+| Live API create/search/PATCH/delete | PASS — string contact number preserved; disposable record cleaned up |
+| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| Frontend TypeScript check | PASS |
+| Electron production build | PASS — main, preload, and renderer |
+| `git diff --check` | PASS |
+
+### Deferred feature register carried forward
+
+- Employee-to-Station assignment
+- Supplier-to-Item relationship
+- Consignee-to-Consignment relationship
+- Consignment-to-Item relationship
+- Automatic Item quantity deduction, stock-in/out, movement history, reorder levels, and low-stock notifications
+- Item availability/status and End User Item read access
+- Station-to-Order relationship, Orders, Payments, and transaction processing
+- Receipt printing, cash drawer, ESC/POS, and USB integration
+- OTP/2FA and other advanced authentication
+- Customer web/mobile food menu
+
+## Phase 10.4 — Item Management
+
+Status:
+
+```
+COMPLETE
+```
+
+### Phase 10.4 deliverables
+
+- Introduced the `items` table with unique required string `item_code`, required `name`, nullable `description`, fixed-precision `DECIMAL(12,3)` `quantity`, controlled required `unit`, fixed-precision `DECIMAL(10,2)` `price`, and timestamps
+- Added the `Item` Eloquent model with `decimal:3` quantity and `decimal:2` price casts and no premature relationships
+- Added `Api\ItemController`, `StoreItemRequest`, `UpdateItemRequest`, and a safe `ItemResource`
+- Added `GET/POST /api/items` and `GET/PUT/PATCH/DELETE /api/items/{item}`
+- Reused `auth:sanctum`, the `admin` alias, and `EnsureUserIsAdmin`
+- Added Item list, create, edit, centered delete confirmation, and Philippine peso display formatting
+- Added 350 ms live item-code/name/description search, request cancellation, inline X clearing, zero-result feedback, and 10-record pagination
+- Added suggested units `pcs`, `pack`, `box`, `bottle`, `can`, `cup`, `serving`, `kg`, `g`, `L`, and `mL`, while allowing free-text units such as `tray` or `sack`, without a separate units table
+- Kept API prices as two-decimal strings and kept the peso symbol out of database values
+- Allowed duplicate Item names because no uniqueness requirement has been established
+- Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
+- Added initial Item quantity and unit as required by the original POS, while deferring automatic deduction, stock-in/out, inventory history, reorder levels, low-stock notifications, and order-based quantity updates
+- Added no availability/status, Supplier, Consignee, Consignment, Station, Order, Inventory, or user relationship
+- Hardware and advanced authentication remain deferred
+
+### Phase 10.4 verification — 2026-09-27
+
+| Check | Result |
+|---|---|
+| Complete Laravel test suite | PASS — 59 tests, 282 assertions |
+| Item API authorization | PASS — unauthenticated 401; End User 403; Admin allowed |
+| Item create/show/PUT/PATCH/delete | PASS |
+| Required unique item code, name, quantity, unit, price, and optional description | PASS |
+| Quantity/price precision, invalid/negative values, required unit, and custom unit entry | PASS |
+| Duplicate names, item-code/name/description search, zero results, empty search, and 10-record pagination | PASS |
+| Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
+| MySQL/MariaDB migration | PASS — `2026_09_27_020000_create_items_table` applied in batch 4 |
+| Live API create/search/PATCH/delete | PASS — decimal strings preserved; disposable record cleaned up |
+| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| Frontend TypeScript check | PASS |
+| Electron production build | PASS — main, preload, and renderer |
+| Public `/api/health` | PASS — running API returned `status: ok` |
+| `git diff --check` | PASS |
+
 ## Phase 10.3 — Supplier Management
 
 Status:
@@ -773,7 +889,7 @@ Repository note: the workspace is connected to `https://github.com/codelikeaproz
 2. **PHP:** 8.3.33 is installed with `zip` / `pdo_mysql`, but the current shell PATH resolves XAMPP PHP 8.2.12 first. Use the WinGet PHP 8.3 executable for Pint until PATH is corrected.
 3. **Database (local):** XAMPP MariaDB 10.4.32; DB `pos_homestay`; target MySQL 8.4 LTS for production.
 4. **Node:** v22.14.0 acceptable for frontend development.
-5. **Phase boundary:** Phase 10.3 complete. Do not start Phase 10.4 until explicitly requested.
+5. **Phase boundary:** Phase 10.6 complete. Review the original Orders/POS workflow before Phase 10.7.
 
 Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
@@ -783,7 +899,7 @@ Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
 Immediate next phase (**awaiting explicit go-ahead**):
 
-1. **Phase 10.4 — Item Management**
+1. **Potential Phase 10.7 — Orders / POS Foundation (requires workflow review first)**
 
 Then:
 

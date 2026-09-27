@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\Station;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -89,6 +90,37 @@ class UserManagementApiTest extends TestCase
         ])
             ->assertCreated()
             ->assertJsonPath('user.role', UserRole::Admin->value);
+    }
+
+    public function test_admin_can_assign_change_clear_and_search_employee_station(): void
+    {
+        Sanctum::actingAs(User::factory()->admin()->create());
+        $firstStation = Station::query()->create(['name' => 'Main Station', 'location' => 'Main']);
+        $secondStation = Station::query()->create(['name' => 'Sugbahan', 'location' => 'Campus']);
+
+        $response = $this->postJson('/api/users', [
+            'name' => 'Station Employee', 'email' => 'station@example.com',
+            'password' => 'secure-password', 'role' => UserRole::EndUser->value,
+            'station_id' => $firstStation->id,
+        ])->assertCreated()->assertJsonPath('user.station.name', 'Main Station');
+
+        $userId = $response->json('user.id');
+        $this->getJson('/api/users?search=Main Station')->assertOk()->assertJsonCount(1, 'data');
+        $this->putJson("/api/users/{$userId}", [
+            'name' => 'Station Employee', 'email' => 'station@example.com',
+            'role' => UserRole::EndUser->value, 'station_id' => $secondStation->id,
+        ])->assertOk()->assertJsonPath('user.station.name', 'Sugbahan');
+        $this->putJson("/api/users/{$userId}", [
+            'name' => 'Station Employee', 'email' => 'station@example.com',
+            'role' => UserRole::EndUser->value, 'station_id' => null,
+        ])->assertOk()->assertJsonPath('user.station', null);
+
+        $this->getJson('/api/employee-options')->assertOk()->assertJsonCount(2, 'stations');
+        $this->postJson('/api/users', [
+            'name' => 'Invalid Station', 'email' => 'invalid-station@example.com',
+            'password' => 'secure-password', 'role' => UserRole::EndUser->value,
+            'station_id' => 999999,
+        ])->assertUnprocessable()->assertJsonValidationErrors('station_id');
     }
 
     /** @param array<string, string> $overrides */

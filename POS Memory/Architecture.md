@@ -486,6 +486,8 @@ Passwords are accepted only as write-only input, are hashed by the `User` model,
 
 Phase 10.1 does not add a migration, package, service layer, repository layer, station assignment, other Master Data CRUD, POS behavior, hardware integration, or advanced authentication.
 
+Phase 10.6 subsequently activated the existing nullable `users.station_id` relationship for Employee Management. Employee list responses expose only the Station ID/name pair, the UI displays the Station name, and Add/Edit Employee uses a complete Station dropdown while allowing `No Station` for accounts such as the primary Admin.
+
 ## 9.4 Station Management (Phase 10.2)
 
 Station Management introduces the first independent Master Data model. A Station is a POS location or business station; it does not yet own employees, orders, inventory, or hardware configuration.
@@ -551,6 +553,75 @@ The `suppliers` table contains `id`, required `name`, nullable `contact_person`,
 The API retains snake_case fields and provides `GET/POST /api/suppliers` plus `GET/PUT/PATCH/DELETE /api/suppliers/{supplier}`. Supplier search covers name, contact person, contact number, and email with the established 350 ms debounce, cancellation, name sorting, and 10-record pagination.
 
 Supplier CRUD uses Eloquent directly without a Service, Repository, Policy, Gate, raw SQL, or unnecessary transaction wrapper. Relationships and dependency-aware deletion remain deferred until a real dependent module is implemented.
+
+## 9.6 Item Management (Phase 10.4)
+
+Item Management defines the products and food that can exist in the POS, including the original system's initial quantity and unit fields. It does not perform sales or implement inventory movement behavior.
+
+```text
+Item Management
+      ↓
+/api/items
+      ↓
+auth:sanctum
+      ↓
+EnsureUserIsAdmin (`admin` alias)
+      ↓
+Api\ItemController
+      ↓
+Item / Eloquent
+      ↓
+items
+      ↓
+MySQL
+```
+
+The `items` table contains `id`, unique required string `item_code`, required `name`, nullable `description`, fixed-precision `quantity` (`DECIMAL(12,3)`), required controlled `unit`, fixed-precision `price` (`DECIMAL(10,2)`), and timestamps. The API returns quantity and price as decimal strings; the renderer adds Philippine peso formatting for price display only.
+
+The boundaries are explicit: Phase 10.4 stores the Item's current quantity and unit because they are part of the original Item requirement. Inventory behavior—automatic deduction, stock-in, stock-out, movement history, reorder levels, low-stock notifications, and order-based updates—remains deferred. Order is a separate sale or transaction involving Items and is also not implemented here.
+
+Item currently has no Supplier, Consignee, Consignment, Station, Inventory, Order, or user relationship. Management routes are Admin-only; future End User read access for ordering must be introduced deliberately with the Orders/POS requirements.
+
+The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/description search, and 10-record pagination. Unit entry suggests `pcs`, `pack`, `box`, `bottle`, `can`, `cup`, `serving`, `kg`, `g`, `L`, and `mL`, while allowing a user to type another valid unit such as `tray` or `sack`; no units table is introduced. The module adds no service, repository, raw SQL, or unnecessary transaction.
+
+## 9.7 Consignee Management (Phase 10.5)
+
+Consignee is independent Master Data for a person, organization, or entity that may later participate in a consignment workflow.
+
+```text
+Consignee Management
+        ↓
+/api/consignees
+        ↓
+auth:sanctum
+        ↓
+EnsureUserIsAdmin (`admin` alias)
+        ↓
+Api\ConsigneeController
+        ↓
+Consignee / Eloquent
+        ↓
+consignees
+        ↓
+MySQL
+```
+
+The `consignees` table contains `id`, required `name`, nullable string `contact_number`, nullable `email`, nullable text `address`, and timestamps. Names, contact numbers, and emails are not made unique without a confirmed business requirement.
+
+The API provides Admin-only CRUD, name/contact-number/email live search, name ordering, and 10-record pagination. The Consignee-to-Consignment and Consignee-to-Item relationships remain deferred to Phase 10.6. Deletion is currently allowed after confirmation and must be revisited once historical Consignment records depend on Consignee.
+
+## 9.8 Consignment Account Management (Phase 10.6)
+
+The legacy “Consignment” screen means an authenticated account associated with a Station and Consignee. It does not represent a traditional goods-consignment transaction.
+
+```text
+Consignment Account Management → /api/consignment-accounts
+        → auth:sanctum → EnsureUserIsAdmin
+        → Api\ConsignmentAccountController
+        → User / Eloquent → Station + Consignee → MySQL
+```
+
+The existing `users` table is reused with nullable `station_id` and `consignee_id` columns in its base schema. Because `users` is created before the referenced tables, the existing Station and Consignee migrations attach their restrictive foreign keys after creating those tables. Accounts with a non-null `consignee_id` belong to this workflow and retain the existing `end_user` role. Credentials remain solely in `users`; passwords are hashed and never exposed. Assigned Stations and Consignees cannot be deleted. No `consignments`, `consignment_items`, duplicate account table, or separate Phase 10.6 relationship migration exists.
 
 
 # 10. Future Architecture

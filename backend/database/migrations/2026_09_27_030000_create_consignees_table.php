@@ -8,25 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('stations', function (Blueprint $table) {
+        Schema::create('consignees', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->string('location');
-            $table->text('description')->nullable();
+            $table->string('name');
+            $table->string('contact_number')->nullable();
+            $table->string('email')->nullable();
+            $table->text('address')->nullable();
             $table->timestamps();
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->foreign('station_id')->references('id')->on('stations')->restrictOnDelete();
+            $table->foreign('consignee_id')->references('id')->on('consignees')->restrictOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['station_id']);
+            $table->dropForeign(['consignee_id']);
         });
 
-        Schema::dropIfExists('stations');
+        Schema::dropIfExists('consignees');
     }
 };

@@ -32,8 +32,8 @@ export const navItems: NavItem[] = [
     path: '/items',
     label: 'Items',
     icon: AppIcons.items,
-    title: 'Items Management',
-    description: 'Manage inventory items, prices, and stock. CRUD comes in a later phase.',
+    title: 'Item Management',
+    description: 'Manage product and food definitions and selling prices.',
     allowedRoles: ['admin']
   },
   {
@@ -57,15 +57,15 @@ export const navItems: NavItem[] = [
     label: 'Consignee',
     icon: AppIcons.consignee,
     title: 'Consignee Management',
-    description: 'Manage consignees. Business rules will be confirmed later.',
+    description: 'Manage consignee contact information for future consignment workflows.',
     allowedRoles: ['admin']
   },
   {
     path: '/consignments',
     label: 'Consignment',
     icon: AppIcons.consignment,
-    title: 'Consignment Management',
-    description: 'Manage consignments. Exact rules are not finalized yet.',
+    title: 'Consignment Account Management',
+    description: 'Manage accounts associated with Stations and Consignees.',
     allowedRoles: ['admin']
   },
   {

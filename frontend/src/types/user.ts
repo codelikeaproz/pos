@@ -5,6 +5,7 @@ export type Employee = {
   name: string
   email: string
   role: UserRole
+  station: { id: number; name: string } | null
 }
 
 export type EmployeeInput = {
@@ -12,7 +13,10 @@ export type EmployeeInput = {
   email: string
   password?: string
   role: UserRole
+  station_id: number | null
 }
+
+export type EmployeeOptions = { stations: { id: number; name: string }[] }
 
 export type EmployeeList = {
   employees: Employee[]

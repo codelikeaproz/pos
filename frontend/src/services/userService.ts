@@ -1,4 +1,4 @@
-import type { Employee, EmployeeInput, EmployeeList } from '../types/user'
+import type { Employee, EmployeeInput, EmployeeList, EmployeeOptions } from '../types/user'
 import { apiRequest } from './apiClient'
 
 type PaginatedUsersResponse = {
@@ -63,4 +63,8 @@ export function deleteEmployee(employeeId: number): Promise<DeleteUserResponse> 
   return apiRequest<DeleteUserResponse>(`/api/users/${employeeId}`, {
     method: 'DELETE'
   })
+}
+
+export function loadEmployeeOptions(): Promise<EmployeeOptions> {
+  return apiRequest('/api/employee-options')
 }

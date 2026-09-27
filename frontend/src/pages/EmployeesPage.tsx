@@ -17,9 +17,10 @@ import {
   createEmployee,
   deleteEmployee,
   loadEmployees,
+  loadEmployeeOptions,
   updateEmployee
 } from '../services/userService'
-import type { Employee, EmployeeInput, EmployeeList } from '../types/user'
+import type { Employee, EmployeeInput, EmployeeList, EmployeeOptions } from '../types/user'
 import './employees-page.css'
 
 type FormDialog = { mode: 'create' } | { mode: 'edit'; employee: Employee }
@@ -30,6 +31,7 @@ const EMPTY_LIST: EmployeeList = {
   lastPage: 1,
   total: 0
 }
+const EMPTY_OPTIONS: EmployeeOptions = { stations: [] }
 
 function fieldErrorsFrom(error: unknown): EmployeeFieldErrors {
   if (!(error instanceof ApiError)) {
@@ -40,7 +42,8 @@ function fieldErrorsFrom(error: unknown): EmployeeFieldErrors {
     name: error.errors.name?.[0],
     email: error.errors.email?.[0],
     password: error.errors.password?.[0],
-    role: error.errors.role?.[0]
+    role: error.errors.role?.[0],
+    station_id: error.errors.station_id?.[0]
   }
 }
 
@@ -58,6 +61,11 @@ export function EmployeesPage() {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<EmployeeFieldErrors>({})
+  const [options, setOptions] = useState<EmployeeOptions>(EMPTY_OPTIONS)
+
+  useEffect(() => {
+    loadEmployeeOptions().then(setOptions).catch((error) => setPageError(getUserFacingApiMessage(error)))
+  }, [])
 
   const refreshEmployees = useCallback(
     async (signal?: AbortSignal) => {
@@ -303,6 +311,7 @@ export function EmployeesPage() {
             employee={editingEmployee}
             errors={fieldErrors}
             disabled={submitting}
+            options={options}
             onSubmit={(input) => void handleSave(input)}
           />
         ) : null}

@@ -3,10 +3,10 @@ import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
 import { Select } from '../../components/ui/Select'
 import type { UserRole } from '../../types/auth'
-import type { Employee, EmployeeInput } from '../../types/user'
+import type { Employee, EmployeeInput, EmployeeOptions } from '../../types/user'
 
 export type EmployeeFieldErrors = Partial<
-  Record<'name' | 'email' | 'password' | 'role', string>
+  Record<'name' | 'email' | 'password' | 'role' | 'station_id', string>
 >
 
 type EmployeeFormProps = {
@@ -14,6 +14,7 @@ type EmployeeFormProps = {
   employee?: Employee
   errors: EmployeeFieldErrors
   disabled?: boolean
+  options: EmployeeOptions
   onSubmit: (input: EmployeeInput) => void
 }
 
@@ -27,12 +28,14 @@ export function EmployeeForm({
   employee,
   errors,
   disabled = false,
+  options,
   onSubmit
 }: EmployeeFormProps) {
   const [name, setName] = useState(employee?.name ?? '')
   const [email, setEmail] = useState(employee?.email ?? '')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>(employee?.role ?? 'end_user')
+  const [stationId, setStationId] = useState(employee?.station?.id ?? 0)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
@@ -40,7 +43,8 @@ export function EmployeeForm({
     const input: EmployeeInput = {
       name: name.trim(),
       email: email.trim(),
-      role
+      role,
+      station_id: stationId || null
     }
 
     if (password) {
@@ -125,6 +129,19 @@ export function EmployeeForm({
             {errors.password}
           </span>
         ) : null}
+      </div>
+
+      <div className="employee-form__field">
+        <Label htmlFor={`${formId}-station`}>Station</Label>
+        <Select
+          id={`${formId}-station`}
+          value={stationId || ''}
+          onChange={(event) => setStationId(Number(event.target.value))}
+          options={[{ value: '', label: 'No Station' }, ...options.stations.map((station) => ({ value: String(station.id), label: station.name }))]}
+          disabled={disabled}
+          error={Boolean(errors.station_id)}
+        />
+        {errors.station_id ? <span className="page__field-error">{errors.station_id}</span> : null}
       </div>
 
       <div className="employee-form__field">

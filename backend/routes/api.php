@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ConsigneeController;
+use App\Http\Controllers\Api\ConsignmentAccountController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UserController;
@@ -29,6 +32,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/current-user', [AuthController::class, 'currentUser']);
 
+    Route::get('/employee-options', [UserController::class, 'options'])->middleware('admin');
+
     Route::apiResource('users', UserController::class)
         ->middleware('admin');
 
@@ -37,4 +42,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('suppliers', SupplierController::class)
         ->middleware('admin');
+
+    Route::apiResource('items', ItemController::class)
+        ->middleware('admin');
+
+    Route::apiResource('consignees', ConsigneeController::class)
+        ->middleware('admin');
+
+    Route::get('/consignment-account-options', [ConsignmentAccountController::class, 'options'])->middleware('admin');
+    Route::apiResource('consignment-accounts', ConsignmentAccountController::class)
+        ->parameters(['consignment-accounts' => 'user'])->middleware('admin');
 });

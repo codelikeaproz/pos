@@ -5,14 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Station extends Model
+class Consignee extends Model
 {
     /** @var list<string> */
-    protected $fillable = [
-        'name',
-        'location',
-        'description',
-    ];
+    protected $fillable = ['name', 'contact_number', 'email', 'address'];
 
     public function users(): HasMany
     {

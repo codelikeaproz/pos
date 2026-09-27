@@ -14,7 +14,6 @@ return new class extends Migration
             $table->foreignId('item_id')->constrained()->restrictOnDelete();
             $table->decimal('quantity', 12, 3);
             $table->timestamps();
-
             $table->unique(['station_id', 'item_id']);
         });
     }

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\StationController;
+use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,5 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/current-user', [AuthController::class, 'currentUser']);
 
     Route::apiResource('users', UserController::class)
+        ->middleware('admin');
+
+    Route::apiResource('stations', StationController::class)
+        ->middleware('admin');
+
+    Route::apiResource('suppliers', SupplierController::class)
         ->middleware('admin');
 });

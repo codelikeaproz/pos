@@ -486,6 +486,72 @@ Passwords are accepted only as write-only input, are hashed by the `User` model,
 
 Phase 10.1 does not add a migration, package, service layer, repository layer, station assignment, other Master Data CRUD, POS behavior, hardware integration, or advanced authentication.
 
+## 9.4 Station Management (Phase 10.2)
+
+Station Management introduces the first independent Master Data model. A Station is a POS location or business station; it does not yet own employees, orders, inventory, or hardware configuration.
+
+```
+Station Management UI
+        ↓
+/api/stations
+        ↓
+auth:sanctum
+        ↓
+EnsureUserIsAdmin middleware (`admin` alias)
+        ↓
+StoreStationRequest / UpdateStationRequest
+        ↓
+Api\StationController
+        ↓
+StationResource
+        ↓
+Station Eloquent Model
+        ↓
+stations table
+        ↓
+MySQL
+```
+
+Canonical endpoints are `GET/POST /api/stations` and `GET/PUT/PATCH/DELETE /api/stations/{station}`. They retain the established 401 unauthenticated and 403 authenticated End User behavior.
+
+The `stations` table contains only `id`, unique `name`, required `location`, nullable `description`, and timestamps. Station CRUD uses Eloquent directly without a Service, Repository, Policy, Gate, raw SQL, or unnecessary transaction wrapper.
+
+Station search waits 350 ms, queries name, location, and description through `GET /api/stations?search=...`, cancels superseded requests, resets pagination to page 1, and returns name-sorted pages of 10 records. The inline X restores the unfiltered list; zero matches are a valid empty state.
+
+Phase 10.2 does not add employee assignment, order/inventory relationships, hardware fields, other Master Data CRUD, POS behavior, or advanced authentication.
+
+## 9.5 Supplier Management (Phase 10.3)
+
+Supplier Management is independent Master Data with no Item, Consignment, Order, Inventory, or Station relationships yet.
+
+```
+Supplier Management UI
+        ↓
+/api/suppliers
+        ↓
+auth:sanctum
+        ↓
+EnsureUserIsAdmin middleware (`admin` alias)
+        ↓
+StoreSupplierRequest / UpdateSupplierRequest
+        ↓
+Api\SupplierController
+        ↓
+SupplierResource
+        ↓
+Supplier Eloquent Model
+        ↓
+suppliers table
+        ↓
+MySQL
+```
+
+The `suppliers` table contains `id`, required `name`, nullable `contact_person`, `contact_number`, `email`, `address`, and timestamps. Contact numbers are strings. Supplier names and emails are not unique in this phase.
+
+The API retains snake_case fields and provides `GET/POST /api/suppliers` plus `GET/PUT/PATCH/DELETE /api/suppliers/{supplier}`. Supplier search covers name, contact person, contact number, and email with the established 350 ms debounce, cancellation, name sorting, and 10-record pagination.
+
+Supplier CRUD uses Eloquent directly without a Service, Repository, Policy, Gate, raw SQL, or unnecessary transaction wrapper. Relationships and dependency-aware deletion remain deferred until a real dependent module is implemented.
+
 
 # 10. Future Architecture
 

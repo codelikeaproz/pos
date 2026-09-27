@@ -561,6 +561,10 @@ Authentication uses Laravel Sanctum. For the current `admin` and `end_user` role
 
 Searchable Master Data pages use live asynchronous search: wait 350 ms after typing, request the existing paginated API with `?search=...`, and provide an inline X when clearing is useful. Do not add separate Search and Clear buttons or request on every individual keystroke.
 
+Use 10 records per page for the current simple Master Data modules unless a later requirement establishes a different convention. An empty search returns the normal unfiltered list; a successful search with no matches is a valid empty state, not an error.
+
+Supplier contact numbers are stored as strings so leading zeroes, spaces, plus signs, and hyphens are preserved. Optional Supplier fields normalize blank input to `null`; Supplier names and emails are not assumed unique without a confirmed business requirement.
+
 ## 14.2 Success response conventions
 
 Prefer Laravel’s native API Resource / JSON behavior. Typical shapes:

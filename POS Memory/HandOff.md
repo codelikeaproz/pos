@@ -516,6 +516,87 @@ This is a future enhancement and must not affect the current desktop MVP.
 
 # 18. Current Phase
 
+## Phase 10.3 — Supplier Management
+
+Status:
+
+```
+COMPLETE
+```
+
+### Phase 10.3 deliverables
+
+- Introduced the `suppliers` table with required `name`; nullable `contact_person`, `contact_number`, `email`, and `address`; and timestamps
+- Added the `Supplier` Eloquent model without premature relationships
+- Added `Api\SupplierController`, Supplier Form Requests, and a safe snake_case `SupplierResource`
+- Added `GET/POST /api/suppliers` and `GET/PUT/PATCH/DELETE /api/suppliers/{supplier}`
+- Reused `auth:sanctum`, the `admin` alias, and `EnsureUserIsAdmin`
+- Added Supplier list, create, edit, and centered delete confirmation UI
+- Added 350 ms live name/contact-person/contact-number/email search, request cancellation, inline X clearing, and 10-record pagination
+- Normalized blank optional fields to `null`; retained contact numbers as strings
+- Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
+- Added no Item, Consignment, Order, Inventory, Station, or hardware relationship
+- Items and all later phases remain deferred
+
+### Phase 10.3 verification — 2026-09-27
+
+| Check | Result |
+|---|---|
+| Complete Laravel test suite | PASS — 48 tests, 203 assertions |
+| Supplier API authorization | PASS — unauthenticated 401; End User 403; Admin allowed |
+| Supplier create/show/PUT/PATCH/delete | PASS |
+| Required name, nullable fields, valid/invalid email, string contact number | PASS |
+| Four-field search, zero results, empty search, and 10-record pagination | PASS |
+| Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
+| MySQL/MariaDB migration | PASS — `2026_09_27_010000_create_suppliers_table` applied |
+| Live MySQL supplier create/search/delete | PASS — string contact number preserved; disposable record cleaned up |
+| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| `npm run typecheck` | PASS |
+| `npm run build` (Electron main, preload, renderer) | PASS |
+| Live Admin Supplier page and centered Add Supplier dialog | PASS |
+| `git diff --check` | PASS |
+
+## Phase 10.2 — Station Management
+
+Status:
+
+```
+COMPLETE
+```
+
+### Phase 10.2 deliverables
+
+- Introduced the `stations` table with unique `name`, required `location`, nullable `description`, and timestamps
+- Added the `Station` Eloquent model without premature relationships
+- Added `Api\StationController`, `StoreStationRequest`, `UpdateStationRequest`, and a safe `StationResource`
+- Added `GET/POST /api/stations` and `GET/PUT/PATCH/DELETE /api/stations/{station}`
+- Reused `auth:sanctum`, the `admin` alias, and `EnsureUserIsAdmin` for authoritative Admin-only access
+- Added Station list, create, edit, and centered delete confirmation UI
+- Added 350 ms live name/location/description search, request cancellation, inline X clearing, and 10-record pagination
+- Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
+- Added no employee assignment, business relationship, hardware field, or package
+- Supplier, Items, Consignee, Consignment, Orders, Inventory, Hardware, and advanced authentication remain deferred
+
+### Phase 10.2 verification — 2026-09-27
+
+| Check | Result |
+|---|---|
+| Complete Laravel test suite | PASS — 40 tests, 160 assertions |
+| Station API authorization | PASS — unauthenticated 401; End User 403; Admin allowed |
+| Station create/show/update/delete and validation | PASS |
+| PUT, PATCH, same-name update, unique-name validation | PASS |
+| Name/location/description/zero-result/empty search and 10-record pagination | PASS |
+| Live location create/search/delete against MySQL/MariaDB | PASS — disposable record cleaned up |
+| Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
+| MySQL/MariaDB migration | PASS — `2026_09_27_000000_create_stations_table` applied |
+| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| `npm run typecheck` | PASS |
+| `npm run build` (Electron main, preload, renderer) | PASS |
+| Live Admin Station page and centered Add Station dialog | PASS |
+| `git diff --check` | PASS |
+
+Native Electron window click-through remains subject to the previously documented local Chromium AppData cache permission issue. The production main, preload, and renderer bundles compile successfully; IPC code was not changed.
+
 ## Phase 10.1 — Employee Management
 
 Status:
@@ -540,7 +621,7 @@ COMPLETE
 - Signed-in Admin cannot delete their own account
 - Last remaining Admin cannot be deleted or demoted
 - Human-readable validation, authorization, conflict, server, and network feedback
-- Station, Supplier, Items, Consignee, and Consignment remain unimplemented
+- Supplier, Items, Consignee, and Consignment remain unimplemented
 - Hardware and advanced authentication remain postponed
 
 ### Phase 10.1 verification — 2026-09-26
@@ -692,7 +773,7 @@ Repository note: the workspace is connected to `https://github.com/codelikeaproz
 2. **PHP:** 8.3.33 is installed with `zip` / `pdo_mysql`, but the current shell PATH resolves XAMPP PHP 8.2.12 first. Use the WinGet PHP 8.3 executable for Pint until PATH is corrected.
 3. **Database (local):** XAMPP MariaDB 10.4.32; DB `pos_homestay`; target MySQL 8.4 LTS for production.
 4. **Node:** v22.14.0 acceptable for frontend development.
-5. **Phase boundary:** Phase 10.1 complete. Do not start Phase 10.2 until explicitly requested.
+5. **Phase boundary:** Phase 10.3 complete. Do not start Phase 10.4 until explicitly requested.
 
 Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
@@ -702,12 +783,13 @@ Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
 Immediate next phase (**awaiting explicit go-ahead**):
 
-1. **Phase 10.2 — Station Management**
+1. **Phase 10.4 — Item Management**
 
 Then:
 
-2. POS
-3. Hardware
+2. Remaining confirmed Master Data modules
+3. POS
+4. Hardware
 
 Frontend run:
 

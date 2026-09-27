@@ -25,7 +25,7 @@ export const navItems: NavItem[] = [
     label: 'Employee',
     icon: AppIcons.employee,
     title: 'Employee Management',
-    description: 'Manage employees and station assignments. CRUD comes in a later phase.',
+    description: 'Manage employees and their POS access roles.',
     allowedRoles: ['admin']
   },
   {
@@ -41,7 +41,7 @@ export const navItems: NavItem[] = [
     label: 'Station',
     icon: AppIcons.station,
     title: 'Station Management',
-    description: 'Manage sales stations and locations. CRUD comes in a later phase.',
+    description: 'Manage POS locations and business stations.',
     allowedRoles: ['admin']
   },
   {
@@ -73,7 +73,7 @@ export const navItems: NavItem[] = [
     label: 'Supplier',
     icon: AppIcons.supplier,
     title: 'Supplier Management',
-    description: 'Manage suppliers. CRUD comes in a later phase.',
+    description: 'Manage suppliers and their contact information.',
     allowedRoles: ['admin']
   }
 ]

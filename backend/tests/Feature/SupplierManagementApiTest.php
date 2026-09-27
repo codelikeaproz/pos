@@ -54,7 +54,8 @@ class SupplierManagementApiTest extends TestCase
 
         $this->postJson('/api/suppliers', ['name' => 'Simple Supplier'])
             ->assertCreated()
-            ->assertJsonPath('supplier.contact_person', null);
+            ->assertJsonPath('supplier.contact_person', null)
+            ->assertJsonPath('supplier.is_active', true);
 
         $this->postJson('/api/suppliers', [
             'name' => 'Blank Fields Supplier',
@@ -93,8 +94,10 @@ class SupplierManagementApiTest extends TestCase
         $this->patchJson("/api/suppliers/{$supplier->id}", [
             'name' => 'Patched Supplier',
             'email' => 'patched@example.com',
+            'is_active' => false,
         ])->assertOk()
-            ->assertJsonPath('supplier.name', 'Patched Supplier');
+            ->assertJsonPath('supplier.name', 'Patched Supplier')
+            ->assertJsonPath('supplier.is_active', false);
     }
 
     public function test_searches_supported_fields_and_returns_zero_results(): void

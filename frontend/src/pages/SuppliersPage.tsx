@@ -23,7 +23,8 @@ function fieldErrorsFrom(error: unknown): SupplierFieldErrors {
     contact_person: error.errors.contact_person?.[0],
     contact_number: error.errors.contact_number?.[0],
     email: error.errors.email?.[0],
-    address: error.errors.address?.[0]
+    address: error.errors.address?.[0],
+    is_active: error.errors.is_active?.[0]
   }
 }
 

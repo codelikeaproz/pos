@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/Button'
+import { Badge } from '../../components/ui/Badge'
 import { Table, type TableColumn } from '../../components/ui/Table'
 import { AppIcons, iconSize, iconStroke } from '../../lib/icons'
 import type { Supplier } from '../../types/supplier'
@@ -12,6 +13,7 @@ export function SupplierTable({ suppliers, onEdit, onDelete }: Props) {
     { key: 'contactNumber', header: 'Contact Number', render: (supplier) => supplier.contactNumber || '—' },
     { key: 'email', header: 'Email', render: (supplier) => supplier.email || '—' },
     { key: 'address', header: 'Address', render: (supplier) => supplier.address || '—' },
+    { key: 'status', header: 'Status', render: (supplier) => <Badge tone={supplier.isActive ? 'success' : 'neutral'}>{supplier.isActive ? 'Active' : 'Inactive'}</Badge> },
     {
       key: 'actions', header: 'Actions', align: 'right', render: (supplier) => (
         <div className="supplier-table__actions">

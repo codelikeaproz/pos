@@ -22,7 +22,7 @@ class ItemController extends Controller
                     $searchQuery
                         ->where('item_code', 'like', "%{$searchTerm}%")
                         ->orWhere('name', 'like', "%{$searchTerm}%")
-                        ->orWhere('description', 'like', "%{$searchTerm}%");
+                        ->orWhere('units_backup', 'like', "%{$searchTerm}%");
                 });
             })
             ->orderBy('name')
@@ -61,6 +61,9 @@ class ItemController extends Controller
 
     public function destroy(Item $item): JsonResponse
     {
+        if ($item->stationItems()->exists()) {
+            return response()->json(['message' => 'This item is assigned to station inventory and cannot be deleted.'], 409);
+        }
         $item->delete();
 
         return response()->json([

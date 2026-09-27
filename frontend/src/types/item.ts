@@ -2,9 +2,10 @@ export type Item = {
   id: number
   item_code: string
   name: string
-  description: string | null
   quantity: string
+  units_backup: string
   unit: string
+  reorder_point: string
   price: string
 }
 

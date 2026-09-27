@@ -576,13 +576,13 @@ items
 MySQL
 ```
 
-The `items` table contains `id`, unique required string `item_code`, required `name`, nullable `description`, fixed-precision `quantity` (`DECIMAL(12,3)`), required controlled `unit`, fixed-precision `price` (`DECIMAL(10,2)`), and timestamps. The API returns quantity and price as decimal strings; the renderer adds Philippine peso formatting for price display only.
+The `items` table follows the confirmed Item fields using consistent Laravel names: `id`, unique required string `item_code`, required `name`, fixed-precision `quantity DECIMAL(12,3)`, readable `units_backup`, legacy unit code `unit`, Item-level `reorder_point DECIMAL(12,3) DEFAULT 0`, fixed-precision `price DECIMAL(10,2)`, and timestamps. The API returns quantity, reorder point, and price as decimal strings; the renderer adds Philippine peso formatting for price display only.
 
-The boundaries are explicit: Phase 10.4 stores the Item's current quantity and unit because they are part of the original Item requirement. Inventory behavior—automatic deduction, stock-in, stock-out, movement history, reorder levels, low-stock notifications, and order-based updates—remains deferred. Order is a separate sale or transaction involving Items and is also not implemented here.
+The boundaries are explicit: Item stores the original system's quantity, readable unit backup, unit code, and reorder point. Station Inventory compares its station-specific quantity with the Item reorder point for display-only Low Stock status. Automatic deduction, stock-in, stock-out, movement history, alerts, replenishment, and order-based updates remain deferred.
 
 Item currently has no Supplier, Consignee, Consignment, Station, Inventory, Order, or user relationship. Management routes are Admin-only; future End User read access for ordering must be introduced deliberately with the Orders/POS requirements.
 
-The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/description search, and 10-record pagination. Unit entry suggests `pcs`, `pack`, `box`, `bottle`, `can`, `cup`, `serving`, `kg`, `g`, `L`, and `mL`, while allowing a user to type another valid unit such as `tray` or `sack`; no units table is introduced. The module adds no service, repository, raw SQL, or unnecessary transaction.
+The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/unit-name search, and 10-record pagination. Item Management keeps the simple visible fields Item Code, Item Name, Quantity, Unit, and Price. The visible Unit edits `units_backup`; the legacy `unit` code and Item `reorder_point` remain API/database details and are not shown in the Item form or table. No units table is introduced.
 
 ## 9.7 Consignee Management (Phase 10.5)
 
@@ -622,6 +622,24 @@ Consignment Account Management → /api/consignment-accounts
 ```
 
 The existing `users` table is reused with nullable `station_id` and `consignee_id` columns in its base schema. Because `users` is created before the referenced tables, the existing Station and Consignee migrations attach their restrictive foreign keys after creating those tables. Accounts with a non-null `consignee_id` belong to this workflow and retain the existing `end_user` role. Credentials remain solely in `users`; passwords are hashed and never exposed. Assigned Stations and Consignees cannot be deleted. No `consignments`, `consignment_items`, duplicate account table, or separate Phase 10.6 relationship migration exists.
+
+## 9.9 Station Inventory Foundation (Phase 10.7)
+
+Legacy `station_items` evidence confirms that quantities belong to a Station and Item combination.
+
+```text
+Station 1:N StationItem N:1 Item
+```
+
+`station_items` contains `id`, restrictive `station_id` and `item_id` foreign keys, fixed-precision `quantity DECIMAL(12,3)`, timestamps, and a database-level unique constraint across `(station_id, item_id)`. `StationItem` is a real Eloquent model because quantity is meaningful business state, not an anonymous pivot. The reorder point belongs to the Item, matching the confirmed legacy schema.
+
+`station_items.quantity` is the source of truth for station-specific inventory. Existing `items.quantity` remains a transitional global quantity for backward compatibility and is not synchronized automatically. A future controlled cleanup must decide whether to remove or redefine it.
+
+Admin Station Inventory management supports Station filtering, item-code/name/unit search, 10-record pagination, explicit assignment, quantity editing, computed Low Stock status when station quantity is less than or equal to the Item's reorder point, and safe removal of only the assignment. Future End User POS reads will follow User → assigned Station → Station Inventory. Automatic alerts, replenishment, stock deduction, and movement history remain deferred.
+
+Legacy Item `units` values are identifiers rather than quantities, while `unitsbackup` preserves the readable label. The clean schema retains these meanings as `items.unit` and `items.units_backup`. Legacy `expiry_notification` remains deferred until Receiving or batch inventory records an actual expiration date.
+
+The confirmed Supplier status correction is stored as `suppliers.is_active BOOLEAN DEFAULT TRUE` in the original Supplier schema; inactive Suppliers remain records rather than being deleted.
 
 
 # 10. Future Architecture

@@ -39,7 +39,7 @@ class SupplierController extends Controller
 
         return response()->json([
             'message' => 'Supplier added successfully.',
-            'supplier' => (new SupplierResource($supplier))->resolve(),
+            'supplier' => (new SupplierResource($supplier->fresh()))->resolve(),
         ], 201);
     }
 

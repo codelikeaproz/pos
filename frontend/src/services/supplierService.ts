@@ -8,6 +8,7 @@ type SupplierDto = {
   contact_number: string | null
   email: string | null
   address: string | null
+  is_active: boolean
 }
 
 type PaginatedSuppliersResponse = {
@@ -25,7 +26,8 @@ function fromDto(supplier: SupplierDto): Supplier {
     contactPerson: supplier.contact_person,
     contactNumber: supplier.contact_number,
     email: supplier.email,
-    address: supplier.address
+    address: supplier.address,
+    isActive: supplier.is_active
   }
 }
 
@@ -35,7 +37,8 @@ function toDto(input: SupplierInput): Omit<SupplierDto, 'id'> {
     contact_person: input.contactPerson,
     contact_number: input.contactNumber,
     email: input.email,
-    address: input.address
+    address: input.address,
+    is_active: input.isActive
   }
 }
 

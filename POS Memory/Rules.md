@@ -686,13 +686,17 @@ Money values should use appropriate database precision.
 
 For Item prices, use fixed-precision `DECIMAL` storage and preserve the decimal value as a two-decimal string across the API. Never store a formatted currency symbol in a database value; peso formatting belongs to the UI.
 
-Item master data includes the original system's initial quantity and unit. This does not authorize automatic deduction, stock-in/out, movement history, reorder levels, low-stock notifications, or order-based inventory updates; those behaviors belong to later Inventory and Order phases. Do not add Supplier, Consignee, Consignment, Station, Inventory, or other Item relationships until confirmed requirements establish them.
+Item master data includes the original system's initial quantity and unit. This does not authorize automatic deduction, stock-in/out, movement history, low-stock notifications, or order-based inventory updates; those behaviors belong to later Inventory and Order phases. Do not add Supplier, Consignee, Consignment, or other Item relationships until confirmed requirements establish them.
 
-Item Unit entry uses a free-text field with common suggestions rather than a closed dropdown. New units may be entered directly without a units table; unit values remain required strings with a reasonable maximum length.
+Item Unit Name entry (`units_backup`) uses a free-text field with common suggestions rather than a closed dropdown. New readable labels may be entered directly without a units table. The required `unit` string preserves the legacy unit code separately.
+
+Legacy Item `units` values are lookup identifiers and `unitsbackup` contains the readable unit label. Preserve these meanings as `items.unit` and `items.units_backup`; do not treat a unit code such as `2` as an inventory quantity.
 
 Consignee remains independent Master Data until Phase 10.6 defines Consignment. Preserve contact numbers as strings, normalize blank optional contact/email/address fields to `null`, and revisit deletion before historical Consignment records can reference a Consignee.
 
 Authentication credentials belong only to `users`; never create duplicate credential tables for business modules. `password_confirmation` is validation-only and must never be persisted. Passwords and hashes must never be returned by API Resources. Foreign-key IDs are internal; interfaces display human-readable Station and Consignee names. Deferred business functionality must remain explicitly tracked.
+
+Inventory quantities are Station-specific and use fixed-precision `DECIMAL`, never FLOAT/DOUBLE. The reorder point belongs to the Item, matching the legacy Item schema. Each Station+Item assignment must be unique. Treat station quantity less than or equal to the Item reorder point as Low Stock for display only; alerts and automatic replenishment remain deferred. `StationItem` is a real Eloquent model, and removing it must never delete the underlying Station or Item. Do not add `expiry_notification` until batch or Receiving inventory records an actual expiration date.
 
 Recommended:
 

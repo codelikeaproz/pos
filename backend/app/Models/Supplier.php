@@ -13,5 +13,11 @@ class Supplier extends Model
         'contact_number',
         'email',
         'address',
+        'is_active',
     ];
+
+    protected function casts(): array
+    {
+        return ['is_active' => 'boolean'];
+    }
 }

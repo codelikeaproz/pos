@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Item extends Model
 {
@@ -10,9 +11,10 @@ class Item extends Model
     protected $fillable = [
         'item_code',
         'name',
-        'description',
         'quantity',
+        'units_backup',
         'unit',
+        'reorder_point',
         'price',
     ];
 
@@ -21,7 +23,13 @@ class Item extends Model
     {
         return [
             'quantity' => 'decimal:3',
+            'reorder_point' => 'decimal:3',
             'price' => 'decimal:2',
         ];
+    }
+
+    public function stationItems(): HasMany
+    {
+        return $this->hasMany(StationItem::class);
     }
 }

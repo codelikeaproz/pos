@@ -45,6 +45,14 @@ export const navItems: NavItem[] = [
     allowedRoles: ['admin']
   },
   {
+    path: '/station-inventory',
+    label: 'Station Inventory',
+    icon: AppIcons.stationInventory,
+    title: 'Station Inventory',
+    description: 'Manage item quantities assigned to each Station.',
+    allowedRoles: ['admin']
+  },
+  {
     path: '/orders',
     label: 'Orders / POS',
     icon: AppIcons.orders,

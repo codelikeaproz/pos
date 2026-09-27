@@ -1,10 +1,11 @@
 import { FormEvent, useState } from 'react'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
+import { Select } from '../../components/ui/Select'
 import type { Supplier, SupplierInput } from '../../types/supplier'
 
 export type SupplierFieldErrors = Partial<
-  Record<'name' | 'contact_person' | 'contact_number' | 'email' | 'address', string>
+  Record<'name' | 'contact_person' | 'contact_number' | 'email' | 'address' | 'is_active', string>
 >
 
 type Props = {
@@ -21,6 +22,7 @@ export function SupplierForm({ formId, supplier, errors, disabled = false, onSub
   const [contactNumber, setContactNumber] = useState(supplier?.contactNumber ?? '')
   const [email, setEmail] = useState(supplier?.email ?? '')
   const [address, setAddress] = useState(supplier?.address ?? '')
+  const [isActive, setIsActive] = useState(supplier?.isActive ?? true)
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
@@ -29,7 +31,8 @@ export function SupplierForm({ formId, supplier, errors, disabled = false, onSub
       contactPerson: contactPerson.trim() || null,
       contactNumber: contactNumber.trim() || null,
       email: email.trim() || null,
-      address: address.trim() || null
+      address: address.trim() || null,
+      isActive
     })
   }
 
@@ -63,6 +66,11 @@ export function SupplierForm({ formId, supplier, errors, disabled = false, onSub
       {field('contact_person', 'Contact Person', contactPerson, setContactPerson)}
       {field('contact_number', 'Contact Number', contactNumber, setContactNumber, { maxLength: 50 })}
       {field('email', 'Email', email, setEmail, { type: 'email' })}
+      <div className="supplier-form__field">
+        <Label htmlFor={`${formId}-is-active`} required>Status</Label>
+        <Select id={`${formId}-is-active`} value={isActive ? 'active' : 'inactive'} onChange={(event) => setIsActive(event.target.value === 'active')} options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} disabled={disabled} error={Boolean(errors.is_active)} />
+        {errors.is_active ? <span className="page__field-error">{errors.is_active}</span> : null}
+      </div>
       <div className="supplier-form__field">
         <Label htmlFor={`${formId}-address`}>Address</Label>
         <textarea

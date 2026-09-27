@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ConsignmentAccountController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\StationController;
+use App\Http\Controllers\Api\StationItemController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -52,4 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/consignment-account-options', [ConsignmentAccountController::class, 'options'])->middleware('admin');
     Route::apiResource('consignment-accounts', ConsignmentAccountController::class)
         ->parameters(['consignment-accounts' => 'user'])->middleware('admin');
+
+    Route::get('/station-item-options', [StationItemController::class, 'options'])->middleware('admin');
+    Route::apiResource('station-items', StationItemController::class)->middleware('admin');
 });

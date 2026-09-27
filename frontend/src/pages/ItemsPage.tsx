@@ -18,7 +18,7 @@ const EMPTY_LIST: ItemList = { items: [], currentPage: 1, lastPage: 1, total: 0 
 
 function fieldErrorsFrom(error: unknown): ItemFieldErrors {
   if (!(error instanceof ApiError)) return {}
-  return { item_code: error.errors.item_code?.[0], name: error.errors.name?.[0], description: error.errors.description?.[0], quantity: error.errors.quantity?.[0], unit: error.errors.unit?.[0], price: error.errors.price?.[0] }
+  return { item_code: error.errors.item_code?.[0], name: error.errors.name?.[0], quantity: error.errors.quantity?.[0], units_backup: error.errors.units_backup?.[0], unit: error.errors.unit?.[0], reorder_point: error.errors.reorder_point?.[0], price: error.errors.price?.[0] }
 }
 
 export function ItemsPage() {
@@ -91,7 +91,7 @@ export function ItemsPage() {
 
       <div className="item-page__search" role="search"><div className="item-page__search-input">
         <AppIcons.search size={iconSize} strokeWidth={iconStroke} aria-hidden="true" />
-        <Input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by item code, name, or description..." aria-label="Search items" />
+        <Input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by item code, item name, or unit name..." aria-label="Search items" />
         {searchInput ? <button type="button" className="item-page__search-clear" aria-label="Clear item search" onClick={() => { setSearchInput(''); setSearch(''); setPage(1) }}><AppIcons.close size={iconSize} strokeWidth={iconStroke} aria-hidden="true" /></button> : null}
       </div></div>
 

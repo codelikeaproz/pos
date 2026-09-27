@@ -10,6 +10,7 @@ import { EmployeesPage } from '../pages/EmployeesPage'
 import { ItemsPage } from '../pages/ItemsPage'
 import { OrdersPage } from '../pages/OrdersPage'
 import { StationsPage } from '../pages/StationsPage'
+import { StationInventoryPage } from '../pages/StationInventoryPage'
 import { SuppliersPage } from '../pages/SuppliersPage'
 
 export const appRoutes: RouteObject[] = [
@@ -32,6 +33,7 @@ export const appRoutes: RouteObject[] = [
               { path: 'employees', element: <EmployeesPage /> },
               { path: 'items', element: <ItemsPage /> },
               { path: 'stations', element: <StationsPage /> },
+              { path: 'station-inventory', element: <StationInventoryPage /> },
               { path: 'consignees', element: <ConsigneesPage /> },
               { path: 'consignments', element: <ConsignmentsPage /> },
               { path: 'suppliers', element: <SuppliersPage /> }

@@ -5,6 +5,7 @@ export type Supplier = {
   contactNumber: string | null
   email: string | null
   address: string | null
+  isActive: boolean
 }
 
 export type SupplierInput = Omit<Supplier, 'id'>

@@ -12,14 +12,6 @@ class UpdateItemRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $description = $this->input('description');
-        $this->merge([
-            'description' => is_string($description) && trim($description) === '' ? null : $description,
-        ]);
-    }
-
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -31,9 +23,10 @@ class UpdateItemRequest extends FormRequest
                 Rule::unique('items', 'item_code')->ignore($this->route('item')),
             ],
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
             'quantity' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],
-            'unit' => ['required', 'string', 'max:50'],
+            'units_backup' => ['required', 'string', 'max:50'],
+            'unit' => ['required', 'string', 'max:20'],
+            'reorder_point' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],
             'price' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,8}(\.\d{1,2})?$/'],
         ];
     }

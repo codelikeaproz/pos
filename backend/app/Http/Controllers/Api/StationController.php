@@ -64,6 +64,9 @@ class StationController extends Controller
         if ($station->users()->exists()) {
             return response()->json(['message' => 'This station is assigned to an account and cannot be deleted.'], 409);
         }
+        if ($station->stationItems()->exists()) {
+            return response()->json(['message' => 'This station has inventory assignments and cannot be deleted.'], 409);
+        }
         $station->delete();
 
         return response()->json([

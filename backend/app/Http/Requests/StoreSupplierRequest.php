@@ -25,6 +25,7 @@ class StoreSupplierRequest extends FormRequest
             'contact_number' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
         ];
     }
 

@@ -3,21 +3,20 @@ import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
 import { ITEM_UNITS, type Item, type ItemInput } from '../../types/item'
 
-export type ItemFieldErrors = Partial<Record<'item_code' | 'name' | 'description' | 'quantity' | 'unit' | 'price', string>>
+export type ItemFieldErrors = Partial<Record<'item_code' | 'name' | 'quantity' | 'units_backup' | 'unit' | 'reorder_point' | 'price', string>>
 
 type Props = { formId: string; item?: Item; errors: ItemFieldErrors; disabled?: boolean; onSubmit: (input: ItemInput) => void }
 
 export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: Props) {
   const [itemCode, setItemCode] = useState(item?.item_code ?? '')
   const [name, setName] = useState(item?.name ?? '')
-  const [description, setDescription] = useState(item?.description ?? '')
   const [quantity, setQuantity] = useState(item?.quantity ?? '')
-  const [unit, setUnit] = useState(item?.unit ?? 'pcs')
+  const [unitsBackup, setUnitsBackup] = useState(item?.units_backup ?? 'pcs')
   const [price, setPrice] = useState(item?.price ?? '')
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
-    onSubmit({ item_code: itemCode.trim(), name: name.trim(), description: description.trim() || null, quantity: quantity.trim(), unit, price: price.trim() })
+    onSubmit({ item_code: itemCode.trim(), name: name.trim(), quantity: quantity.trim(), units_backup: unitsBackup.trim(), unit: item?.unit ?? unitsBackup.trim(), reorder_point: item?.reorder_point ?? '0', price: price.trim() })
   }
 
   return (
@@ -39,18 +38,13 @@ export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: P
           {errors.quantity ? <span id={`${formId}-quantity-error`} className="page__field-error">{errors.quantity}</span> : null}
         </div>
         <div className="item-form__field">
-          <Label htmlFor={`${formId}-unit`} required>Unit</Label>
-          <Input id={`${formId}-unit`} list={`${formId}-unit-suggestions`} value={unit} onChange={(event) => setUnit(event.target.value)} required maxLength={50} disabled={disabled} error={Boolean(errors.unit)} aria-describedby={errors.unit ? `${formId}-unit-error` : undefined} placeholder="Select or type a unit" />
+          <Label htmlFor={`${formId}-units-backup`} required>Unit</Label>
+          <Input id={`${formId}-units-backup`} list={`${formId}-unit-suggestions`} value={unitsBackup} onChange={(event) => setUnitsBackup(event.target.value)} required maxLength={50} disabled={disabled} error={Boolean(errors.units_backup)} aria-describedby={errors.units_backup ? `${formId}-units-backup-error` : undefined} placeholder="Select or type a unit" />
           <datalist id={`${formId}-unit-suggestions`}>
             {ITEM_UNITS.map((option) => <option key={option} value={option} />)}
           </datalist>
-          {errors.unit ? <span id={`${formId}-unit-error`} className="page__field-error">{errors.unit}</span> : null}
+          {errors.units_backup ? <span id={`${formId}-units-backup-error`} className="page__field-error">{errors.units_backup}</span> : null}
         </div>
-      </div>
-      <div className="item-form__field">
-        <Label htmlFor={`${formId}-description`}>Description</Label>
-        <textarea id={`${formId}-description`} className={`item-form__textarea${errors.description ? ' item-form__textarea--error' : ''}`} value={description} onChange={(event) => setDescription(event.target.value)} maxLength={1000} rows={3} disabled={disabled} aria-describedby={errors.description ? `${formId}-description-error` : undefined} />
-        {errors.description ? <span id={`${formId}-description-error`} className="page__field-error">{errors.description}</span> : null}
       </div>
       <div className="item-form__field">
         <Label htmlFor={`${formId}-price`} required>Price</Label>

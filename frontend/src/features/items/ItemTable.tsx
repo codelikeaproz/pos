@@ -11,7 +11,7 @@ export function ItemTable({ items, onEdit, onDelete }: Props) {
     { key: 'itemCode', header: 'Item Code', render: (item) => <strong>{item.item_code}</strong> },
     { key: 'name', header: 'Item Name', render: (item) => <strong>{item.name}</strong> },
     { key: 'quantity', header: 'Quantity', render: (item) => Number(item.quantity).toLocaleString('en-PH', { maximumFractionDigits: 3 }) },
-    { key: 'unit', header: 'Unit', render: (item) => item.unit },
+    { key: 'unit', header: 'Unit', render: (item) => item.units_backup },
     { key: 'price', header: 'Price', render: (item) => pesoFormatter.format(Number(item.price)) },
     { key: 'actions', header: 'Actions', align: 'right', render: (item) => <div className="item-table__actions"><Button variant="outline" onClick={() => onEdit(item)} icon={<AppIcons.edit size={iconSize} strokeWidth={iconStroke} />}>Edit</Button><Button variant="danger" onClick={() => onDelete(item)} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>Delete</Button></div> }
   ]

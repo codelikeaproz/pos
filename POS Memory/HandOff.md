@@ -516,6 +516,25 @@ This is a future enhancement and must not affect the current desktop MVP.
 
 # 18. Current Phase
 
+## Phase 10.7 — Station Inventory Foundation
+
+Status: **COMPLETE**
+
+- Legacy `station_items` evidence reviewed and implemented with clean Laravel names
+- Added `station_items`: restrictive Station/Item foreign keys, `DECIMAL(12,3)` quantity, timestamps, and unique `(station_id, item_id)`
+- Added `StationItem`, its Station/Item relationships, Admin-only CRUD, filtering, live search, pagination, assignment, quantity editing, Item-threshold Low Stock status, and safe removal
+- Preserved `items.quantity` as transitional global quantity without hidden synchronization
+- Assigned master Items and Stations are protected from deletion
+- Added scalable authorized Item lookup and complete Station options
+- Added confirmed `suppliers.is_active` to the existing Supplier schema, model, API, form, and table without another Supplier migration
+- Added no Orders, Order Items, payments, stock deduction, Receiving, Withdrawal, Spoilage, Price table, inventory movement table, Service, or Repository
+
+Verification: **74 tests, 431 assertions passed**; Item-level reorder-point validation and station Low Stock coverage below/equal/above the Item threshold passed; PHP 8.3 Pint, TypeScript, the Electron production build, and `git diff --check` passed. The applied development schema and original create migrations now match: `items` contains required `name`, `units_backup`, `unit`, and `reorder_point`, while `station_items` retains station-specific quantity only. Supplier `is_active` was added directly to the live schema and its original create-table migration.
+
+Resolved: Station-to-Item inventory relationship, station-specific quantity, Item-level reorder point, and the legacy unit fields. Legacy numeric unit values are identifiers stored in `items.unit`; readable unit labels are stored in `items.units_backup`.
+
+Still deferred: removal/redefinition of `items.quantity`; expiry dates and `expiry_notification`; automatic low-stock alerts or replenishment; legacy Price table verification; Supplier-to-Item; Receiving and details; Withdrawal and details; Spoilage; inventory movement history; Item Delivery; Monthly End Report; Customer Management; traditional Consignment transactions/items/payments; Orders, Order Items, cart finalization, cash/change, automatic Station inventory deduction, transaction history, Customer/Remit/settlement meanings; printer/cash drawer; advanced auth; customer web/mobile menu.
+
 ## Phase 10.6 — Consignment Account Management
 
 Status: **COMPLETE**
@@ -598,18 +617,19 @@ COMPLETE
 
 ### Phase 10.4 deliverables
 
-- Introduced the `items` table with unique required string `item_code`, required `name`, nullable `description`, fixed-precision `DECIMAL(12,3)` `quantity`, controlled required `unit`, fixed-precision `DECIMAL(10,2)` `price`, and timestamps
+- Introduced the `items` table with unique required string `item_code`, required `name`, fixed-precision `quantity`, readable `units_backup`, legacy unit code `unit`, Item-level `reorder_point`, fixed-precision `price`, and timestamps
 - Added the `Item` Eloquent model with `decimal:3` quantity and `decimal:2` price casts and no premature relationships
 - Added `Api\ItemController`, `StoreItemRequest`, `UpdateItemRequest`, and a safe `ItemResource`
 - Added `GET/POST /api/items` and `GET/PUT/PATCH/DELETE /api/items/{item}`
 - Reused `auth:sanctum`, the `admin` alias, and `EnsureUserIsAdmin`
 - Added Item list, create, edit, centered delete confirmation, and Philippine peso display formatting
-- Added 350 ms live item-code/name/description search, request cancellation, inline X clearing, zero-result feedback, and 10-record pagination
-- Added suggested units `pcs`, `pack`, `box`, `bottle`, `can`, `cup`, `serving`, `kg`, `g`, `L`, and `mL`, while allowing free-text units such as `tray` or `sack`, without a separate units table
+- Added 350 ms live item-code/name/unit-name search, request cancellation, inline X clearing, zero-result feedback, and 10-record pagination
+- Added suggested readable unit labels while allowing custom `units_backup` values, preserved the separate legacy unit code, and added no units table
+- Kept legacy unit-code and reorder-point fields hidden from Item Management; the UI retains the simple Item Code, Item Name, Quantity, Unit, and Price display
 - Kept API prices as two-decimal strings and kept the peso symbol out of database values
 - Allowed duplicate Item names because no uniqueness requirement has been established
 - Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
-- Added initial Item quantity and unit as required by the original POS, while deferring automatic deduction, stock-in/out, inventory history, reorder levels, low-stock notifications, and order-based quantity updates
+- Added initial Item quantity, unit label/code, and reorder point as required by the confirmed legacy format, while deferring automatic deduction, stock-in/out, inventory history, low-stock notifications, and order-based quantity updates
 - Added no availability/status, Supplier, Consignee, Consignment, Station, Order, Inventory, or user relationship
 - Hardware and advanced authentication remain deferred
 
@@ -620,9 +640,9 @@ COMPLETE
 | Complete Laravel test suite | PASS — 59 tests, 282 assertions |
 | Item API authorization | PASS — unauthenticated 401; End User 403; Admin allowed |
 | Item create/show/PUT/PATCH/delete | PASS |
-| Required unique item code, name, quantity, unit, price, and optional description | PASS |
-| Quantity/price precision, invalid/negative values, required unit, and custom unit entry | PASS |
-| Duplicate names, item-code/name/description search, zero results, empty search, and 10-record pagination | PASS |
+| Required unique item code, name, quantity, unit label/code, reorder point, and price | PASS |
+| Quantity/reorder-point/price precision, invalid/negative values, and required units | PASS |
+| Duplicate names, item-code/name/unit-name search, zero results, empty search, and 10-record pagination | PASS |
 | Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
 | MySQL/MariaDB migration | PASS — `2026_09_27_020000_create_items_table` applied in batch 4 |
 | Live API create/search/PATCH/delete | PASS — decimal strings preserved; disposable record cleaned up |
@@ -889,7 +909,7 @@ Repository note: the workspace is connected to `https://github.com/codelikeaproz
 2. **PHP:** 8.3.33 is installed with `zip` / `pdo_mysql`, but the current shell PATH resolves XAMPP PHP 8.2.12 first. Use the WinGet PHP 8.3 executable for Pint until PATH is corrected.
 3. **Database (local):** XAMPP MariaDB 10.4.32; DB `pos_homestay`; target MySQL 8.4 LTS for production.
 4. **Node:** v22.14.0 acceptable for frontend development.
-5. **Phase boundary:** Phase 10.6 complete. Review the original Orders/POS workflow before Phase 10.7.
+5. **Phase boundary:** Phase 10.7 complete. Do not start Phase 10.8 Orders/POS until explicitly requested.
 
 Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
@@ -899,7 +919,7 @@ Related: [[Architecture]] · [[Requirement]] · [[Rules]] · [[PRD]]
 
 Immediate next phase (**awaiting explicit go-ahead**):
 
-1. **Potential Phase 10.7 — Orders / POS Foundation (requires workflow review first)**
+1. **Potential Phase 10.8 — Orders / POS Foundation (requires explicit approval)**
 
 Then:
 

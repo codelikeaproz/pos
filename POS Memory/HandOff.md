@@ -540,7 +540,7 @@ Status: **COMPLETE**
 - Resolved: Transaction History, transaction search, and transaction details
 - Still deferred: Customer, `is_settled`, Remit/remittance/settlement, void/refund/correction/stock reversal, Receipt Printer, Cash Drawer/ESC-POS, additional or split payments, payments table, legacy Price table verification, `items.quantity` cleanup, Receiving, Withdrawal, Spoilage, inventory movement history, OTP/2FA, and customer web/mobile ordering
 
-Verification: **96 tests, 577 assertions passed**, including **7 Transaction History tests, 56 assertions**. Checkout row-locking, forced rollback, stock deduction, POS inventory, authentication, and all existing CRUD regressions remain green. PHP 8.3 Pint, frontend TypeScript checking, the Electron production build, route inspection, and `git diff --check` passed.
+Verification: **96 tests, 577 assertions passed**, including **7 Transaction History tests, 56 assertions**. Checkout row-locking, forced rollback, stock deduction, POS inventory, authentication, and all existing CRUD regressions remain green. PHP 8.2 Pint, frontend TypeScript checking, the Electron production build, route inspection, and `git diff --check` passed.
 
 Next phase is intentionally unspecified pending review. Hardware and deferred financial workflows must not start automatically.
 
@@ -560,7 +560,7 @@ Status: **COMPLETE**
 - Resolved: Orders persistence, Order Items persistence, permanent Order Number, Cash payment, Cash Received, Change, authoritative totals, and automatic Station inventory deduction
 - Still deferred: `items.quantity` cleanup, legacy Price table verification, Customer, Remit, settlement/remittance, Transaction History/search/details, void/refund/stock reversal, other or split payment methods, a payments table, Receipt Printer, Cash Drawer/ESC-POS, Receiving, Withdrawal, Spoilage, inventory movement history, OTP/2FA, and customer web/mobile ordering
 
-Verification: **89 tests, 521 assertions passed**, including **10 checkout tests, 63 assertions**. Forced Order Item and Station stock-update failures prove transaction rollback. PHP 8.3 Pint, frontend TypeScript checking, the Electron production build, both development migrations, route middleware inspection, and `git diff --check` passed.
+Verification: **89 tests, 521 assertions passed**, including **10 checkout tests, 63 assertions**. Forced Order Item and Station stock-update failures prove transaction rollback. PHP 8.2 Pint, frontend TypeScript checking, the Electron production build, both development migrations, route middleware inspection, and `git diff --check` passed.
 
 Next: **Phase 10.10 — Transaction History**. It is not implemented and requires explicit approval.
 
@@ -578,7 +578,7 @@ Status: **COMPLETE**
 - Reorder Point remains available internally for Station Inventory status logic but is not displayed in the current UI; `units_backup` also remains implemented internally and supplies the readable POS unit
 - Added no migrations, packages, Services, Repositories, transactions, payment controls, order numbers, transaction history, printing, or keyboard shortcuts
 
-Verification: **79 tests, 458 assertions passed**; the POS endpoint tests cover authentication, Admin and End User access, authenticated Station isolation, missing-Station `409`, manipulated `station_id`, Station quantity as the availability source, current price and readable unit mapping, search, pagination, ordering, and zero-stock inclusion. PHP 8.3 Pint, TypeScript checking, the Electron production build, migration status, and `git diff --check` passed.
+Verification: **79 tests, 458 assertions passed**; the POS endpoint tests cover authentication, Admin and End User access, authenticated Station isolation, missing-Station `409`, manipulated `station_id`, Station quantity as the availability source, current price and readable unit mapping, search, pagination, ordering, and zero-stock inclusion. PHP 8.2 Pint, TypeScript checking, the Electron production build, migration status, and `git diff --check` passed.
 
 Next: **Phase 10.9 — Payment & Order Finalization**. It must re-fetch Station inventory and Item prices, validate quantities, calculate authoritative totals, generate the order number, and perform order, payment, and inventory writes atomically. Phase 10.9 is not implemented.
 
@@ -595,7 +595,7 @@ Status: **COMPLETE**
 - Added confirmed `suppliers.is_active` to the existing Supplier schema, model, API, form, and table without another Supplier migration
 - Added no Orders, Order Items, payments, stock deduction, Receiving, Withdrawal, Spoilage, Price table, inventory movement table, Service, or Repository
 
-Verification: **74 tests, 431 assertions passed**; Item-level reorder-point validation and station Low Stock coverage below/equal/above the Item threshold passed; PHP 8.3 Pint, TypeScript, the Electron production build, and `git diff --check` passed. The applied development schema and original create migrations now match: `items` contains required `name`, `units_backup`, `unit`, and `reorder_point`, while `station_items` retains station-specific quantity only. Supplier `is_active` was added directly to the live schema and its original create-table migration.
+Verification: **74 tests, 431 assertions passed**; Item-level reorder-point validation and station Low Stock coverage below/equal/above the Item threshold passed; PHP 8.2 Pint, TypeScript, the Electron production build, and `git diff --check` passed. The applied development schema and original create migrations now match: `items` contains required `name`, `units_backup`, `unit`, and `reorder_point`, while `station_items` retains station-specific quantity only. Supplier `is_active` was added directly to the live schema and its original create-table migration.
 
 Resolved: Station-to-Item inventory relationship, station-specific quantity, Item-level reorder point, and the legacy unit fields. Legacy numeric unit values are identifiers stored in `items.unit`; readable unit labels are stored in `items.units_backup`.
 
@@ -655,7 +655,7 @@ COMPLETE
 | Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
 | MySQL/MariaDB migration | PASS — `2026_09_27_030000_create_consignees_table` applied |
 | Live API create/search/PATCH/delete | PASS — string contact number preserved; disposable record cleaned up |
-| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| PHP 8.2 `vendor/bin/pint --test` | PASS |
 | Frontend TypeScript check | PASS |
 | Electron production build | PASS — main, preload, and renderer |
 | `git diff --check` | PASS |
@@ -713,7 +713,7 @@ COMPLETE
 | Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
 | MySQL/MariaDB migration | PASS — `2026_09_27_020000_create_items_table` applied in batch 4 |
 | Live API create/search/PATCH/delete | PASS — decimal strings preserved; disposable record cleaned up |
-| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| PHP 8.2 `vendor/bin/pint --test` | PASS |
 | Frontend TypeScript check | PASS |
 | Electron production build | PASS — main, preload, and renderer |
 | Public `/api/health` | PASS — running API returned `status: ok` |
@@ -753,7 +753,7 @@ COMPLETE
 | Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
 | MySQL/MariaDB migration | PASS — `2026_09_27_010000_create_suppliers_table` applied |
 | Live MySQL supplier create/search/delete | PASS — string contact number preserved; disposable record cleaned up |
-| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| PHP 8.2 `vendor/bin/pint --test` | PASS |
 | `npm run typecheck` | PASS |
 | `npm run build` (Electron main, preload, renderer) | PASS |
 | Live Admin Supplier page and centered Add Supplier dialog | PASS |
@@ -792,7 +792,7 @@ COMPLETE
 | Live location create/search/delete against MySQL/MariaDB | PASS — disposable record cleaned up |
 | Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
 | MySQL/MariaDB migration | PASS — `2026_09_27_000000_create_stations_table` applied |
-| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| PHP 8.2 `vendor/bin/pint --test` | PASS |
 | `npm run typecheck` | PASS |
 | `npm run build` (Electron main, preload, renderer) | PASS |
 | Live Admin Station page and centered Add Station dialog | PASS |
@@ -844,7 +844,7 @@ COMPLETE
 | Live 350 ms search debounce and inline X clear behavior | PASS |
 | Live End User navigation and manual `/employees` route denial | PASS |
 | Dashboard, Orders placeholder, and logout regression | PASS |
-| PHP 8.3 `vendor/bin/pint --test` | PASS |
+| PHP 8.2 `vendor/bin/pint --test` | PASS |
 | Migration status | PASS — existing migrations applied; no new migration required |
 
 ### Architecture simplification — 2026-09-26
@@ -931,7 +931,7 @@ The shared frontend/backend connection was reviewed before further product work.
 - Invalid or expired authenticated sessions now clear centralized frontend auth state and return the user to Login.
 - A startup network failure reports that the saved session could not be checked without discarding its token.
 - Logout remains locally safe when Laravel is unavailable and reports that remote revocation could not be confirmed.
-- Laravel Pint formatting was applied with PHP 8.3.33.
+- Laravel Pint formatting was applied with PHP 8.2.12.
 
 Verification results:
 
@@ -940,7 +940,7 @@ Verification results:
 | `npm run typecheck` | PASS |
 | `npm run build` | PASS |
 | `php artisan test` (PATH PHP 8.2.12 with SQLite) | PASS — 16 tests, 60 assertions |
-| PHP 8.3 `vendor/bin/pint --test` | PASS after formatting |
+| PHP 8.2 `vendor/bin/pint --test` | PASS after formatting |
 | Packaged `pos://app` CORS test | PASS |
 | Untrusted `Origin: null` rejection test | PASS |
 | Configured MySQL/MariaDB migrations and development users | PASS |
@@ -949,7 +949,7 @@ Verification results:
 | Invalid-token redirect with session-ended feedback | PASS |
 | Backend-unavailable local logout with warning | PASS |
 
-PHP 8.3 environment note: the WinGet installation has `pdo_mysql`, but its `pdo_sqlite` and `sqlite3` extensions are currently disabled. Until those are enabled, use PATH PHP 8.2.12 for the SQLite-backed test suite and WinGet PHP 8.3.33 for Pint.
+PHP 8.2 environment note: XAMPP PHP 8.2.12 is the primary PHP on PATH and is used for all Laravel operations including tests and Pint.
 
 Repository note: the workspace is connected to `https://github.com/codelikeaproz/pos.git`; the Phase 8 baseline is on `main`. Authentication hardening changes remain local until an explicit commit/push request.
 
@@ -973,7 +973,7 @@ Repository note: the workspace is connected to `https://github.com/codelikeaproz
 ### Environment decisions (still in force)
 
 1. **Laravel:** **Laravel 12** (locked). Do **not** use Laravel 13. See [[Requirement]].
-2. **PHP:** 8.3.33 is installed with `zip` / `pdo_mysql`, but the current shell PATH resolves XAMPP PHP 8.2.12 first. Use the WinGet PHP 8.3 executable for Pint until PATH is corrected.
+2. **PHP:** 8.2.12 from XAMPP is the primary PHP on PATH and is used for all Laravel operations.
 3. **Database (local):** XAMPP MariaDB 10.4.32; DB `pos_homestay`; target MySQL 8.4 LTS for production.
 4. **Node:** v22.14.0 acceptable for frontend development.
 5. **Phase boundary:** Phase 10.10 is complete. No next phase has been approved.

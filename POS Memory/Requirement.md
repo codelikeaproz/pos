@@ -22,7 +22,7 @@
 | Frontend | React | 19.x |
 | Language | TypeScript | Current stable compatible version |
 | Backend | Laravel | 12.x |
-| Backend Language | PHP | 8.2+ (this machine: 8.3.33) |
+| Backend Language | PHP | 8.2+ (this machine: 8.2.12) |
 | Database | MySQL | 8.4 LTS |
 | Runtime | Node.js | 24.x LTS |
 | Package Manager | npm | Compatible with Node.js |
@@ -31,7 +31,7 @@
 | Desktop Build | electron-builder | Compatible stable version |
 | OS | Windows | 64-bit |
 
-Laravel 12 is the locked backend baseline for this project (Laravel 13 is available on Packagist but is **not** used). PHP 8.2+ is required for Laravel 12; this machine uses PHP 8.3.33.
+Laravel 12 is the locked backend baseline for this project (Laravel 13 is available on Packagist but is **not** used). PHP 8.2+ is required for Laravel 12; this machine uses PHP 8.2.12.
 
 Electron 44 was released August 25, 2026 and includes Node.js 24.18.1. Electron officially supports the latest three stable major versions, so the project should pin and test a specific Electron version rather than continuously pulling arbitrary versions. :contentReference[oaicite:1]{index=1}
 
@@ -50,7 +50,7 @@ Do not automatically upgrade major framework versions during active development.
 | Concern | Decision | Notes |
 |---|---|---|
 | Backend framework | **Laravel 12** | Locked; Laravel 13 not used for this POS project |
-| PHP | **8.3.33** installed (8.2+ OK for L12) | WinGet `PHP.PHP.8.3`; `zip` and `pdo_mysql` enabled; see PATH note below |
+| PHP | **8.2.12** installed (8.2+ OK for L12) | XAMPP PHP; see PATH note below |
 | Database (local) | **XAMPP MariaDB 10.4.32** | Accepted for local development only |
 | Database (target) | **MySQL 8.4 LTS** | Production / long-term target remains unchanged |
 | Node.js | **v22.14.0** (current machine) | Acceptable for Phase 2; revisit 24.x if Electron pin requires it |
@@ -77,7 +77,7 @@ VS Code
 Git
 Node.js 24 LTS (or current machine LTS-compatible version per version policy)
 npm
-PHP 8.3+
+PHP 8.2+
 Composer
 Laravel 12
 MySQL 8.4 (local: MariaDB 10.4 via XAMPP accepted)
@@ -86,14 +86,14 @@ Verified on this machine after Phase 1 remediation:
 
 - Node.js `v22.14.0`
 - npm `11.11.0`
-- PHP `8.3.33` installed through WinGet; as verified 2026-09-26, a normal `php` command resolves first to XAMPP PHP `8.2.12`
+- PHP `8.2.12` from XAMPP; as verified 2026-09-28, this is the primary PHP on PATH
 - Composer `2.8.6`; as verified 2026-09-26, it uses the first PHP on PATH (`8.2.12`)
 - Git `2.46.0.windows.1`
 - MariaDB `10.4.32` at `C:\xampp\mysql\bin` (on User PATH; root connection verified)
 
 The application itself will run through Electron.
 
-Laravel 12 application tests run under the PATH-selected PHP 8.2.12, which has the SQLite driver required by the in-memory test database. The WinGet PHP 8.3.33 installation has `pdo_mysql` enabled but, as verified 2026-09-26, `pdo_sqlite` / `sqlite3` are disabled; enable them before running the authentication test suite with that executable. The currently installed Pint executable requires PHP 8.3, so run Pint with the WinGet PHP 8.3.33 executable until PATH ordering is corrected. Do not claim that PHP 8.3 is first on PATH without rechecking `where.exe php` and `php -v`.
+Laravel 12 application tests run under the PATH-selected PHP 8.2.12, which has the SQLite driver required by the in-memory test database.
 
 End users do not need Node.js installed separately to run the packaged Electron application because Electron bundles its own Node.js runtime
 

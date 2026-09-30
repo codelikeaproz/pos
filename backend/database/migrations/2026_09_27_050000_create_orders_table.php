@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('customer_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('payment_method', 32);
             $table->decimal('total_amount', 12, 2);
-            $table->decimal('cash_received', 12, 2);
-            $table->decimal('change_amount', 12, 2);
+            $table->decimal('cash_received', 12, 2)->nullable();
+            $table->decimal('change_amount', 12, 2)->nullable();
             $table->timestamps();
         });
     }

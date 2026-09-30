@@ -1,6 +1,20 @@
 # University HomeStay POS
 ## Architecture
 
+### Current POS layout and in-place cashier actions (2026-09-30)
+
+The POS uses a full-width cashier layout with the existing green/yellow branding. Its Station/User masthead, food image, available Item list, current Order, payment panel, live Manila clock, and bottom action strip stay on one screen. The application sidebar is hidden on POS and returns when the cashier exits to Dashboard. The image has no overlaid brand text; the masthead supplies the branding.
+
+The footer exposes only working actions: F7 opens a read-only current-Station transaction dialog with Order details, F9 edits a cart line's quantity (using a line picker for multiple items), F10 starts a new Order, F12 opens read-only current-Station inventory, and Esc exits POS. New Order and Exit POS confirm before discarding an unpaid cart. F7 and F12 leave the cart intact. Cash and Credit use radio buttons; choosing Credit opens Customer selection and activates Credit only after selection. Cancelling an initial selection returns to Cash; cancelling a later change keeps the existing Customer. F3/F4 payment shortcuts were removed. Discount, O.R Transactions, and F8 Credit Transactions remain deferred and are not shown as working buttons.
+
+F7 reuses `GET /api/orders` with search, date filters, and pagination, then `GET /api/orders/{order}` for read-only detail. Admin POS sends its current `station_id` filter; Cashier Order requests are scoped to the signed-in Station by the server. F12 reads all assigned stock, including inactive or unpriced Items, through authenticated `GET /api/pos/station-inventory`; the server derives the Station from the User, supports search and 10-row pagination, and returns 409 for an unassigned User. The sellable `GET /api/pos/items` list retains its separate active-Item and single-active-Price rules. The inventory dialog exposes no stock editing.
+
+### Phase 10.16 POS Credit / Utang checkout
+
+The existing POS checkout accepts Cash or Credit / Utang through the same transaction. Cash requires `cashReceived` and permits a Walk-in Order with `customer_id = null`; the server computes change. Credit requires an existing `customerId`, stores `payment_method = credit` and the Customer FK, and leaves `cash_received` and `change_amount` null. Both cash columns are nullable in the original Orders creation migration; existing Cash Orders retain their values. There is no second checkout engine or Credit table.
+
+Both methods lock StationItem and Item rows, resolve the single active Price, compare the displayed Price, calculate authoritative totals, create Order and OrderItem snapshots, deduct Station stock, and write negative SALE movements atomically. Stale Price returns 409 before writes; insufficient stock also prevents writes. A paginated, searchable Customer selector reuses authenticated `GET /api/customers`; Customer creation and Credit Monitoring remain Admin-only. Completed Credit Orders appear in Credit Monitoring directly from Orders. Its Total Amount is recorded Credit sales, not an outstanding balance. Customer Balance and settlement belong to the separate Accounting Office system and are not calculated or stored here.
+
 ### Phase 10.15 Customer and Credit Monitoring architecture
 
 `customers` is distinct from Consignees: a Customer purchases on credit, while a Consignee participates in the separate consignment account workflow. Customer stores only name and address. `orders.customer_id` is nullable for cash/Walk-in Orders and restricts deletion when linked; a credit Order requires a Customer through the Order model invariant. Existing cash checkout remains unchanged. No credit checkout UI or endpoint exists yet.

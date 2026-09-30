@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/current-user', [AuthController::class, 'currentUser']);
 
     Route::get('/pos/items', [PosItemController::class, 'index']);
+    Route::get('/pos/station-inventory', [PosItemController::class, 'stationInventory']);
     Route::post('/pos/checkout', [PosCheckoutController::class, 'store']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
@@ -60,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('items', ItemController::class)
         ->middleware('admin');
 
-    Route::get('/customers', [CustomerController::class, 'index'])->middleware('admin');
+    Route::get('/customers', [CustomerController::class, 'index']);
     Route::post('/customers', [CustomerController::class, 'store'])->middleware('admin');
     Route::get('/credit-monitoring', [CreditMonitoringController::class, 'index'])->middleware('admin');
 

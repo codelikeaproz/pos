@@ -1,5 +1,5 @@
 import { apiRequest } from './apiClient'
-import type { CartItem, CheckoutOrder, PosItem, PosItemList, PosStation } from '../types/pos'
+import type { CartItem, CheckoutOrder, PosItem, PosItemList, PosStation, PosStationInventoryList, PosStationInventoryRow } from '../types/pos'
 
 type PosItemsResponse = {
   data: PosItem[]
@@ -7,13 +7,13 @@ type PosItemsResponse = {
   meta: { current_page: number; last_page: number; total: number }
 }
 
-export async function checkoutOrder(items: CartItem[], cashReceived: string): Promise<CheckoutOrder> {
+export async function checkoutOrder(items: CartItem[], paymentMethod: 'cash' | 'credit', cashReceived: string, customerId: number | null): Promise<CheckoutOrder> {
   const response = await apiRequest<{ message: string; order: CheckoutOrder }>('/api/pos/checkout', {
     method: 'POST',
     body: {
       items: items.map((item) => ({ itemId: item.itemId, quantity: item.quantity, expectedUnitPrice: item.unitPrice })),
-      paymentMethod: 'cash',
-      cashReceived
+      paymentMethod,
+      ...(paymentMethod === 'cash' ? { cashReceived } : { customerId })
     },
     timeoutMs: 20_000
   })
@@ -32,4 +32,11 @@ export async function loadPosItems(search: string, page: number, signal?: AbortS
     lastPage: response.meta.last_page,
     total: response.meta.total
   }
+}
+
+export async function loadPosStationInventory(search: string, page: number, signal?: AbortSignal): Promise<PosStationInventoryList> {
+  const params = new URLSearchParams({ page: String(page) })
+  if (search) params.set('search', search)
+  const response = await apiRequest<{ data: PosStationInventoryRow[]; station: PosStation; meta: { current_page: number; last_page: number; total: number } }>(`/api/pos/station-inventory?${params}`, { signal })
+  return { items: response.data, station: response.station, currentPage: response.meta.current_page, lastPage: response.meta.last_page, total: response.meta.total }
 }

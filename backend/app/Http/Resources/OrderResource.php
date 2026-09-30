@@ -15,6 +15,7 @@ class OrderResource extends JsonResource
             'orderedAt' => $this->ordered_at->toISOString(),
             'station' => ['id' => $this->station->id, 'name' => $this->station->name],
             'cashier' => ['id' => $this->cashier->id, 'name' => $this->cashier->name],
+            'customer' => $this->customer ? ['id' => $this->customer->id, 'name' => $this->customer->name, 'address' => $this->customer->address] : null,
             'paymentMethod' => $this->payment_method,
             'totalAmount' => $this->total_amount,
             'cashReceived' => $this->cash_received,

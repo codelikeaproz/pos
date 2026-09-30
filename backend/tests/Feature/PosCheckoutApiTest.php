@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Customer;
+use App\Models\InventoryMovement;
 use App\Models\Item;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -111,6 +113,94 @@ class PosCheckoutApiTest extends TestCase
         $this->postJson('/api/pos/checkout', $this->payload($item->id, '5.000', '125.00'))
             ->assertCreated()->assertJsonPath('order.changeAmount', '0.00');
         $this->assertSame('0.000', $stock->fresh()->quantity);
+    }
+
+    public function test_credit_checkout_uses_same_stock_and_price_path_and_appears_in_monitoring(): void
+    {
+        [$user, , $item, $stock] = $this->context();
+        $customer = Customer::query()->create(['name' => 'Maria Cruz', 'address' => 'Maramag']);
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/pos/checkout', [
+            'items' => [['itemId' => $item->id, 'quantity' => '1.500', 'expectedUnitPrice' => '25.00']],
+            'paymentMethod' => 'credit', 'customerId' => $customer->id,
+        ])->assertCreated()->assertJsonPath('order.paymentMethod', 'credit')
+            ->assertJsonPath('order.customer.name', 'Maria Cruz')
+            ->assertJsonPath('order.totalAmount', '37.50')
+            ->assertJsonPath('order.cashReceived', null)
+            ->assertJsonPath('order.changeAmount', null)
+            ->assertJsonPath('order.items.0.subtotal', '37.50');
+        $this->assertSame($customer->id, Order::query()->firstOrFail()->customer_id);
+        $this->assertSame('3.500', $stock->fresh()->quantity);
+        $this->assertDatabaseHas('inventory_movements', ['type' => 'SALE', 'quantity_change' => '-1.500']);
+        $this->assertSame(1, InventoryMovement::query()->count());
+        $this->assertMatchesRegularExpression('/^ORD-\d{8}-\d{6}$/', $response->json('order.orderNumber'));
+
+        Sanctum::actingAs(User::factory()->admin()->create());
+        $this->getJson('/api/credit-monitoring')->assertOk()->assertJsonPath('data.0.customer.name', 'Maria Cruz')
+            ->assertJsonPath('data.0.totalAmount', '37.50')
+            ->assertJsonPath('data.0.ageDays', 0);
+    }
+
+    public function test_credit_requires_existing_customer_and_leaves_inventory_unchanged_on_failure(): void
+    {
+        [$user, , $item, $stock] = $this->context();
+        Sanctum::actingAs($user);
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit'];
+        $this->postJson('/api/pos/checkout', $base)->assertUnprocessable()->assertJsonValidationErrors('customerId');
+        $this->postJson('/api/pos/checkout', $base + ['customerId' => 999])->assertUnprocessable()->assertJsonValidationErrors('customerId');
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('inventory_movements', 0);
+        $this->assertSame('5.000', $stock->fresh()->quantity);
+    }
+
+    public function test_cash_still_requires_cash_received_and_allows_walk_in(): void
+    {
+        [$user, , $item] = $this->context();
+        Sanctum::actingAs($user);
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash'];
+        $this->postJson('/api/pos/checkout', $base)->assertUnprocessable()->assertJsonValidationErrors('cashReceived');
+        $this->postJson('/api/pos/checkout', $base + ['cashReceived' => '30.00'])
+            ->assertCreated()->assertJsonPath('order.customer', null)->assertJsonPath('order.changeAmount', '5.00');
+    }
+
+    public function test_credit_order_item_failure_rolls_back_everything(): void
+    {
+        [$user, , $item, $stock] = $this->context();
+        $customer = Customer::query()->create(['name' => 'Maria Cruz', 'address' => 'Maramag']);
+        Sanctum::actingAs($user);
+        Event::listen('eloquent.creating: '.OrderItem::class, fn () => throw new \RuntimeException('Forced item failure'));
+        try {
+            $this->withoutExceptionHandling()->postJson('/api/pos/checkout', [
+                'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']],
+                'paymentMethod' => 'credit', 'customerId' => $customer->id,
+            ]);
+            $this->fail('Expected the forced order item failure.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Forced item failure', $exception->getMessage());
+        } finally {
+            Event::forget('eloquent.creating: '.OrderItem::class);
+        }
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_items', 0);
+        $this->assertDatabaseCount('inventory_movements', 0);
+        $this->assertSame('5.000', $stock->fresh()->quantity);
+    }
+
+    public function test_credit_rejects_insufficient_stock_and_changed_price_without_writes(): void
+    {
+        [$user, , $item, $stock] = $this->context();
+        $customer = Customer::query()->create(['name' => 'Maria Cruz', 'address' => 'Maramag']);
+        Sanctum::actingAs($user);
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '6.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit', 'customerId' => $customer->id];
+        $this->postJson('/api/pos/checkout', $base)->assertUnprocessable()->assertJsonValidationErrors('items');
+        $base['items'][0]['quantity'] = '1.000';
+        $item->prices()->update(['is_active' => false]);
+        $item->prices()->create(['amount' => '30.00', 'is_active' => true]);
+        $this->postJson('/api/pos/checkout', $base)->assertConflict()->assertJsonPath('currentPrices.0.price', '30.00');
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('inventory_movements', 0);
+        $this->assertSame('5.000', $stock->fresh()->quantity);
     }
 
     public function test_line_subtotals_use_half_up_rounding_before_totaling(): void

@@ -94,6 +94,57 @@ class PosItemApiTest extends TestCase
         }
     }
 
+    public function test_station_inventory_modal_endpoint_requires_authentication_and_assigned_station(): void
+    {
+        $this->getJson('/api/pos/station-inventory')->assertUnauthorized();
+        Sanctum::actingAs(User::factory()->endUser()->create(['station_id' => null]));
+        $this->getJson('/api/pos/station-inventory')->assertConflict()
+            ->assertJsonPath('message', 'This account is not assigned to a station.');
+    }
+
+    public function test_station_inventory_includes_inactive_unpriced_and_zero_stock_items_but_only_at_authenticated_station(): void
+    {
+        [$station, $otherStation] = $this->stations();
+        $inactive = $this->item('INACTIVE', 'Inactive Item');
+        $inactive->update(['is_active' => false]);
+        $unpriced = $this->item('UNPRICED', 'Unpriced Item');
+        $unpriced->prices()->delete();
+        $elsewhere = $this->item('OTHER', 'Other Station Item');
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $inactive->id, 'quantity' => '2.500']);
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $unpriced->id, 'quantity' => '0.000']);
+        StationItem::query()->create(['station_id' => $otherStation->id, 'item_id' => $elsewhere->id, 'quantity' => '9.000']);
+
+        Sanctum::actingAs(User::factory()->admin()->create(['station_id' => $station->id]));
+        $this->getJson("/api/pos/station-inventory?station_id={$otherStation->id}")
+            ->assertOk()->assertJsonPath('station.id', $station->id)
+            ->assertJsonCount(2, 'data')->assertJsonPath('data.0.itemCode', 'INACTIVE')
+            ->assertJsonPath('data.0.isActive', false)->assertJsonPath('data.0.quantity', '2.500')
+            ->assertJsonPath('data.1.itemCode', 'UNPRICED')->assertJsonPath('data.1.quantity', '0.000');
+
+        Sanctum::actingAs(User::factory()->endUser()->create(['station_id' => $station->id]));
+        $this->getJson('/api/pos/station-inventory?search=UNPRICED')
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.itemId', $unpriced->id);
+        $this->getJson('/api/pos/station-inventory?search=other')
+            ->assertOk()->assertJsonCount(0, 'data');
+    }
+
+    public function test_station_inventory_searches_codes_and_paginates_ten_rows(): void
+    {
+        [$station] = $this->stations();
+        Sanctum::actingAs(User::factory()->endUser()->create(['station_id' => $station->id]));
+        foreach (range(1, 11) as $number) {
+            $item = $this->item(sprintf('INV-%02d', $number), sprintf('Stock %02d', $number));
+            StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '1.000']);
+        }
+        $this->getJson('/api/pos/station-inventory')->assertOk()->assertJsonCount(10, 'data')
+            ->assertJsonPath('meta.total', 11)->assertJsonPath('meta.last_page', 2);
+        $this->getJson('/api/pos/station-inventory?page=2')->assertOk()->assertJsonCount(1, 'data');
+        $this->getJson('/api/pos/station-inventory?search=INV-04')->assertOk()
+            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Stock 04');
+        $this->getJson('/api/pos/station-inventory?search='.str_repeat('x', 101))
+            ->assertUnprocessable()->assertJsonValidationErrors('search');
+    }
+
     /** @return array{Station, Station} */
     private function stations(): array
     {

@@ -1,3 +1,7 @@
+# Database Schema — legacy field notes
+
+> Current implementation note (2026-09-30): The field list below is legacy discovery material, not the authoritative current schema. Refer to `backend/database/migrations` for the implemented tables. The original `create_orders_table` migration now defines nullable `cash_received` and `change_amount` for Credit Orders; `orders.customer_id` is nullable for Cash/Walk-in and references Customers. Credit checkout adds no separate Order or payment table. `station_items.quantity` remains the authoritative Station stock balance. The POS F7/F9/F10/F12 dialog follow-up adds one authenticated read endpoint and no database migration. See [[Architecture]] and [[HandOff]] for current behavior and the dated log.
+
 <!-- withdraw table -->
 
 withdraw_no ->int

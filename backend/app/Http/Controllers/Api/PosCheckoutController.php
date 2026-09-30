@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CheckoutOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Customer;
 use App\Models\InventoryMovement;
 use App\Models\Item;
 use App\Models\Order;
@@ -26,18 +27,22 @@ class PosCheckoutController extends Controller
             return response()->json(['message' => 'This account is not assigned to a station.'], 409);
         }
 
-        $order = $this->checkout($user, $request->validated('items'), $request->validated('cashReceived'));
+        $order = $this->checkout($user, $request->validated('items'), $request->validated('paymentMethod'), $request->validated('cashReceived'), $request->validated('customerId'));
 
         return response()->json([
-            'message' => 'Payment completed successfully.',
+            'message' => $request->validated('paymentMethod') === 'cash' ? 'Payment completed successfully.' : 'Credit order completed successfully.',
             'order' => (new OrderResource($order))->resolve($request),
         ], 201);
     }
 
     /** @param array<int, array{itemId: int, quantity: string, expectedUnitPrice: string}> $requestedItems */
-    private function checkout(User $cashier, array $requestedItems, string $cashReceived): Order
+    private function checkout(User $cashier, array $requestedItems, string $paymentMethod, ?string $cashReceived, ?int $customerId): Order
     {
-        return DB::transaction(function () use ($cashier, $requestedItems, $cashReceived) {
+        return DB::transaction(function () use ($cashier, $requestedItems, $paymentMethod, $cashReceived, $customerId) {
+            $customer = $customerId ? Customer::query()->lockForUpdate()->find($customerId) : null;
+            if ($paymentMethod === 'credit' && ! $customer) {
+                throw ValidationException::withMessages(['customerId' => ['Select a valid Customer for Credit / Utang.']]);
+            }
             $requests = collect($requestedItems)->keyBy('itemId');
             $stationItems = StationItem::query()
                 ->where('station_id', $cashier->station_id)
@@ -107,8 +112,8 @@ class PosCheckoutController extends Controller
                 ], 409));
             }
 
-            $cashCents = $this->parseFixed($cashReceived, 2);
-            if ($cashCents < $totalCents) {
+            $cashCents = $paymentMethod === 'cash' ? $this->parseFixed($cashReceived, 2) : null;
+            if ($cashCents !== null && $cashCents < $totalCents) {
                 throw ValidationException::withMessages(['cashReceived' => ['Cash received is less than the order total.']]);
             }
 
@@ -117,10 +122,11 @@ class PosCheckoutController extends Controller
                 'ordered_at' => now(),
                 'station_id' => $cashier->station_id,
                 'cashier_id' => $cashier->id,
-                'payment_method' => 'cash',
+                'customer_id' => $customer?->id,
+                'payment_method' => $paymentMethod,
                 'total_amount' => $this->formatFixed($totalCents, 2),
-                'cash_received' => $this->formatFixed($cashCents, 2),
-                'change_amount' => $this->formatFixed($cashCents - $totalCents, 2),
+                'cash_received' => $cashCents === null ? null : $this->formatFixed($cashCents, 2),
+                'change_amount' => $cashCents === null ? null : $this->formatFixed($cashCents - $totalCents, 2),
             ]);
             $order->forceFill(['order_number' => 'ORD-'.$order->ordered_at->format('Ymd').'-'.str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)])->save();
 
@@ -150,7 +156,7 @@ class PosCheckoutController extends Controller
                 ]);
             }
 
-            return $order->load(['station', 'cashier', 'orderItems']);
+            return $order->load(['station', 'cashier', 'customer', 'orderItems']);
         });
     }
 

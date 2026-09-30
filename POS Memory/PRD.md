@@ -4,7 +4,9 @@
 # University HomeStay POS
 ## Product Requirements Document
 
-> Current legacy-evidence clarification (Phase 10.11B): the non-goal "Delivery system" below referred to a broad delivery product scope. Legacy Item Delivery is a confirmed station stock workflow candidate, but its UI/API and final business rules are deferred. It must use a reference distinct from POS `orders.order_number`. Consignment Account Management uses Users; traditional consignment transactions remain unconfirmed.
+> Current POS delivery (2026-09-30): Cash and Customer-linked Credit / Utang checkout are implemented. The POS keeps the cart visible while current-Station Transactions (F7), Qty (F9), New Order (F10), and read-only Station Inventory (F12) open in place; Esc exits. Cash/Credit radio buttons control payment and Credit opens Customer selection. Discount, O.R Transactions, and F8 Credit Transactions remain future work. The sections below preserve their original product-planning context; see [[HandOff]] for the dated implementation log.
+
+> Legacy-evidence clarification from Phase 10.11B: the non-goal "Delivery system" below referred to a broad delivery product scope. The narrower Item Delivery station stock workflow was implemented in Phase 10.13 with a reference distinct from POS `orders.order_number`. Consignment Account Management uses Users; traditional consignment transactions remain unconfirmed.
 
 > Defines what the system should do from a business and user perspective.
 

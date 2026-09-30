@@ -50,6 +50,6 @@ class OrderController extends Controller
             abort(404);
         }
 
-        return response()->json(['order' => (new OrderDetailResource($order->load(['station', 'cashier', 'orderItems'])))->resolve($request)]);
+        return response()->json(['order' => (new OrderDetailResource($order->load(['station', 'cashier', 'customer', 'orderItems'])))->resolve($request)]);
     }
 }

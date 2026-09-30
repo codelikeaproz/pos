@@ -2,6 +2,20 @@
 
 ## Development Rules
 
+### Current POS interaction rules (2026-09-30)
+
+On the POS screen, keep the sidebar hidden until Exit POS returns to Dashboard. Show only implemented shortcut actions: F7 current-Station Transactions, F9 Qty, F10 New Order, F12 Station Inventory, and Esc Exit POS. Both keyboard keys and footer buttons must work. Keep F3/F4 payment shortcuts removed; use Cash/Credit radio buttons. Opening Credit must request a Customer; cancel without a prior selection returns to Cash, while cancelling a later change keeps the current Customer. Confirm before discarding an unpaid cart through New Order or Exit POS.
+
+F7 and F12 are read-only in-place dialogs and must preserve the cart. F7 is limited to the current Station even for an Admin cashier; F12 derives its Station on the server from the authenticated User and includes assigned inactive or unpriced stock. Keep the sellable POS Item list separate. Do not expose Discount, O.R Transactions, or F8 Credit Transactions as working shortcuts before those workflows exist.
+
+### Migration ownership
+
+For this development project, put a table's columns, nullability, indexes, and foreign keys in its existing `create_<table>_table` migration when that table is still being shaped. Avoid an extra `add_*_to_<table>` or `make_*_nullable` migration for the same table solely to revise its initial definition. Keep creation order valid for foreign keys, and reconcile any already-applied development database schema and migration records so fresh and existing databases agree. Once a migration has been released to a database whose history must be preserved, use a new forward migration instead of changing that released migration.
+
+### Phase 10.16 POS Credit / Utang rules
+
+Keep one checkout transaction for Cash and Credit. Cash requires Cash Received and may have no Customer. Credit requires a valid Customer ID and stores null Cash Received and Change; never fabricate zero cash values. Both methods must retain Station stock locks, active Price resolution, stale-price rejection, authoritative totals, OrderItem snapshots, and SALE movements. Do not allow negative Station stock. Customer search is available to authenticated cashiers; Customer creation and Credit Monitoring stay Admin-only. Credit Monitoring totals recorded Credit sales, not outstanding balance. Do not add Customer Balance, collection, remittance, or settlement behavior to this POS; the Accounting Office owns settlement.
+
 ### Phase 10.15 Customer and Credit rules
 
 Customer has only name and address; trim and require both, and allow duplicate names. Customer Balance must not be manually stored or inferred from credit sales while Accounting Office settlement data is absent. Cash Orders may have no Customer; credit Orders require one. Keep POS Order numbers as transaction identifiers and do not create an O.R number. Credit Monitoring is Admin-only and read-only, displays MOP as Utang, computes Age from Manila calendar dates, and totals all filtered credit Order amounts before pagination using fixed cents. Accounting Office owns settlement/payment. Do not add POS settlement, collection, remittance, or mark-paid actions. Preserve existing cash checkout and inventory locking.

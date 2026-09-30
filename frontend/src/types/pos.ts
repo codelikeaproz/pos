@@ -17,6 +17,23 @@ export type PosItemList = {
   total: number
 }
 
+export type PosStationInventoryRow = {
+  itemId: number
+  itemCode: string
+  name: string
+  unit: string
+  quantity: string
+  isActive: boolean
+}
+
+export type PosStationInventoryList = {
+  items: PosStationInventoryRow[]
+  station: PosStation
+  currentPage: number
+  lastPage: number
+  total: number
+}
+
 export type CartItem = {
   itemId: number
   itemCode: string
@@ -33,9 +50,10 @@ export type CheckoutOrder = {
   orderedAt: string
   station: PosStation
   cashier: { id: number; name: string }
-  paymentMethod: 'cash'
+  paymentMethod: 'cash' | 'credit'
+  customer: { id: number; name: string; address: string } | null
   totalAmount: string
-  cashReceived: string
-  changeAmount: string
+  cashReceived: string | null
+  changeAmount: string | null
   items: Array<{ itemId: number; itemCode: string; itemName: string; unit: string; quantity: string; unitPrice: string; subtotal: string }>
 }

@@ -13,6 +13,6 @@ export async function loadOrderHistory(filters: Filters, signal?: AbortSignal): 
   return { orders: response.data, currentPage: response.meta.current_page, lastPage: response.meta.last_page, total: response.meta.total }
 }
 
-export async function loadOrderDetail(orderId: number): Promise<OrderDetail> {
-  return (await apiRequest<{ order: OrderDetail }>(`/api/orders/${orderId}`)).order
+export async function loadOrderDetail(orderId: number, signal?: AbortSignal): Promise<OrderDetail> {
+  return (await apiRequest<{ order: OrderDetail }>(`/api/orders/${orderId}`, { signal })).order
 }

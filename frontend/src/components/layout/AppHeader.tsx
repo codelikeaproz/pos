@@ -12,7 +12,7 @@ export function AppHeader() {
         <span className="app-header__brand-mark" aria-hidden="true" />
         <div>
           <p className="app-header__app-name">University HomeStay POS</p>
-          <p className="app-header__page">{current.title}</p>
+          {location.pathname !== '/orders' ? <p className="app-header__page">{current.title}</p> : null}
         </div>
       </div>
     </header>

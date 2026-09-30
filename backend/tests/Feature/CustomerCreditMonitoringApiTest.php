@@ -16,13 +16,13 @@ class CustomerCreditMonitoringApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_customer_and_credit_routes_are_admin_only_and_read_only_where_required(): void
+    public function test_customer_search_is_available_to_cashiers_while_management_and_monitoring_remain_admin_only(): void
     {
         $this->getJson('/api/customers')->assertUnauthorized();
         $this->postJson('/api/customers', [])->assertUnauthorized();
         $this->getJson('/api/credit-monitoring')->assertUnauthorized();
         Sanctum::actingAs(User::factory()->endUser()->create());
-        $this->getJson('/api/customers')->assertForbidden();
+        $this->getJson('/api/customers')->assertOk();
         $this->postJson('/api/customers', [])->assertForbidden();
         $this->getJson('/api/credit-monitoring')->assertForbidden();
         Sanctum::actingAs(User::factory()->admin()->create());

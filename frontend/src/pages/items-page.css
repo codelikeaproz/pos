@@ -17,3 +17,6 @@
 .item-delete p:last-child { margin-bottom: 0; color: var(--color-text-secondary); }
 @media (max-width: 1000px) { .item-table__actions { flex-direction: column; } }
 @media (max-width: 560px) { .item-form__row { grid-template-columns: 1fr; } }
+.item-status { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-weight: 600; }
+.item-status--active { background: #e4f4e9; color: #14532d; }
+.item-status--inactive { background: #f0f0f0; color: #444; }

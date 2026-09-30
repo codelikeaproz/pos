@@ -18,6 +18,7 @@ class CheckoutOrderRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.itemId' => ['required', 'integer', 'distinct'],
             'items.*.quantity' => ['required', 'string', 'regex:/^\d{1,9}(\.\d{1,3})?$/', 'not_in:0,0.0,0.00,0.000'],
+            'items.*.expectedUnitPrice' => ['required', 'string', 'regex:/^\d{1,8}(\.\d{1,2})?$/'],
             'paymentMethod' => ['required', Rule::in(['cash'])],
             'cashReceived' => ['required', 'string', 'regex:/^\d{1,10}(\.\d{1,2})?$/'],
         ];
@@ -29,6 +30,7 @@ class CheckoutOrderRequest extends FormRequest
             'items.min' => 'Add at least one item before payment.',
             'items.*.itemId.distinct' => 'Each item may appear only once in an order.',
             'items.*.quantity.regex' => 'Quantity must be positive and use no more than three decimal places.',
+            'items.*.expectedUnitPrice.regex' => 'Expected price must have no more than two decimal places.',
             'paymentMethod.in' => 'Cash is the only supported payment method.',
             'cashReceived.regex' => 'Cash received must be a valid amount with no more than two decimal places.',
         ];

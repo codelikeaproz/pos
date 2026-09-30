@@ -10,7 +10,7 @@ import { ItemForm, type ItemFieldErrors } from '../features/items/ItemForm'
 import { ItemTable } from '../features/items/ItemTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
-import { createItem, deleteItem, loadItems, updateItem } from '../services/itemService'
+import { createItem, loadItems, updateItem } from '../services/itemService'
 import type { Item, ItemInput, ItemList } from '../types/item'
 import './items-page.css'
 
@@ -31,7 +31,7 @@ export function ItemsPage() {
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [formDialog, setFormDialog] = useState<FormDialog | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Item | null>(null)
+  const [deactivateTarget, setDeactivateTarget] = useState<Item | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<ItemFieldErrors>({})
@@ -68,14 +68,11 @@ export function ItemsPage() {
     finally { setSubmitting(false) }
   }
 
-  async function remove(): Promise<void> {
-    if (!deleteTarget) return
+  async function changeStatus(item: Item, isActive: boolean): Promise<void> {
     setSubmitting(true); setFormError(null)
     try {
-      const response = await deleteItem(deleteTarget.id)
-      setDeleteTarget(null); showToast(response.message)
-      if (itemList.items.length === 1 && page > 1) setPage((value) => value - 1)
-      else await refreshItems()
+      const response = await updateItem(item.id, { ...item, price: undefined, is_active: isActive })
+      setDeactivateTarget(null); showToast(response.message); await refreshItems()
     } catch (error) { setFormError(getUserFacingApiMessage(error)) }
     finally { setSubmitting(false) }
   }
@@ -86,7 +83,7 @@ export function ItemsPage() {
   return (
     <section className="page item-page">
       <header className="page__header item-page__header">
-        <div><h1 className="page__title">Item Management</h1><p className="page__description">Manage product and food definitions and selling prices.</p></div>
+        <div><h1 className="page__title">Item Management</h1><p className="page__description">Manage product and food definitions. Change selling prices in Price Management.</p></div>
         <Button onClick={() => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'create' }) }} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Item</Button>
       </header>
 
@@ -95,7 +92,7 @@ export function ItemsPage() {
       {pageError ? <Alert tone="error" title="Items could not be loaded">{pageError}<div className="item-page__retry"><Button variant="outline" onClick={() => void refreshItems()}>Try Again</Button></div></Alert> : null}
       {loading ? <LoadingState label="Loading items…" /> : <>
         <div className="item-page__summary">{itemList.total} item{itemList.total === 1 ? '' : 's'}</div>
-        <ItemTable items={itemList.items} onEdit={(item) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', item }) }} onDelete={(item) => { setFormError(null); setDeleteTarget(item) }} />
+        <ItemTable items={itemList.items} onEdit={(item) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', item }) }} onDeactivate={(item) => { setFormError(null); setDeactivateTarget(item) }} onActivate={(item) => void changeStatus(item, true)} />
         <Pagination currentPage={itemList.currentPage} lastPage={itemList.lastPage} label="Item" onPageChange={setPage} />
       </>}
 
@@ -104,9 +101,9 @@ export function ItemsPage() {
         {formDialog ? <ItemForm key={formId} formId={formId} item={editingItem} errors={fieldErrors} disabled={submitting} onSubmit={(input) => void save(input)} /> : null}
       </Modal>
 
-      <Modal open={deleteTarget !== null} title="Delete Item?" onClose={() => { if (!submitting) { setDeleteTarget(null); setFormError(null) } }} actions={<><Button variant="outline" disabled={submitting} onClick={() => { setDeleteTarget(null); setFormError(null) }}>Cancel</Button><Button variant="danger" disabled={submitting} onClick={() => void remove()} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Deleting…' : 'Delete Item'}</Button></>}>
-        {formError ? <Alert tone="error" title="Item could not be deleted">{formError}</Alert> : null}
-        <div className="item-delete"><AppIcons.warning className="item-delete__icon" size={24} strokeWidth={iconStroke} aria-hidden="true" /><div><p>Are you sure you want to delete <strong>“{deleteTarget?.name}”</strong>?</p><p>This action cannot be undone.</p></div></div>
+      <Modal open={deactivateTarget !== null} title="Deactivate Item?" onClose={() => { if (!submitting) { setDeactivateTarget(null); setFormError(null) } }} actions={<><Button variant="outline" disabled={submitting} onClick={() => setDeactivateTarget(null)}>Cancel</Button><Button variant="danger" disabled={submitting} onClick={() => deactivateTarget && void changeStatus(deactivateTarget, false)}>Deactivate Item</Button></>}>
+        {formError ? <Alert tone="error">{formError}</Alert> : null}
+        <p>Deactivate <strong>{deactivateTarget?.name}</strong>? It will no longer appear in POS for new sales. Its station stock and sales history will remain.</p>
       </Modal>
     </section>
   )

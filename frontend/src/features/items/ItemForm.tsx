@@ -14,14 +14,16 @@ export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: P
   const [quantity, setQuantity] = useState(item ? formatQuantity(item.quantity) : '')
   const [unitsBackup, setUnitsBackup] = useState(item?.units_backup ?? 'pcs')
   const [price, setPrice] = useState(item?.price ?? '')
+  const [isActive, setIsActive] = useState(item?.is_active ?? true)
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
-    onSubmit({ item_code: itemCode.trim(), name: name.trim(), quantity: quantity.trim(), units_backup: unitsBackup.trim(), unit: item?.unit ?? unitsBackup.trim(), reorder_point: item?.reorder_point ?? '0', price: price.trim() })
+    onSubmit({ item_code: itemCode.trim(), name: name.trim(), quantity: quantity.trim(), units_backup: unitsBackup.trim(), unit: item?.unit ?? unitsBackup.trim(), reorder_point: item?.reorder_point ?? '0', ...(item ? {} : { price: price.trim() }), is_active: isActive })
   }
 
   return (
     <form id={formId} className="item-form" onSubmit={submit}>
+      {!item ? <div className="item-form__field"><Label htmlFor={`${formId}-status`}>Status</Label><select id={`${formId}-status`} className="ui-input" value={isActive ? 'active' : 'inactive'} onChange={(event) => setIsActive(event.target.value === 'active')} disabled={disabled}><option value="active">Active</option><option value="inactive">Inactive</option></select></div> : null}
       <div className="item-form__field">
         <Label htmlFor={`${formId}-item-code`} required>Item Code</Label>
         <Input id={`${formId}-item-code`} value={itemCode} onChange={(event) => setItemCode(event.target.value)} required maxLength={100} disabled={disabled} error={Boolean(errors.item_code)} aria-describedby={errors.item_code ? `${formId}-item-code-error` : undefined} placeholder="ITM-001" />
@@ -48,8 +50,8 @@ export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: P
         </div>
       </div>
       <div className="item-form__field">
-        <Label htmlFor={`${formId}-price`} required>Price</Label>
-        <div className="item-form__price"><span aria-hidden="true">₱</span><Input id={`${formId}-price`} type="number" inputMode="decimal" min="0" step="0.01" value={price} onChange={(event) => setPrice(event.target.value)} required disabled={disabled} error={Boolean(errors.price)} aria-describedby={errors.price ? `${formId}-price-error` : undefined} placeholder="0.00" /></div>
+        <Label htmlFor={`${formId}-price`} required={!item}>{item ? 'Current Price' : 'Initial Price'}</Label>
+        {item ? <p id={`${formId}-price`}>{item.price === null ? 'No active price' : `₱${item.price}`} · Change prices in Price Management.</p> : <div className="item-form__price"><span aria-hidden="true">₱</span><Input id={`${formId}-price`} type="number" inputMode="decimal" min="0" step="0.01" value={price} onChange={(event) => setPrice(event.target.value)} required disabled={disabled} error={Boolean(errors.price)} aria-describedby={errors.price ? `${formId}-price-error` : undefined} placeholder="0.00" /></div>}
         {errors.price ? <span id={`${formId}-price-error`} className="page__field-error">{errors.price}</span> : null}
       </div>
     </form>

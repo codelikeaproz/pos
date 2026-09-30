@@ -7,8 +7,10 @@ use App\Http\Requests\StoreItemRequest;
 use App\Http\Requests\UpdateItemRequest;
 use App\Http\Resources\ItemResource;
 use App\Models\Item;
+use App\Models\Price;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ItemController extends Controller
 {
@@ -16,7 +18,7 @@ class ItemController extends Controller
     {
         $searchTerm = $request->string('search')->trim()->toString();
 
-        $items = Item::query()
+        $items = Item::query()->with('activePrice')
             ->when($searchTerm !== '', function ($query) use ($searchTerm) {
                 $query->where(function ($searchQuery) use ($searchTerm) {
                     $searchQuery
@@ -34,19 +36,22 @@ class ItemController extends Controller
 
     public function store(StoreItemRequest $request): JsonResponse
     {
-        $item = Item::query()->create($request->validated());
+        $item = DB::transaction(function () use ($request) {
+            $item = Item::query()->create($request->validated());
+            Price::query()->create(['item_id' => $item->id, 'amount' => $item->price, 'is_active' => true]);
+
+            return $item;
+        });
 
         return response()->json([
             'message' => 'Item added successfully.',
-            'item' => (new ItemResource($item))->resolve(),
+            'item' => (new ItemResource($item->load('activePrice')))->resolve(),
         ], 201);
     }
 
     public function show(Item $item): JsonResponse
     {
-        return response()->json([
-            'item' => (new ItemResource($item))->resolve(),
-        ]);
+        return response()->json(['item' => (new ItemResource($item->load('activePrice')))->resolve()]);
     }
 
     public function update(UpdateItemRequest $request, Item $item): JsonResponse
@@ -55,14 +60,14 @@ class ItemController extends Controller
 
         return response()->json([
             'message' => 'Item updated successfully.',
-            'item' => (new ItemResource($item->fresh()))->resolve(),
+            'item' => (new ItemResource($item->fresh()->load('activePrice')))->resolve(),
         ]);
     }
 
     public function destroy(Item $item): JsonResponse
     {
-        if ($item->stationItems()->exists()) {
-            return response()->json(['message' => 'This item is assigned to station inventory and cannot be deleted.'], 409);
+        if ($item->stationItems()->exists() || $item->orderItems()->exists() || $item->prices()->exists()) {
+            return response()->json(['message' => 'This item has inventory or history and cannot be deleted. Deactivate it instead.'], 409);
         }
         $item->delete();
 

@@ -111,7 +111,11 @@ export function OrdersPage() {
       await loadItems()
     } catch (checkoutError) {
       setPaymentError(getUserFacingApiMessage(checkoutError))
-      if (checkoutError instanceof ApiError && checkoutError.status === 422) await loadItems()
+      if (checkoutError instanceof ApiError && checkoutError.status === 409 && checkoutError.currentPrices.length > 0) {
+        const prices = new Map(checkoutError.currentPrices.map(({ itemId, price }) => [itemId, price]))
+        setCart((current) => current.map((item) => ({ ...item, unitPrice: prices.get(item.itemId) ?? item.unitPrice })))
+        await loadItems()
+      } else if (checkoutError instanceof ApiError && checkoutError.status === 422) await loadItems()
     } finally { setProcessingPayment(false) }
   }
 

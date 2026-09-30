@@ -24,7 +24,7 @@ class ItemManagementApiTest extends TestCase
         $this->postJson('/api/items', [])->assertForbidden();
     }
 
-    public function test_admin_can_create_show_and_delete_an_item(): void
+    public function test_admin_can_create_show_and_deactivate_an_item_with_price_history(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
 
@@ -44,14 +44,19 @@ class ItemManagementApiTest extends TestCase
             ->assertJsonPath('item.unit', '7')
             ->assertJsonPath('item.reorder_point', '3.000')
             ->assertJsonPath('item.quantity', '12.500')
+            ->assertJsonPath('item.is_active', true)
             ->assertJsonPath('item.price', '85.00');
 
         $itemId = $response->json('item.id');
         $this->getJson("/api/items/{$itemId}")
             ->assertOk()->assertJsonPath('item.name', 'Cheeseburger');
-        $this->deleteJson("/api/items/{$itemId}")
-            ->assertOk()->assertJsonPath('message', 'Item deleted successfully.');
-        $this->assertDatabaseMissing('items', ['id' => $itemId]);
+        $this->deleteJson("/api/items/{$itemId}")->assertConflict();
+        $this->putJson("/api/items/{$itemId}", [
+            'item_code' => 'FD-001', 'name' => 'Cheeseburger', 'quantity' => '12.500',
+            'units_backup' => 'SERVING', 'unit' => '7', 'reorder_point' => '3.000',
+            'is_active' => false,
+        ])->assertOk()->assertJsonPath('item.is_active', false);
+        $this->assertDatabaseHas('prices', ['item_id' => $itemId, 'amount' => '85.00', 'is_active' => true]);
     }
 
     public function test_name_is_required(): void
@@ -111,12 +116,15 @@ class ItemManagementApiTest extends TestCase
     public function test_admin_can_update_with_put_and_patch(): void
     {
         $item = Item::query()->create($this->validItem(['item_code' => 'EDIT-001', 'name' => 'Original', 'price' => '10.00']));
+        $item->prices()->create(['amount' => '10.00', 'is_active' => true]);
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->putJson("/api/items/{$item->id}", $this->validItem(['item_code' => 'EDIT-001', 'name' => 'Updated', 'quantity' => '5.250', 'units_backup' => 'KILOGRAM', 'unit' => '9', 'reorder_point' => '2.000', 'price' => '12.50']))
-            ->assertOk()->assertJsonPath('item.price', '12.50');
-        $this->patchJson("/api/items/{$item->id}", $this->validItem(['item_code' => 'EDIT-001', 'name' => 'Patched', 'quantity' => '6', 'units_backup' => 'BOX', 'unit' => '3', 'price' => '15']))
-            ->assertOk()->assertJsonPath('item.name', 'Patched')->assertJsonPath('item.price', '15.00');
+        $this->putJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Updated', 'quantity' => '5.250', 'units_backup' => 'KILOGRAM', 'unit' => '9', 'reorder_point' => '2.000']))
+            ->assertOk()->assertJsonPath('item.price', '10.00');
+        $this->patchJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Patched', 'quantity' => '6', 'units_backup' => 'BOX', 'unit' => '3']))
+            ->assertOk()->assertJsonPath('item.name', 'Patched')->assertJsonPath('item.price', '10.00');
+        $this->putJson("/api/items/{$item->id}", $this->validItem(['item_code' => 'EDIT-001', 'price' => '12.50']))
+            ->assertUnprocessable()->assertJsonValidationErrors('price');
     }
 
     public function test_item_names_are_not_forced_to_be_unique(): void
@@ -162,5 +170,13 @@ class ItemManagementApiTest extends TestCase
             'reorder_point' => '2.000',
             'price' => '20.00',
         ], $overrides);
+    }
+
+    private function validUpdate(array $overrides = []): array
+    {
+        $payload = $this->validItem($overrides);
+        unset($payload['price']);
+
+        return $payload;
     }
 }

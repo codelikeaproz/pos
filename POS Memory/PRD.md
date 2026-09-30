@@ -4,6 +4,8 @@
 # University HomeStay POS
 ## Product Requirements Document
 
+> Current legacy-evidence clarification (Phase 10.11B): the non-goal "Delivery system" below referred to a broad delivery product scope. Legacy Item Delivery is a confirmed station stock workflow candidate, but its UI/API and final business rules are deferred. It must use a reference distinct from POS `orders.order_number`. Consignment Account Management uses Users; traditional consignment transactions remain unconfirmed.
+
 > Defines what the system should do from a business and user perspective.
 
 ### Project Documentation

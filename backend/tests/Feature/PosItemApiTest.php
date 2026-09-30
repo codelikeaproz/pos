@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Item;
+use App\Models\Price;
 use App\Models\Station;
 use App\Models\StationItem;
 use App\Models\User;
@@ -109,7 +110,7 @@ class PosItemApiTest extends TestCase
         string $price = '20.00',
         string $globalQuantity = '0.000'
     ): Item {
-        return Item::query()->create([
+        $item = Item::query()->create([
             'item_code' => $code,
             'name' => $name,
             'quantity' => $globalQuantity,
@@ -118,5 +119,8 @@ class PosItemApiTest extends TestCase
             'reorder_point' => '0.000',
             'price' => $price,
         ]);
+        Price::query()->create(['item_id' => $item->id, 'amount' => $price, 'is_active' => true]);
+
+        return $item;
     }
 }

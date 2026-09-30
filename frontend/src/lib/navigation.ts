@@ -33,7 +33,15 @@ export const navItems: NavItem[] = [
     label: 'Items',
     icon: AppIcons.items,
     title: 'Item Management',
-    description: 'Manage product and food definitions and selling prices.',
+    description: 'Manage product and food definitions.',
+    allowedRoles: ['admin']
+  },
+  {
+    path: '/prices',
+    label: 'Prices',
+    icon: AppIcons.items,
+    title: 'Price Management',
+    description: 'Manage current selling prices and price history.',
     allowedRoles: ['admin']
   },
   {

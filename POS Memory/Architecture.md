@@ -1,6 +1,24 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.12 current pricing architecture
+
+`items` has many historical `prices`; one active Price is the current selling price. Admin Price Management lists history, creates a replacement active Price, and reactivates an older record. Both changes lock the parent Item row and switch active flags in one `DB::transaction()`. Same-amount creation is rejected. There is no normal Price delete route. Application locking enforces the one-active rule for supported write paths; direct database writes can bypass it.
+
+The POS inventory endpoint includes an Item only when it is active, belongs to the authenticated Station's `station_items`, and has exactly one active Price. Checkout locks StationItem and Item rows, resolves active Price records, compares their amounts with each cart line's `expectedUnitPrice`, and returns HTTP 409 with `currentPrices` if a displayed price changed. The frontend keeps the cart, updates displayed prices, refreshes POS data, and requires Pay again. Successful checkout snapshots the active amount into `order_items.unit_price` and writes stock and SALE movements atomically.
+
+`items.price` remains a transitional legacy column for initial Item creation and historical backfill; Price Management changes do not synchronize it. It is not used to price new sales. Existing Item editing shows the active Price read-only. `items.quantity` remains transitional; `station_items.quantity` remains authoritative stock. Earlier sections below describe their historical phase state.
+
+### Phase 10.11B current schema
+
+The repository's current migrations and code supersede older phase descriptions below. `items.is_active` defaults to true; inactive Items retain station assignments and historical Orders but are excluded from new POS listings and checkout.
+
+`prices` stores Item price history. Existing Items receive one active Price from `items.price` during migration. Item Management price changes create a new active record while deactivating the previous record under an Item row lock. The price resolver rejects zero or multiple active records. **Checkout and POS item responses still use transitional `items.price`** pending reconciliation of all write paths. `order_items.unit_price` remains the sale snapshot. Direct model or SQL edits to `items.price` can diverge from `prices` and must be eliminated before checkout switches.
+
+`station_items.quantity` remains the authoritative current balance. `items.quantity` is transitional global quantity and is not synchronized. From Phase 10.11B onward, checkout records negative SALE movements linked to Order Items, and Admin balance edits record signed ADJUSTMENT movements in the same transaction as balance updates. Historical Orders are not backfilled into movements. Initial StationItem assignments and removals without movements are outside this ledger boundary; an assignment with movement history cannot be deleted.
+
+Future Item Delivery is separate from POS Orders and should use an explicit `delivery_number`. Once its business rules are confirmed, completion should atomically create delivery records, lock or safely create station balances, add stock, and write positive DELIVERY movements. This workflow is not implemented.
+
 > System architecture and technical structure of the University HomeStay POS and Inventory System.
 
 ### Project Documentation

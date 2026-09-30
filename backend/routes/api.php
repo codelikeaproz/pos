@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PosCheckoutController;
 use App\Http\Controllers\Api\PosItemController;
+use App\Http\Controllers\Api\PriceController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationItemController;
 use App\Http\Controllers\Api\SupplierController;
@@ -54,6 +55,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('items', ItemController::class)
         ->middleware('admin');
+
+    Route::get('/prices', [PriceController::class, 'index'])->middleware('admin');
+    Route::post('/prices', [PriceController::class, 'store'])->middleware('admin');
+    Route::post('/prices/{price}/activate', [PriceController::class, 'activate'])->middleware('admin');
+    Route::get('/price-item-options', [PriceController::class, 'options'])->middleware('admin');
 
     Route::apiResource('consignees', ConsigneeController::class)
         ->middleware('admin');

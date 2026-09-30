@@ -9,6 +9,7 @@ import { DashboardPage } from '../pages/DashboardPage'
 import { EmployeesPage } from '../pages/EmployeesPage'
 import { ItemsPage } from '../pages/ItemsPage'
 import { OrdersPage } from '../pages/OrdersPage'
+import { PricesPage } from '../pages/PricesPage'
 import { StationsPage } from '../pages/StationsPage'
 import { StationInventoryPage } from '../pages/StationInventoryPage'
 import { SuppliersPage } from '../pages/SuppliersPage'
@@ -33,6 +34,7 @@ export const appRoutes: RouteObject[] = [
             children: [
               { path: 'employees', element: <EmployeesPage /> },
               { path: 'items', element: <ItemsPage /> },
+              { path: 'prices', element: <PricesPage /> },
               { path: 'stations', element: <StationsPage /> },
               { path: 'station-inventory', element: <StationInventoryPage /> },
               { path: 'consignees', element: <ConsigneesPage /> },

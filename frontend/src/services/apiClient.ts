@@ -6,18 +6,21 @@ export class ApiError extends Error {
   readonly kind: ApiErrorKind
   readonly status: number | null
   readonly errors: Record<string, string[]>
+  readonly currentPrices: Array<{ itemId: number; price: string }>
 
   constructor(
     kind: ApiErrorKind,
     message: string,
     status: number | null = null,
-    errors: Record<string, string[]> = {}
+    errors: Record<string, string[]> = {},
+    currentPrices: Array<{ itemId: number; price: string }> = []
   ) {
     super(message)
     this.name = 'ApiError'
     this.kind = kind
     this.status = status
     this.errors = errors
+    this.currentPrices = currentPrices
   }
 }
 
@@ -120,6 +123,15 @@ function validationErrorsFrom(data: unknown): Record<string, string[]> {
   )
 }
 
+function currentPricesFrom(data: unknown): Array<{ itemId: number; price: string }> {
+  if (!data || typeof data !== 'object' || !('currentPrices' in data) || !Array.isArray(data.currentPrices)) return []
+  return data.currentPrices.filter((entry): entry is { itemId: number; price: string } =>
+    entry !== null && typeof entry === 'object' &&
+    'itemId' in entry && typeof entry.itemId === 'number' &&
+    'price' in entry && typeof entry.price === 'string'
+  )
+}
+
 export type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
@@ -212,7 +224,8 @@ export async function apiRequest<T>(
         'http',
         messageForHttpStatus(response.status, data),
         response.status,
-        validationErrorsFrom(data)
+        validationErrorsFrom(data),
+        currentPricesFrom(data)
       )
     }
 

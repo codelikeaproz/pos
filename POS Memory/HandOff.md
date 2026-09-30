@@ -4,6 +4,18 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.12 current-state note
+
+Price Management now provides Admin-only `GET /api/prices`, `POST /api/prices`, `POST /api/prices/{price}/activate`, and `GET /api/price-item-options`. The UI lists price history with live search and pagination, adds a new active Price, and confirms historical activation. Parent Item row locking serializes activation. There is no Price delete endpoint.
+
+New POS listings and checkout use the active `prices.amount`; `items.price` remains a legacy column for initial Item creation/backfill and is not synchronized after Price changes. Checkout requires each line's displayed `expectedUnitPrice` and returns 409 plus current prices when it is stale. The cart remains for review and Pay must be pressed again. `order_items.unit_price` remains the sale snapshot; `station_items.quantity` remains authoritative stock and SALE/ADJUSTMENT movement behavior remains unchanged. The Phase 10.11B notes below are historical.
+
+### Phase 10.11B current-state note
+
+Schema foundation adds `items.is_active`, `prices`, and `inventory_movements`. Item Management writes price history on price changes; checkout still reads transitional `items.price`. Checkout and POS listings reject inactive Items; historical Order Items remain readable. New sales and Admin balance edits write SALE and ADJUSTMENT movements atomically with `station_items.quantity`, which remains authoritative. Earlier Orders are not replayed. `items.quantity` is transitional. Delivery, Receiving, Spoilage, Withdrawal, and Price Management screens remain future phases. POS Orders and Item Deliveries are separate business records.
+
+Older next-phase and deferred-feature statements below describe their original phases rather than current implementation status.
+
 > Current project state, decisions, completed discovery, open questions, and next steps.
 
 ### Project Documentation

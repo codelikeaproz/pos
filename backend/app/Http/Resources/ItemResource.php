@@ -20,7 +20,8 @@ class ItemResource extends JsonResource
             'units_backup' => $this->units_backup,
             'unit' => $this->unit,
             'reorder_point' => $this->reorder_point,
-            'price' => $this->price,
+            'price' => $this->activePrice?->amount,
+            'is_active' => $this->is_active,
         ];
     }
 }

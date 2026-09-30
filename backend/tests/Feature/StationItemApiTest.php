@@ -40,7 +40,8 @@ class StationItemApiTest extends TestCase
             ->assertJsonPath('station_item.is_low_stock', false)
             ->assertJsonPath('station_item.item.id', $item->id)
             ->assertJsonPath('station_item.station.id', $station->id);
-        $this->deleteJson("/api/station-items/{$id}")->assertOk();
+        $this->deleteJson("/api/station-items/{$id}")->assertConflict();
+        $this->assertDatabaseHas('inventory_movements', ['station_item_id' => $id, 'type' => 'ADJUSTMENT', 'quantity_change' => '1.250']);
         $this->assertDatabaseHas('items', ['id' => $item->id]);
         $this->assertDatabaseHas('stations', ['id' => $station->id]);
     }

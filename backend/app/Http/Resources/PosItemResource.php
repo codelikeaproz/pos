@@ -14,7 +14,7 @@ class PosItemResource extends JsonResource
             'item_code' => $this->item->item_code,
             'name' => $this->item->name,
             'unit' => $this->item->units_backup,
-            'price' => $this->item->price,
+            'price' => $this->item->activePrice->amount,
             'available_quantity' => $this->quantity,
         ];
     }

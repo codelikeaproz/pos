@@ -2,6 +2,20 @@
 
 ## Development Rules
 
+### Phase 10.12 current pricing rules
+
+The single active `prices` row per Item is the current selling price. Price creation and historical activation must lock the Item row and update Price flags atomically. Reject creation of the same active amount. Do not expose a Price delete route or an arbitrary deactivate action. Item Management may set an initial Price on Item creation but must not change selling price through Item edits.
+
+POS lists only active Items with exactly one active Price and uses that amount. Checkout must compare the server's active amount with required `expectedUnitPrice` for every cart line. On mismatch, return 409 and current prices before writing Orders or inventory. The frontend must preserve and refresh the cart for cashier review. `items.price` is legacy and must not price new sales. Preserve OrderItem snapshots and StationItem locking.
+
+### Phase 10.11B current rules
+
+Older phase text below is historical. `station_items.quantity` is the current inventory authority; `items.quantity` is transitional only. New SALE and ADJUSTMENT changes write matching `inventory_movements` rows in the same transaction under StationItem row locks. Movement history starts in Phase 10.11B; do not synthesize movements for prior Orders. Restrictive FKs preserve Price and movement history. Deactivate Items for product retirement rather than deleting records with history.
+
+`prices` stores price history. Activation locks the Item and switches active records atomically; the resolver rejects ambiguous active prices. POS and checkout temporarily read `items.price`; OrderItem snapshots remain historical. Item names may repeat, while `item_code` is unique. Future Item Deliveries use a reference distinct from `orders.order_number`.
+
+Migration filenames use Laravel's sortable timestamp followed by a specific snake_case action and table. Phase 10.11B uses `create_prices_table` (which also adds the related `items.is_active` flag) and `create_inventory_movements_table`. Use Eloquent for normal application writes and `DB::transaction()` when multiple related writes must commit together, including checkout.
+
 > Coding, naming, UI/UX, database, API, and development conventions.
 
 ### Project Documentation

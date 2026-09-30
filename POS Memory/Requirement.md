@@ -3,6 +3,8 @@
 # University HomeStay POS
 ## Requirements
 
+> Current schema clarification (Phase 10.11B): the initial table list below is historical planning scope. Consignment Account Management uses `users.station_id` and `users.consignee_id`, not a `consignments` table. The current schema also contains `station_items`, `prices`, and `inventory_movements`. POS Orders are separate from future Item Deliveries.
+
 > Technical, functional, hardware, software, and environment requirements.
 
 ### Project Documentation

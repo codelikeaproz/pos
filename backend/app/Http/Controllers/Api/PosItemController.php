@@ -26,8 +26,10 @@ class PosItemController extends Controller
 
         $searchTerm = $request->string('search')->trim()->toString();
         $stationItems = StationItem::query()
-            ->with('item')
+            ->with('item.activePrice')
             ->where('station_id', $user->station_id)
+            ->whereHas('item', fn ($query) => $query->where('is_active', true)
+                ->whereHas('prices', fn ($prices) => $prices->where('is_active', true), '=', 1))
             ->when($searchTerm !== '', fn ($query) => $query->whereHas('item', fn ($itemQuery) => $itemQuery
                 ->where('name', 'like', "%{$searchTerm}%")
                 ->orWhere('item_code', 'like', "%{$searchTerm}%")

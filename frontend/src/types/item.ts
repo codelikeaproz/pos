@@ -6,12 +6,13 @@ export type Item = {
   units_backup: string
   unit: string
   reorder_point: string
-  price: string
+  price: string | null
+  is_active: boolean
 }
 
 export const ITEM_UNITS = ['pcs', 'pack', 'box', 'bottle', 'can', 'cup', 'serving', 'kg', 'g', 'L', 'mL'] as const
 
-export type ItemInput = Omit<Item, 'id'>
+export type ItemInput = Omit<Item, 'id' | 'price'> & { price?: string }
 
 export type ItemList = {
   items: Item[]

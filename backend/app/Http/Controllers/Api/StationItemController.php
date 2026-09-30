@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStationItemRequest;
 use App\Http\Requests\UpdateStationItemRequest;
 use App\Http\Resources\StationItemResource;
+use App\Models\InventoryMovement;
 use App\Models\Item;
 use App\Models\Station;
 use App\Models\StationItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StationItemController extends Controller
 {
@@ -58,13 +60,32 @@ class StationItemController extends Controller
 
     public function update(UpdateStationItemRequest $request, StationItem $stationItem): JsonResponse
     {
-        $stationItem->update($request->validated());
+        DB::transaction(function () use ($request, $stationItem) {
+            $locked = StationItem::query()->whereKey($stationItem->id)->lockForUpdate()->firstOrFail();
+            $old = (int) round((float) $locked->quantity * 1000);
+            $new = (int) round((float) $request->validated('quantity') * 1000);
+            if ($old === $new) {
+                return;
+            }
+            $locked->update(['quantity' => $request->validated('quantity')]);
+            $difference = $new - $old;
+            InventoryMovement::query()->create([
+                'station_item_id' => $locked->id,
+                'item_id' => $locked->item_id,
+                'quantity_change' => ($difference < 0 ? '-' : '').sprintf('%d.%03d', intdiv(abs($difference), 1000), abs($difference) % 1000),
+                'type' => 'ADJUSTMENT',
+                'actor_id' => $request->user()->id,
+            ]);
+        });
 
         return response()->json(['message' => 'Station inventory updated successfully.', 'station_item' => (new StationItemResource($stationItem->fresh()->load(['station', 'item'])))->resolve()]);
     }
 
     public function destroy(StationItem $stationItem): JsonResponse
     {
+        if ($stationItem->movements()->exists()) {
+            return response()->json(['message' => 'This station inventory has movement history and cannot be removed.'], 409);
+        }
         $stationItem->delete();
 
         return response()->json(['message' => 'Item removed from station successfully.']);

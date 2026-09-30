@@ -11,7 +11,7 @@ export async function checkoutOrder(items: CartItem[], cashReceived: string): Pr
   const response = await apiRequest<{ message: string; order: CheckoutOrder }>('/api/pos/checkout', {
     method: 'POST',
     body: {
-      items: items.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+      items: items.map((item) => ({ itemId: item.itemId, quantity: item.quantity, expectedUnitPrice: item.unitPrice })),
       paymentMethod: 'cash',
       cashReceived
     },

@@ -22,6 +22,7 @@ class StoreItemRequest extends FormRequest
             'unit' => ['required', 'string', 'max:20'],
             'reorder_point' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],
             'price' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,8}(\.\d{1,2})?$/'],
+            'is_active' => ['sometimes', 'boolean'],
         ];
     }
 }

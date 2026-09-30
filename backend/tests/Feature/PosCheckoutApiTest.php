@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Item;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Price;
 use App\Models\Station;
 use App\Models\StationItem;
 use App\Models\User;
@@ -80,7 +81,7 @@ class PosCheckoutApiTest extends TestCase
 
         $response = $this->postJson('/api/pos/checkout', $this->payload($item->id, '1.500', '100.00') + [
             'station_id' => 999, 'cashier_id' => 999, 'totalAmount' => '0.01', 'changeAmount' => '99.99',
-            'items' => [['itemId' => $item->id, 'quantity' => '1.500', 'unitPrice' => '0.01', 'subtotal' => '0.01']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.500', 'expectedUnitPrice' => '25.00', 'unitPrice' => '0.01', 'subtotal' => '0.01']],
         ])->assertCreated()->assertJsonPath('message', 'Payment completed successfully.')
             ->assertJsonPath('order.station.id', $station->id)
             ->assertJsonPath('order.cashier.id', $user->id)
@@ -115,12 +116,13 @@ class PosCheckoutApiTest extends TestCase
     public function test_line_subtotals_use_half_up_rounding_before_totaling(): void
     {
         [$user, $station, $item] = $this->context();
-        $item->update(['price' => '0.01']);
+        $item->prices()->create(['amount' => '0.01', 'is_active' => true]);
+        $item->prices()->where('amount', '25.00')->update(['is_active' => false]);
         $second = $this->item('ITM-002', 'Second Item', '0.01');
         StationItem::query()->create(['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '5.000']);
         Sanctum::actingAs($user);
         $this->postJson('/api/pos/checkout', [
-            'items' => [['itemId' => $item->id, 'quantity' => '0.500'], ['itemId' => $second->id, 'quantity' => '0.500']],
+            'items' => [['itemId' => $item->id, 'quantity' => '0.500', 'expectedUnitPrice' => '0.01'], ['itemId' => $second->id, 'quantity' => '0.500', 'expectedUnitPrice' => '0.01']],
             'paymentMethod' => 'cash', 'cashReceived' => '0.02',
         ])->assertCreated()->assertJsonPath('order.totalAmount', '0.02');
     }
@@ -178,11 +180,14 @@ class PosCheckoutApiTest extends TestCase
 
     private function item(string $code = 'ITM-001', string $name = 'Test Item', string $price = '25.00'): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'quantity' => '99.000', 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
+        $item = Item::query()->create(['item_code' => $code, 'name' => $name, 'quantity' => '99.000', 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
+        Price::query()->create(['item_id' => $item->id, 'amount' => $price, 'is_active' => true]);
+
+        return $item;
     }
 
     private function payload(?int $itemId = null, string $quantity = '1.000', string $cash = '100.00'): array
     {
-        return ['items' => [['itemId' => $itemId ?? 1, 'quantity' => $quantity]], 'paymentMethod' => 'cash', 'cashReceived' => $cash];
+        return ['items' => [['itemId' => $itemId ?? 1, 'quantity' => $quantity, 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash', 'cashReceived' => $cash];
     }
 }

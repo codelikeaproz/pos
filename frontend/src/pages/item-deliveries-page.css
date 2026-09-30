@@ -1,0 +1,7 @@
+.delivery-filters { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(12rem, 17rem); gap: 1rem; align-items: end; }
+.delivery-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.delivery-items { display: grid; gap: .5rem; max-height: 15rem; overflow: auto; }
+.delivery-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .65rem; border-bottom: 1px solid #ddd; }
+.delivery-quantity { display: flex; align-items: center; gap: .5rem; }
+.delivery-quantity .ui-input { width: 7rem; }
+@media (max-width: 650px) { .delivery-filters, .delivery-form { grid-template-columns: 1fr; } .delivery-item { flex-wrap: wrap; } }

@@ -1,6 +1,32 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.15 Customer and Credit Monitoring architecture
+
+`customers` is distinct from Consignees: a Customer purchases on credit, while a Consignee participates in the separate consignment account workflow. Customer stores only name and address. `orders.customer_id` is nullable for cash/Walk-in Orders and restricts deletion when linked; a credit Order requires a Customer through the Order model invariant. Existing cash checkout remains unchanged. No credit checkout UI or endpoint exists yet.
+
+Credit Monitoring reads existing `orders` with `payment_method = credit`, joined to Customer, Station, and Cashier. The UI displays MOP as Utang. Age is calculated from the Order date to today's date in Asia/Manila calendar days; it is not stored. Date filters use inclusive Manila dates. Total Amount sums all matching recorded credit sale totals in integer cents before pagination. This is a transaction total, not an outstanding balance. The Customer Balance column displays unavailable because Accounting Office settlement data is not represented in the POS database. The separate Accounting Office system owns settlement/payment; this POS has no settlement action or guessed integration. The existing `ORD-YYYYMMDD-######` identifier is retained, with no separate O.R number.
+
+The confirmed sidebar order remains unchanged; Customer Management and Credit Monitoring are now enabled Admin modules. Credit Monitoring is read-only. Existing inventory, Price, Delivery, Spoilage, and cash checkout paths are unchanged.
+
+### Phase 10.14.1 confirmed legacy-facing sidebar
+
+Admin navigation follows this exact visible order: Dashboard, POS, Product Management, Station Inventory, Credit Monitoring, O.R Transactions, Stations, Privilege Assignment, Customer Management, Privilege, Price, Sale Remittance, Item Delivery, User Management. It uses the existing green/yellow brand tokens and Lucide icons. The top area reserves space for the unavailable original logo and displays authenticated Username and User Privilege. Technical `end_user` displays as Cashier; database role values are unchanged.
+
+Product Management maps to the Item domain (`/items`); Stations to Station (`/stations`); Price to Price (`/prices`); User Management to User (`/employees`). Credit Monitoring, O.R Transactions, Privilege Assignment, Customer Management, Privilege, and Sale Remittance are visible but disabled as Coming Soon. Cashier navigation contains only Dashboard and POS. Spoilage, Transaction History, Supplier Management, Consignee Management, and Consignment Account remain implemented and routable outside the confirmed sidebar. No schema or business logic changed in this UI phase.
+
+### Phase 10.14 current Spoilage architecture
+
+`spoilages` headers belong to a Station and authenticated recording User; `spoilage_items` hold multiple Item lines with code, name, and unit snapshots. The Spoilage number is separate from POS Order and Item Delivery references. Spoilage is read-only after completion.
+
+The Admin selects Items from that Station's `station_items` with positive stock, including inactive Items that still physically remain. No active Price is needed. Submission locks StationItem rows by Item ID, then Item rows, matching checkout and Delivery. It rechecks current stock, returning 409 with current availability when any requested deduction exceeds the locked balance. One transaction writes the header and details, decreases authoritative `station_items.quantity`, and records negative `SPOILAGE` movements referenced to detail IDs. `items.quantity` stays transitional and is not updated. Historical details remain readable after Item edits or deactivation.
+
+### Phase 10.13 current Item Delivery architecture
+
+Admin Item Delivery uses `item_deliveries` headers and `item_delivery_items` details. Each header belongs to a destination Station, the authenticated User who delivered, and an End User receiver assigned to that Station. Details identify Items by ID and keep item code, name, and unit snapshots for readable history after Item edits. `delivery_number` is independent of POS `orders.order_number`; Delivery is not a POS Order.
+
+Submission locks the Station row to serialize first-time assignments, then existing StationItem rows and Item rows in the same order as checkout. One transaction creates the header and details, increases `station_items.quantity`, and writes positive `DELIVERY` movements linked to delivery detail IDs. The unique `(station_id, item_id)` constraint is the final protection against duplicate balances. Delivery does not update transitional `items.quantity`, does not require a Price, and has no edit or delete API. Active Items only can be delivered; past details remain readable when an Item is later deactivated.
+
 ### Phase 10.12 current pricing architecture
 
 `items` has many historical `prices`; one active Price is the current selling price. Admin Price Management lists history, creates a replacement active Price, and reactivates an older record. Both changes lock the parent Item row and switch active flags in one `DB::transaction()`. Same-amount creation is rejected. There is no normal Price delete route. Application locking enforces the one-active rule for supported write paths; direct database writes can bypass it.

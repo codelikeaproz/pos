@@ -3,12 +3,16 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ConsigneeController;
 use App\Http\Controllers\Api\ConsignmentAccountController;
+use App\Http\Controllers\Api\CreditMonitoringController;
+use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ItemController;
+use App\Http\Controllers\Api\ItemDeliveryController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PosCheckoutController;
 use App\Http\Controllers\Api\PosItemController;
 use App\Http\Controllers\Api\PriceController;
+use App\Http\Controllers\Api\SpoilageController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationItemController;
 use App\Http\Controllers\Api\SupplierController;
@@ -55,6 +59,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('items', ItemController::class)
         ->middleware('admin');
+
+    Route::get('/customers', [CustomerController::class, 'index'])->middleware('admin');
+    Route::post('/customers', [CustomerController::class, 'store'])->middleware('admin');
+    Route::get('/credit-monitoring', [CreditMonitoringController::class, 'index'])->middleware('admin');
+
+    Route::get('/item-delivery-options', [ItemDeliveryController::class, 'options'])->middleware('admin');
+    Route::get('/item-deliveries', [ItemDeliveryController::class, 'index'])->middleware('admin');
+    Route::post('/item-deliveries', [ItemDeliveryController::class, 'store'])->middleware('admin');
+    Route::get('/item-deliveries/{itemDelivery}', [ItemDeliveryController::class, 'show'])->middleware('admin');
+
+    Route::get('/spoilage-options', [SpoilageController::class, 'options'])->middleware('admin');
+    Route::get('/spoilages', [SpoilageController::class, 'index'])->middleware('admin');
+    Route::post('/spoilages', [SpoilageController::class, 'store'])->middleware('admin');
+    Route::get('/spoilages/{spoilage}', [SpoilageController::class, 'show'])->middleware('admin');
 
     Route::get('/prices', [PriceController::class, 'index'])->middleware('admin');
     Route::post('/prices', [PriceController::class, 'store'])->middleware('admin');

@@ -21,5 +21,5 @@ export type CurrentUserResponse = {
 }
 
 export function roleLabel(role: UserRole): string {
-  return role === 'admin' ? 'Admin' : 'End User'
+  return role === 'admin' ? 'Admin' : 'Cashier'
 }

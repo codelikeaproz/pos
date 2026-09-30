@@ -182,7 +182,7 @@ export function EmployeesPage() {
     <section className="page employee-page">
       <header className="page__header employee-page__header">
         <div>
-          <h1 className="page__title">Employee Management</h1>
+          <h1 className="page__title">User Management</h1>
           <p className="page__description">
             Manage the administrators and end users who can access the POS.
           </p>

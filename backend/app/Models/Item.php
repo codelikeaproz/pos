@@ -44,6 +44,16 @@ class Item extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function itemDeliveryItems(): HasMany
+    {
+        return $this->hasMany(ItemDeliveryItem::class);
+    }
+
+    public function spoilageItems(): HasMany
+    {
+        return $this->hasMany(SpoilageItem::class);
+    }
+
     public function prices(): HasMany
     {
         return $this->hasMany(Price::class);

@@ -2,6 +2,22 @@
 
 ## Development Rules
 
+### Phase 10.15 Customer and Credit rules
+
+Customer has only name and address; trim and require both, and allow duplicate names. Customer Balance must not be manually stored or inferred from credit sales while Accounting Office settlement data is absent. Cash Orders may have no Customer; credit Orders require one. Keep POS Order numbers as transaction identifiers and do not create an O.R number. Credit Monitoring is Admin-only and read-only, displays MOP as Utang, computes Age from Manila calendar dates, and totals all filtered credit Order amounts before pagination using fixed cents. Accounting Office owns settlement/payment. Do not add POS settlement, collection, remittance, or mark-paid actions. Preserve existing cash checkout and inventory locking.
+
+### Phase 10.14.1 sidebar rules
+
+Keep the confirmed Admin sidebar module names and order: Dashboard, POS, Product Management, Station Inventory, Credit Monitoring, O.R Transactions, Stations, Privilege Assignment, Customer Management, Privilege, Price, Sale Remittance, Item Delivery, User Management. Do not add Spoilage, Transaction History, Supplier, Consignee, or Consignment Account to that confirmed list. Preserve their routes and functionality. Show unimplemented modules as disabled Coming Soon entries; never route them to fake pages. Keep Laravel authorization authoritative. Use authenticated User data for Username and User Privilege, and the existing brand palette. UI labels do not rename backend domains or role values.
+
+### Phase 10.14 Spoilage rules
+
+Spoilage is Admin-only, station-scoped, and inventory-only. Select existing StationItems with positive balance; inactive Items remain eligible when stock exists, and no active Price is required. Reject duplicate lines, invalid precision, and quantities exceeding the locked current Station balance. Deduct `station_items.quantity` and write a matching negative `SPOILAGE` movement in one transaction. Keep completed Spoilage read-only; do not add edit/delete routes or redundant stock totals. Never update transitional `items.quantity` during Spoilage.
+
+### Phase 10.13 Item Delivery rules
+
+Only Admin users may create or browse Item Deliveries. Derive `delivered_by_id` and delivery number on the server; receiver must be an End User assigned to the selected Station. Reject inactive Items, duplicate Item lines, and invalid or nonpositive quantities. Keep `item_delivery_items` as immutable history. A completed Delivery increases authoritative `station_items.quantity` and writes a matching positive `DELIVERY` movement in the same transaction; `items.quantity` stays transitional and unchanged. Delivery numbers and POS Order numbers are separate. No Delivery edit or delete route.
+
 ### Phase 10.12 current pricing rules
 
 The single active `prices` row per Item is the current selling price. Price creation and historical activation must lock the Item row and update Price flags atomically. Reject creation of the same active amount. Do not expose a Price delete route or an arbitrary deactivate action. Item Management may set an initial Price on Item creation but must not change selling price through Item edits.

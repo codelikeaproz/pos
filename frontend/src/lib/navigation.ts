@@ -9,97 +9,34 @@ export type NavItem = {
   title: string
   description: string
   allowedRoles: UserRole[]
+  comingSoon?: boolean
 }
 
+// The visible Admin order and names follow the confirmed legacy sidebar.
 export const navItems: NavItem[] = [
-  {
-    path: '/dashboard',
-    label: 'Dashboard',
-    icon: AppIcons.dashboard,
-    title: 'Dashboard',
-    description: 'Application overview and quick access.',
-    allowedRoles: ['admin', 'end_user']
-  },
-  {
-    path: '/employees',
-    label: 'Employee',
-    icon: AppIcons.employee,
-    title: 'Employee Management',
-    description: 'Manage employees and their POS access roles.',
-    allowedRoles: ['admin']
-  },
-  {
-    path: '/items',
-    label: 'Items',
-    icon: AppIcons.items,
-    title: 'Item Management',
-    description: 'Manage product and food definitions.',
-    allowedRoles: ['admin']
-  },
-  {
-    path: '/prices',
-    label: 'Prices',
-    icon: AppIcons.items,
-    title: 'Price Management',
-    description: 'Manage current selling prices and price history.',
-    allowedRoles: ['admin']
-  },
-  {
-    path: '/stations',
-    label: 'Station',
-    icon: AppIcons.station,
-    title: 'Station Management',
-    description: 'Manage POS locations and business stations.',
-    allowedRoles: ['admin']
-  },
-  {
-    path: '/station-inventory',
-    label: 'Station Inventory',
-    icon: AppIcons.stationInventory,
-    title: 'Station Inventory',
-    description: 'Manage item quantities assigned to each Station.',
-    allowedRoles: ['admin']
-  },
-  {
-    path: '/orders',
-    label: 'Orders / POS',
-    icon: AppIcons.orders,
-    title: 'Orders / POS',
-    description: 'Build current orders using inventory from the assigned Station.',
-    allowedRoles: ['admin', 'end_user']
-  },
-  {
-    path: '/transactions',
-    label: 'Transactions',
-    icon: AppIcons.consignment,
-    title: 'Transaction History',
-    description: 'View completed sales and payment details.',
-    allowedRoles: ['admin', 'end_user']
-  },
-  {
-    path: '/consignees',
-    label: 'Consignee',
-    icon: AppIcons.consignee,
-    title: 'Consignee Management',
-    description: 'Manage consignee contact information for future consignment workflows.',
-    allowedRoles: ['admin']
-  },
-  {
-    path: '/consignments',
-    label: 'Consignment',
-    icon: AppIcons.consignment,
-    title: 'Consignment Account Management',
-    description: 'Manage accounts associated with Stations and Consignees.',
-    allowedRoles: ['admin']
-  },
-  {
-    path: '/suppliers',
-    label: 'Supplier',
-    icon: AppIcons.supplier,
-    title: 'Supplier Management',
-    description: 'Manage suppliers and their contact information.',
-    allowedRoles: ['admin']
-  }
+  { path: '/dashboard', label: 'Dashboard', icon: AppIcons.dashboard, title: 'Dashboard', description: 'Application overview and quick access.', allowedRoles: ['admin', 'end_user'] },
+  { path: '/orders', label: 'POS', icon: AppIcons.orders, title: 'POS', description: 'Build sales using inventory from the assigned Station.', allowedRoles: ['admin', 'end_user'] },
+  { path: '/items', label: 'Product Management', icon: AppIcons.items, title: 'Product Management', description: 'Manage product and food definitions.', allowedRoles: ['admin'] },
+  { path: '/station-inventory', label: 'Station Inventory', icon: AppIcons.stationInventory, title: 'Station Inventory', description: 'Manage Station item quantities.', allowedRoles: ['admin'] },
+  { path: '/credit-monitoring', label: 'Credit Monitoring', icon: AppIcons.creditMonitoring, title: 'Credit Monitoring', description: 'View recorded Utang transactions.', allowedRoles: ['admin'] },
+  { path: '/or-transactions', label: 'O.R Transactions', icon: AppIcons.officialReceipt, title: 'O.R Transactions', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/stations', label: 'Stations', icon: AppIcons.station, title: 'Stations', description: 'Manage POS locations and Stations.', allowedRoles: ['admin'] },
+  { path: '/privilege-assignment', label: 'Privilege Assignment', icon: AppIcons.privilegeAssignment, title: 'Privilege Assignment', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/customer-management', label: 'Customer Management', icon: AppIcons.customerManagement, title: 'Customer Management', description: 'Browse and add Customers.', allowedRoles: ['admin'] },
+  { path: '/privilege', label: 'Privilege', icon: AppIcons.privilege, title: 'Privilege', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/prices', label: 'Price', icon: AppIcons.price, title: 'Price', description: 'Manage price history and the current selling price.', allowedRoles: ['admin'] },
+  { path: '/sale-remittance', label: 'Sale Remittance', icon: AppIcons.payment, title: 'Sale Remittance', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/item-deliveries', label: 'Item Delivery', icon: AppIcons.itemDelivery, title: 'Item Delivery', description: 'Deliver items to Stations and review history.', allowedRoles: ['admin'] },
+  { path: '/employees', label: 'User Management', icon: AppIcons.employee, title: 'User Management', description: 'Manage users and their access roles.', allowedRoles: ['admin'] }
+]
+
+// Existing pages stay routable without adding entries to the confirmed sidebar.
+const otherPages: NavItem[] = [
+  { path: '/spoilages', label: 'Spoilage', icon: AppIcons.warning, title: 'Spoilage Management', description: 'Record Station spoilage.', allowedRoles: ['admin'] },
+  { path: '/transactions', label: 'Transactions', icon: AppIcons.consignment, title: 'Transaction History', description: 'View completed sales.', allowedRoles: ['admin', 'end_user'] },
+  { path: '/consignees', label: 'Consignee', icon: AppIcons.consignee, title: 'Consignee Management', description: 'Manage consignees.', allowedRoles: ['admin'] },
+  { path: '/consignments', label: 'Consignment', icon: AppIcons.consignment, title: 'Consignment Account Management', description: 'Manage consignment accounts.', allowedRoles: ['admin'] },
+  { path: '/suppliers', label: 'Supplier', icon: AppIcons.supplier, title: 'Supplier Management', description: 'Manage suppliers.', allowedRoles: ['admin'] }
 ]
 
 export function getNavItemsForRole(role: UserRole): NavItem[] {
@@ -107,9 +44,5 @@ export function getNavItemsForRole(role: UserRole): NavItem[] {
 }
 
 export function getNavItemByPath(pathname: string): NavItem {
-  const exact = navItems.find((item) => item.path === pathname)
-  if (exact) {
-    return exact
-  }
-  return navItems[0]
+  return [...navItems, ...otherPages].find((item) => item.path === pathname) ?? navItems[0]
 }

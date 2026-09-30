@@ -1,0 +1,3 @@
+.customer-management-page__balance-note { margin: .5rem 0; color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
+.customer-management-page__form { display: grid; gap: .55rem; }
+.customer-management-page__form textarea { min-height: 5.5rem; resize: vertical; }

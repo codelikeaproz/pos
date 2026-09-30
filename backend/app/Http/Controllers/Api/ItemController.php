@@ -66,7 +66,7 @@ class ItemController extends Controller
 
     public function destroy(Item $item): JsonResponse
     {
-        if ($item->stationItems()->exists() || $item->orderItems()->exists() || $item->prices()->exists()) {
+        if ($item->stationItems()->exists() || $item->orderItems()->exists() || $item->itemDeliveryItems()->exists() || $item->spoilageItems()->exists() || $item->prices()->exists()) {
             return response()->json(['message' => 'This item has inventory or history and cannot be deleted. Deactivate it instead.'], 409);
         }
         $item->delete();

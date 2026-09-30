@@ -12,7 +12,7 @@ export function DashboardPage() {
   const { currentUser } = useAuth()
   const quickAccessItems = currentUser
     ? getNavItemsForRole(currentUser.role).filter(
-        (item) => item.path !== '/dashboard'
+        (item) => item.path !== '/dashboard' && !item.comingSoon
       )
     : []
 

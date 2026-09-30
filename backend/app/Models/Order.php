@@ -9,7 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     /** @var list<string> */
-    protected $fillable = ['order_number', 'ordered_at', 'station_id', 'cashier_id', 'payment_method', 'total_amount', 'cash_received', 'change_amount'];
+    protected $fillable = ['order_number', 'ordered_at', 'station_id', 'cashier_id', 'customer_id', 'payment_method', 'total_amount', 'cash_received', 'change_amount'];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Order $order) {
+            if ($order->payment_method === 'credit' && ! $order->customer_id) {
+                throw new \DomainException('A credit order requires a Customer.');
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -24,6 +33,11 @@ class Order extends Model
     public function cashier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cashier_id');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function orderItems(): HasMany

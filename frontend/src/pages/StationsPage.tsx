@@ -121,7 +121,7 @@ export function StationsPage() {
     <section className="page station-page">
       <header className="page__header station-page__header">
         <div>
-          <h1 className="page__title">Station Management</h1>
+          <h1 className="page__title">Stations</h1>
           <p className="page__description">Manage POS locations and business stations.</p>
         </div>
         <Button

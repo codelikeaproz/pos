@@ -1,0 +1,7 @@
+.spoilage-filters { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(12rem, 17rem); gap: 1rem; align-items: end; }
+.spoilage-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.spoilage-items { display: grid; gap: .5rem; max-height: 15rem; overflow: auto; }
+.spoilage-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .65rem; border-bottom: 1px solid #ddd; }
+.spoilage-quantity { display: flex; align-items: center; gap: .5rem; }
+.spoilage-quantity .ui-input { width: 7rem; }
+@media (max-width: 650px) { .spoilage-filters, .spoilage-form { grid-template-columns: 1fr; } .spoilage-item { flex-wrap: wrap; } }

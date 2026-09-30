@@ -105,7 +105,7 @@ export function PricesPage() {
   ]
 
   return <section className="page prices-page">
-    <header className="page__header"><div><h1 className="page__title">Price Management</h1><p className="page__description">Review price history and choose the current selling price.</p></div><Button onClick={openAdd} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Price</Button></header>
+    <header className="page__header"><div><h1 className="page__title">Price</h1><p className="page__description">Manage product price history and active selling prices.</p></div><Button onClick={openAdd} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Price</Button></header>
     <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search by item code or name..." label="Search prices" />
     {pageError ? <Alert tone="error" title="Prices could not be loaded">{pageError}<Button variant="outline" onClick={() => void refresh()}>Try Again</Button></Alert> : null}
     {loading ? <LoadingState label="Loading prices…" /> : <><p className="page__description">{list.total} price record{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.prices} rowKey={(row) => String(row.id)} emptyMessage="No prices found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Price" onPageChange={setPage} /></>}

@@ -41,29 +41,7 @@
   text-overflow: ellipsis;
 }
 
-.app-header__user {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-secondary);
-  opacity: 0.95;
-  min-width: 0;
-}
-
-.app-header__user > span { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.app-header__user .ui-btn--outline {
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #fff;
-  background: transparent;
-}
-
-.app-header__user .ui-btn--outline:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-}
-
 @media (max-width: 800px) {
   .app-header { gap: var(--space-3); padding-inline: var(--space-3); }
   .app-header__brand { flex: 1; }
-  .app-header__user > svg, .app-header__user > span { display: none; }
 }

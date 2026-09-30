@@ -28,4 +28,14 @@ class Station extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    public function itemDeliveries(): HasMany
+    {
+        return $this->hasMany(ItemDelivery::class);
+    }
+
+    public function spoilages(): HasMany
+    {
+        return $this->hasMany(Spoilage::class);
+    }
 }

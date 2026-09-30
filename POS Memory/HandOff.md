@@ -4,6 +4,22 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.15 current-state note
+
+Customer Management is now Admin-only and supports list/search/pagination and adding a name plus address. Customers are separate from Consignees. The Balance column is intentionally unavailable because the connected Accounting Office settlement source is not modeled here. `orders.customer_id` is nullable for cash/Walk-in and has a restrictive Customer FK; Order model writes require a Customer for `payment_method = credit`. There is no credit checkout endpoint or UI yet, so Credit Monitoring will show records only when credit Orders exist through a future supported workflow or existing connected data. Credit Monitoring is Admin-only, read-only, filtered by search and inclusive Manila dates, and shows Utang, calendar-day Age, and a fixed-cent Total Amount across all matching rows. The total is recorded credit sales, not outstanding balance. Accounting Office owns settlement; this POS does not pay or settle credit. The sidebar order and cash checkout remain unchanged. Earlier phase notes below are historical.
+
+### Phase 10.14.1 current-state note
+
+The Admin sidebar now reproduces the confirmed legacy names and order: Dashboard, POS, Product Management, Station Inventory, Credit Monitoring, O.R Transactions, Stations, Privilege Assignment, Customer Management, Privilege, Price, Sale Remittance, Item Delivery, User Management. Six deferred entries are visible but disabled. Cashier sees Dashboard and POS. The image area is reserved because no original logo asset exists in the repository. Authenticated Username, User Privilege (Admin/Cashier), and Logout appear in the sidebar. Spoilage, Transaction History, Supplier, Consignee, and Consignment Account stay routable outside it. No database or business logic changed. Earlier phase notes below are historical.
+
+### Phase 10.14 current-state note
+
+Spoilage Management now has Admin-only list, detail, options, and create APIs plus a Station-scoped cart and read-only history screen. Multiple Items may be recorded under one unique `SPL-YYYYMMDD-######` number with optional reason and Item identity snapshots. The backend locks StationItem rows before Item rows, rechecks stock, and atomically deducts `station_items.quantity` with negative `SPOILAGE` movements. Insufficient current stock returns 409; the UI preserves the cart and refreshes availability. Inactive Items with positive Station stock remain eligible. Price is not required; `items.quantity` is not updated. Withdrawal, Receiving, and advanced movement history UI remain deferred. Older phase notes below are historical.
+
+### Phase 10.13 current-state note
+
+Item Delivery now has Admin-only list, detail, options, and create APIs plus a management screen with a cart, confirmation, and read-only history. Each delivery has a unique `DEL-YYYYMMDD-######` reference, Station, authenticated delivering User, Station-assigned End User receiver, and Item details with code/name/unit snapshots. A transaction increases `station_items.quantity` and records positive `DELIVERY` movements; first-time assignments use Station serialization and the StationItem uniqueness constraint. `items.quantity` is not updated and no Price is required. POS Orders remain separate. Delivery history cannot be edited or deleted. Receiving, Withdrawal, Spoilage, and movement history UI remain deferred. Older phase notes below are historical.
+
 ### Phase 10.12 current-state note
 
 Price Management now provides Admin-only `GET /api/prices`, `POST /api/prices`, `POST /api/prices/{price}/activate`, and `GET /api/price-item-options`. The UI lists price history with live search and pagination, adds a new active Price, and confirms historical activation. Parent Item row locking serializes activation. There is no Price delete endpoint.

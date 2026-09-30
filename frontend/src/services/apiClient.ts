@@ -7,13 +7,15 @@ export class ApiError extends Error {
   readonly status: number | null
   readonly errors: Record<string, string[]>
   readonly currentPrices: Array<{ itemId: number; price: string }>
+  readonly currentStock: Array<{ itemId: number; available: string }>
 
   constructor(
     kind: ApiErrorKind,
     message: string,
     status: number | null = null,
     errors: Record<string, string[]> = {},
-    currentPrices: Array<{ itemId: number; price: string }> = []
+    currentPrices: Array<{ itemId: number; price: string }> = [],
+    currentStock: Array<{ itemId: number; available: string }> = []
   ) {
     super(message)
     this.name = 'ApiError'
@@ -21,6 +23,7 @@ export class ApiError extends Error {
     this.status = status
     this.errors = errors
     this.currentPrices = currentPrices
+    this.currentStock = currentStock
   }
 }
 
@@ -132,6 +135,15 @@ function currentPricesFrom(data: unknown): Array<{ itemId: number; price: string
   )
 }
 
+function currentStockFrom(data: unknown): Array<{ itemId: number; available: string }> {
+  if (!data || typeof data !== 'object' || !('currentStock' in data) || !Array.isArray(data.currentStock)) return []
+  return data.currentStock.filter((entry): entry is { itemId: number; available: string } =>
+    entry !== null && typeof entry === 'object' &&
+    'itemId' in entry && typeof entry.itemId === 'number' &&
+    'available' in entry && typeof entry.available === 'string'
+  )
+}
+
 export type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
@@ -225,7 +237,8 @@ export async function apiRequest<T>(
         messageForHttpStatus(response.status, data),
         response.status,
         validationErrorsFrom(data),
-        currentPricesFrom(data)
+        currentPricesFrom(data),
+        currentStockFrom(data)
       )
     }
 

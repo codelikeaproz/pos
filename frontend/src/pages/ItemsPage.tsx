@@ -83,7 +83,7 @@ export function ItemsPage() {
   return (
     <section className="page item-page">
       <header className="page__header item-page__header">
-        <div><h1 className="page__title">Item Management</h1><p className="page__description">Manage product and food definitions. Change selling prices in Price Management.</p></div>
+        <div><h1 className="page__title">Product Management</h1><p className="page__description">Manage product and food definitions. Change selling prices in Price.</p></div>
         <Button onClick={() => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'create' }) }} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Item</Button>
       </header>
 

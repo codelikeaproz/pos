@@ -84,7 +84,7 @@ class ItemDeliveryController extends Controller
             }
 
             $delivery = ItemDelivery::query()->create([
-                'delivery_number' => 'PENDING-'.Str::uuid(),
+                'delivery_number' => 'PENDING-'.Str::random(24),
                 'station_id' => $station->id,
                 'delivered_by_id' => $request->user()->id,
                 'received_by_id' => $receiver->id,

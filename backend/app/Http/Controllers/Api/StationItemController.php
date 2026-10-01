@@ -20,7 +20,7 @@ class StationItemController extends Controller
     {
         $validated = $request->validate(['station_id' => ['nullable', 'integer', 'exists:stations,id']]);
         $searchTerm = $request->string('search')->trim()->toString();
-        $stationItems = StationItem::query()->with(['station', 'item'])
+        $stationItems = StationItem::query()->with(['station', 'item'])->withExists('movements')
             ->when(isset($validated['station_id']), fn ($query) => $query->where('station_id', $validated['station_id']))
             ->when($searchTerm !== '', fn ($query) => $query->whereHas('item', fn ($itemQuery) => $itemQuery
                 ->where('name', 'like', "%{$searchTerm}%")
@@ -28,7 +28,7 @@ class StationItemController extends Controller
                 ->orWhere('units_backup', 'like', "%{$searchTerm}%")
                 ->orWhere('unit', 'like', "%{$searchTerm}%")))
             ->join('items', 'items.id', '=', 'station_items.item_id')
-            ->select('station_items.*')->orderBy('items.name')->paginate(10)->withQueryString();
+            ->select('station_items.*')->withMovementSummary()->orderBy('items.name')->paginate(10)->withQueryString();
 
         return StationItemResource::collection($stationItems)->response();
     }

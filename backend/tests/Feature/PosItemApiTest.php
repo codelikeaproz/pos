@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\InventoryMovement;
 use App\Models\Item;
 use App\Models\Price;
 use App\Models\Station;
@@ -94,6 +95,28 @@ class PosItemApiTest extends TestCase
         }
     }
 
+    public function test_exact_code_match_is_first_even_when_name_matches_fill_the_first_page(): void
+    {
+        [$station] = $this->stations();
+        Sanctum::actingAs(User::factory()->endUser()->create(['station_id' => $station->id]));
+
+        foreach (range(1, 11) as $number) {
+            $item = $this->item(sprintf('OTHER-%02d', $number), 'Coke');
+            StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '2.000']);
+        }
+
+        $exact = $this->item('COKE', 'Zulu Drink');
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $exact->id, 'quantity' => '3.000']);
+
+        $this->getJson('/api/pos/items?search=coke')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 12)
+            ->assertJsonPath('data.0.item_code', 'COKE')
+            ->assertJsonPath('data.0.name', 'Zulu Drink')
+            ->assertJsonPath('data.1.name', 'Coke')
+            ->assertJsonPath('data.2.name', 'Coke');
+    }
+
     public function test_station_inventory_modal_endpoint_requires_authentication_and_assigned_station(): void
     {
         $this->getJson('/api/pos/station-inventory')->assertUnauthorized();
@@ -143,6 +166,29 @@ class PosItemApiTest extends TestCase
             ->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Stock 04');
         $this->getJson('/api/pos/station-inventory?search='.str_repeat('x', 101))
             ->assertUnprocessable()->assertJsonValidationErrors('search');
+    }
+
+    public function test_station_inventory_summary_is_scoped_and_includes_inactive_items(): void
+    {
+        [$station, $otherStation] = $this->stations();
+        $user = User::factory()->endUser()->create(['station_id' => $station->id]);
+        $item = $this->item('SUM-001', 'Summary Item', 'BOTTLE', '10.00');
+        $item->update(['is_active' => false]);
+        $stationItem = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '3.750']);
+        $other = StationItem::query()->create(['station_id' => $otherStation->id, 'item_id' => $item->id, 'quantity' => '50.000']);
+        foreach ([['DELIVERY', '5.500'], ['SALE', '-1.250'], ['SPOILAGE', '-0.500']] as [$type, $quantity]) {
+            InventoryMovement::query()->create(['station_item_id' => $stationItem->id, 'item_id' => $item->id, 'quantity_change' => $quantity, 'type' => $type]);
+        }
+        InventoryMovement::query()->create(['station_item_id' => $other->id, 'item_id' => $item->id, 'quantity_change' => '-40.000', 'type' => 'SALE']);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/pos/station-inventory?search=SUM-001')
+            ->assertOk()->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.isActive', false)
+            ->assertJsonPath('data.0.currentQuantity', '3.750')
+            ->assertJsonPath('data.0.recordedDeliveredQuantity', '5.500')
+            ->assertJsonPath('data.0.recordedSoldQuantity', '1.250')
+            ->assertJsonPath('data.0.recordedSpoilageQuantity', '0.500');
     }
 
     /** @return array{Station, Station} */

@@ -48,15 +48,16 @@ export function EmployeeTable({
       align: 'right',
       render: (employee) => (
         <div className="employee-table__actions">
-          <Button
+          <Button className="table-icon-action"
             variant="outline"
+            aria-label={`Edit ${employee.name}`}
+            title={`Edit ${employee.name}`}
             onClick={() => onEdit(employee)}
             icon={<AppIcons.edit size={iconSize} strokeWidth={iconStroke} />}
-          >
-            Edit
-          </Button>
-          <Button
+          />
+          <Button className="table-icon-action"
             variant="danger"
+            aria-label={`Delete ${employee.name}`}
             onClick={() => onDelete(employee)}
             disabled={employee.id === currentUserId}
             title={
@@ -65,9 +66,7 @@ export function EmployeeTable({
                 : `Delete ${employee.name}`
             }
             icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}
-          >
-            Delete
-          </Button>
+          />
         </div>
       )
     }

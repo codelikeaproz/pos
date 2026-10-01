@@ -1,18 +1,15 @@
-import { Button } from '../../components/ui/Button'
-import { Badge } from '../../components/ui/Badge'
 import { Table, type TableColumn } from '../../components/ui/Table'
-import { AppIcons, iconSize, iconStroke } from '../../lib/icons'
 import { formatQuantity } from '../../lib/posCalculations'
 import type { StationItem } from '../../types/stationItem'
 
-export function StationInventoryTable({ rows, onEdit, onRemove, emptyMessage }: { rows: StationItem[]; onEdit: (row: StationItem) => void; onRemove: (row: StationItem) => void; emptyMessage: string }) {
+export function StationInventoryTable({ rows, emptyMessage }: { rows: StationItem[]; emptyMessage: string }) {
   const columns: TableColumn<StationItem>[] = [
-    { key: 'item', header: 'Item', render: (row) => <strong>{row.item.name}</strong> },
-    { key: 'code', header: 'Code', render: (row) => row.item.item_code },
-    { key: 'unit', header: 'Unit', render: (row) => row.item.units_backup },
-    { key: 'quantity', header: 'Quantity', render: (row) => formatQuantity(row.quantity) },
-    { key: 'status', header: 'Status', render: (row) => <Badge tone={row.is_low_stock ? 'warning' : 'success'}>{row.is_low_stock ? 'Low Stock' : 'In Stock'}</Badge> },
-    { key: 'actions', header: 'Actions', align: 'right', render: (row) => <div className="station-inventory-table__actions"><Button variant="outline" onClick={() => onEdit(row)} icon={<AppIcons.edit size={iconSize} strokeWidth={iconStroke} />}>Edit Inventory</Button><Button variant="danger" onClick={() => onRemove(row)} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>Remove</Button></div> }
+    { key: 'item', header: 'Description', render: (row) => row.item.name },
+    { key: 'code', header: 'Item Code', render: (row) => row.item.item_code },
+    { key: 'quantity', header: 'Qty', align: 'right', render: (row) => formatQuantity(row.reconciled_quantity) },
+    { key: 'sold', header: 'Sold', align: 'right', render: (row) => formatQuantity(row.recorded_sold_quantity) },
+    { key: 'spoilage', header: 'Spoilage', align: 'right', render: (row) => formatQuantity(row.recorded_spoilage_quantity) },
+    { key: 'remaining', header: 'Remaining Qty', align: 'right', render: (row) => formatQuantity(row.current_quantity) }
   ]
   return <Table columns={columns} rows={rows} rowKey={(row) => String(row.id)} emptyMessage={emptyMessage} />
 }

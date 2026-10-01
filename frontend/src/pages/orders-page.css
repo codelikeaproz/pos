@@ -7,16 +7,12 @@
 .pos-masthead__identity { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-1); font-size: var(--font-size-secondary); }
 .pos-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(420px, 1.12fr); gap: clamp(24px, 3vw, 56px); flex: 1; align-items: stretch; padding: var(--space-6) var(--space-8); }
 .pos-left-column, .pos-right-column { display: flex; flex-direction: column; min-width: 0; gap: var(--space-4); }
-.pos-brand-stage { min-height: clamp(170px, 24vh, 280px); overflow: hidden; border-radius: var(--radius-md); background: url('../assets/pos-food-hero.png') center 48% / cover no-repeat; }
+.pos-left-column { min-height: 0; }
+.pos-inventory { flex: 1; }
 .pos-panel { display: flex; flex-direction: column; min-width: 0; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: #fff; }
 .pos-panel__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .pos-panel__heading h2 { margin: 0; color: var(--color-brand-green); font-size: var(--font-size-section); }
 .pos-panel__heading p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
-.pos-inventory { flex: 1; }
-.pos-inventory .ui-table-wrap { max-height: 360px; overflow: auto; }
-.pos-inventory .ui-table { min-width: 560px; }
-.pos-inventory .ui-table th { background: #f3f8f0; }
-.pos-clock { margin: auto 0 0; padding: var(--space-3) 0; font-size: clamp(18px, 2vw, 26px); font-weight: 700; text-align: center; }
 .pos-transaction-top { display: flex; justify-content: space-between; gap: var(--space-5); padding: var(--space-2) var(--space-1); }
 .pos-transaction-top > div { display: flex; flex-direction: column; gap: var(--space-1); }
 .pos-transaction-top > div:last-child { text-align: right; }
@@ -25,13 +21,11 @@
 .pos-order { min-height: 300px; flex: 1; }
 .pos-order__table { min-height: 230px; max-height: 370px; overflow: auto; }
 .pos-order__table .ui-table-wrap { height: 100%; border: 0; }
-.pos-order__table .ui-table { min-width: 610px; }
+.pos-order__table .ui-table { min-width: 720px; }
 .pos-order__table .ui-table th { background: #f7f9f5; }
-.pos-out-of-stock { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
-.pos-cart-item__code { display: block; color: var(--color-text-muted); }
 .pos-cart-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-2); }
-.pos-page__notice { margin: var(--space-6); }
 .pos-action-strip { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-4); background: var(--color-brand-green); }
+.pos-action-strip__clock { grid-column: 1; min-width: 0; overflow: hidden; color: #fff; font-size: var(--font-size-secondary); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .pos-action-strip__shortcuts { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-1) var(--space-5); }
 .pos-action-strip__exit { grid-column: 3; justify-self: end; }
 .pos-action-strip button { border: 0; background: transparent; color: #fff; font: inherit; font-size: var(--font-size-secondary); font-weight: 600; cursor: pointer; }
@@ -40,6 +34,13 @@
 .pos-quantity-dialog { display: flex; flex-direction: column; gap: var(--space-3); }
 .pos-quantity-dialog p { margin: 0; }
 .pos-quantity-dialog > div { display: flex; flex-direction: column; }
+.pos-quantity-control { display: flex; }
+.pos-quantity-control .ui-input { min-width: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.pos-quantity-control__steps { display: flex; flex-direction: column; width: 42px; flex: none; }
+.pos-quantity-control__steps button { flex: 1; min-height: 24px; border: 1px solid var(--color-border); border-left: 0; background: var(--color-bg-surface); color: var(--color-text); cursor: pointer; }
+.pos-quantity-control__steps button:first-child { border-top-right-radius: var(--radius-sm); }
+.pos-quantity-control__steps button:last-child { border-top: 0; border-bottom-right-radius: var(--radius-sm); }
+.pos-quantity-control__steps button:hover, .pos-quantity-control__steps button:focus-visible { background: var(--color-bg-subtle); outline-color: var(--color-brand-green); }
 .pos-quantity-picker { display: flex; flex-direction: column; gap: var(--space-2); max-height: 350px; overflow: auto; }
 .pos-quantity-picker button { display: flex; flex-direction: column; gap: var(--space-1); width: 100%; padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: #fff; color: var(--color-text); font: inherit; text-align: left; cursor: pointer; }
 .pos-quantity-picker button:hover, .pos-quantity-picker button:focus-visible { border-color: var(--color-brand-green); background: var(--color-bg-subtle); }
@@ -47,5 +48,5 @@
 .pos-new-order-warning { display: flex; gap: var(--space-3); align-items: flex-start; }
 .pos-new-order-warning svg { flex-shrink: 0; color: var(--color-warning); }
 .pos-new-order-warning p { margin: 0; }
-@media (max-width: 1150px) { .pos-layout { grid-template-columns: 1fr; } .pos-brand-stage { min-height: 150px; } .pos-clock { margin-top: 0; } }
-@media (max-width: 760px) { .pos-masthead { padding: var(--space-4); } .pos-masthead__identity { font-size: 12px; } .pos-layout { padding: var(--space-4); } .pos-cart-actions { flex-direction: column; } .pos-action-strip { grid-template-columns: 1fr; } .pos-action-strip__shortcuts, .pos-action-strip__exit { grid-column: 1; } }
+@media (max-width: 1150px) { .pos-layout { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .pos-masthead { padding: var(--space-4); } .pos-masthead__identity { font-size: 12px; } .pos-layout { padding: var(--space-4); } .pos-cart-actions { flex-direction: column; } .pos-action-strip { grid-template-columns: 1fr; } .pos-action-strip__clock, .pos-action-strip__shortcuts, .pos-action-strip__exit { grid-column: 1; } }

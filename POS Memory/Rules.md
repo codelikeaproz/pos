@@ -2,11 +2,33 @@
 
 ## Development Rules
 
-### Current POS interaction rules (2026-09-30)
+### Phase 10.16.1 compact table and inventory-summary rules
 
-On the POS screen, keep the sidebar hidden until Exit POS returns to Dashboard. Show only implemented shortcut actions: F7 current-Station Transactions, F9 Qty, F10 New Order, F12 Station Inventory, and Esc Exit POS. Both keyboard keys and footer buttons must work. Keep F3/F4 payment shortcuts removed; use Cash/Credit radio buttons. Opening Credit must request a Customer; cancel without a prior selection returns to Cash, while cancelling a later change keeps the current Customer. Confirm before discarding an unpaid cart through New Order or Exit POS.
+Use the shared compact table density across implemented modules: approximately 12px medium headers, 13px regular body text, small supporting text, and narrow cell padding. Do not bold table body names, codes, quantities, prices, references, dates, people, statuses, or totals. Use compact Lucide icon actions for conventional Add, Edit, View, Activate, Deactivate, Delete, and Remove operations. Every icon action requires an item-specific accessible label, title, keyboard focus state, and appropriate disabled state. Keep text on primary Save, Submit, Pay, Confirm, and destructive confirmation actions.
+
+Shared dialogs must set focus only when opening, focus their first enabled body control by default, support an explicit initial-focus ref, preserve focus through controlled rerenders and AJAX refreshes, and restore the prior control when closed. Never make a Modal focus effect depend directly on an inline close callback.
+
+Keep quantity storage and ledger arithmetic at three-decimal precision. Ordinary manual quantity entry uses at most two decimal places, while APIs retain three-decimal compatibility for existing data and integrations. Format quantity display without unnecessary trailing zeroes and preserve meaningful historical third-decimal digits.
+
+Station Inventory summary definitions are fixed: `recorded_delivered_quantity` is the sum of positive DELIVERY movements; `recorded_sold_quantity` is the sum of absolute SALE movement quantities; `recorded_spoilage_quantity` is the sum of absolute SPOILAGE movement quantities; `current_quantity` and Remaining Qty are the stored `station_items.quantity`. Never derive current stock as Delivered minus Sold minus Spoilage. ADJUSTMENT and future movement types may affect current balance without belonging to these informational totals. Historical summary values include only movements actually recorded by this system; do not replay Orders or fabricate pre-ledger history.
+
+Station Inventory is a read-only stock monitoring module. Item Delivery is the supported workflow for introducing Item stock into a Station. Do not expose Assign Item, quantity editing, removal, delivery controls, or an Actions column on Station Inventory. Keep its Station selector, Search, pagination, and recorded movement summaries. Retain backend adjustment and assignment capabilities unless a later phase explicitly removes them; do not present a manual balance correction as a Delivery.
+
+Station Inventory Qty is the reconciled display value `station_items.quantity + absolute recorded SALE + absolute recorded SPOILAGE`, calculated with database decimal arithmetic. It represents the available/base quantity needed to reconcile the monitoring columns; it is not `items.quantity` and not cumulative DELIVERY alone. Thus `Qty - Sold - Spoilage = Remaining Qty`. DELIVERY and signed ADJUSTMENT affect authoritative Remaining and therefore flow into Qty, while Sold and Spoilage remain their separate recorded consumption summaries. View Spoilage must reuse existing Spoilage Management and scope its history to the selected Station.
+
+Spoilage Incident Date may be today or a past Manila calendar date to support late reporting; never accept a future date. Use the selected Manila date for SPL numbering and persisted incident chronology. The authenticated User remains the reporter, and creating the record still uses current stock validation, locks, snapshots, negative movements, and one transaction.
+
+Item Delivery creates a missing StationItem or increases an existing balance and writes a positive DELIVERY movement in the same atomic transaction as its header and immutable Item snapshots. Completed Deliveries cannot be edited or deleted. F12 is read-only and shows the authenticated Station's Item, Code, Unit, recorded Sold, recorded Spoilage, and authoritative Remaining balance while preserving the POS cart.
+
+### Current POS interaction rules (2026-10-01)
+
+On the POS screen, keep the sidebar hidden until Exit POS returns to Dashboard. F3 Cash and F4 Credit / Utang are payment-panel controls with matching keyboard shortcuts; do not use payment radio buttons. F3 opens a Cash Received dialog with one text input and no on-screen keypad, while F4 opens Customer selection. Cancelling a dialog keeps the prior method and details. Confirming Cash clears the Credit Customer; selecting Credit clears the confirmed cash amount. Require a valid Cash amount at least equal to the current cart total before Pay; a changed cart may require cash correction. Confirming cash alone never submits the Order.
+
+Keep the footer actions F7 current-Station Transactions, F9 Qty, F10 New Order, F12 Station Inventory, and Esc Exit POS. Both keys and visible controls must work; shortcuts must not act through an open dialog. Confirm before discarding an unpaid cart through New Order or Exit POS.
 
 F7 and F12 are read-only in-place dialogs and must preserve the cart. F7 is limited to the current Station even for an Admin cashier; F12 derives its Station on the server from the authenticated User and includes assigned inactive or unpriced stock. Keep the sellable POS Item list separate. Do not expose Discount, O.R Transactions, or F8 Credit Transactions as working shortcuts before those workflows exist.
+
+POS item search uses debounced AJAX in the left Available Items panel and accepts Item name or code. Its paginated table shows Name, Item Code, Available stock with unit (for example, `8 bottle`), Unit Price, and an icon-only Add action. Item names use regular weight. Zero-stock Items remain visible with Add disabled and an explanatory tooltip. Enter quick-adds only an exact Item code; names are chosen from results because they may repeat. Current Order shows Item Code in its own column, regular-weight Item names, and pencil and trash actions with item-specific accessible labels and tooltips. Search failures must not hide the cart. The food image is removed; the live clock appears in the footer. POS dialog X controls close or cancel, while primary footer actions remain. Change Quantity focuses and selects a text input so Backspace works; up/down controls change by one whole unit and Enter validates and updates the line. Keep three-decimal precision, displaying POS noninteger quantities with at least two decimal places (for example, `1.50` and `2.50`) and integers without decimal zeros.
 
 ### Migration ownership
 
@@ -15,6 +37,8 @@ For this development project, put a table's columns, nullability, indexes, and f
 ### Phase 10.16 POS Credit / Utang rules
 
 Keep one checkout transaction for Cash and Credit. Cash requires Cash Received and may have no Customer. Credit requires a valid Customer ID and stores null Cash Received and Change; never fabricate zero cash values. Both methods must retain Station stock locks, active Price resolution, stale-price rejection, authoritative totals, OrderItem snapshots, and SALE movements. Do not allow negative Station stock. Customer search is available to authenticated cashiers; Customer creation and Credit Monitoring stay Admin-only. Credit Monitoring totals recorded Credit sales, not outstanding balance. Do not add Customer Balance, collection, remittance, or settlement behavior to this POS; the Accounting Office owns settlement.
+
+The successful checkout dialog is a receipt-style preview built from the returned Order and OrderItem snapshots. Show CMU HomeStay, Station, transaction number, Item lines as quantity × Unit Price with line price, Total Price, and “Thank you for your purchase!” Show the Customer on Credit / Utang receipts. Keep printer commands outside this UI until receipt printer hardware is implemented.
 
 ### Phase 10.15 Customer and Credit rules
 
@@ -854,7 +878,7 @@ Prioritize:
 
 Frontend presentation conventions: use the shared design tokens and reusable SearchField, Pagination, Table, Button, Input, and Modal for repeated patterns. Keep feature-specific forms and POS calculations within their features. Search remains debounced and cancellable; presentation refactors must not change API contracts, quantity precision, or payment behavior. At narrow desktop widths, stack page actions and POS panels, allow tables to scroll within their containers, and keep dialog content within the viewport.
 
-Quantity values retain `DECIMAL(12,3)` storage and accept up to three fractional digits, but the frontend must omit unnecessary trailing zeroes. Display and edit controls show `5` instead of `5.000`, `1.5` instead of `1.500`, and preserve meaningful precision such as `1.125`. This is presentation normalization only; API validation, calculations, and database precision remain unchanged.
+Quantity values retain `DECIMAL(12,3)` storage and accept up to three fractional digits. General management views omit unnecessary trailing zeroes: `5` instead of `5.000`, `1.5` instead of `1.500`, and `1.125` where all three digits matter. POS cart and quantity editing show integers without decimal zeros, nonintegers with at least two fractional places (`1.50`, `2.50`), and three places when needed (`1.125`). This is presentation normalization only; API validation, calculations, and database precision remain unchanged.
 
 The POS screen should prioritize speed.
 

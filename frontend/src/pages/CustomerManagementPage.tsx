@@ -58,7 +58,7 @@ export function CustomerManagementPage() {
 
   const columns: TableColumn<Customer>[] = [
     { key: 'id', header: 'ID', render: (row) => row.id },
-    { key: 'name', header: 'Name', render: (row) => <strong>{row.name}</strong> },
+    { key: 'name', header: 'Name', render: (row) => row.name },
     { key: 'address', header: 'Address', render: (row) => row.address },
     { key: 'balance', header: 'Balance', align: 'right', render: (row) => row.balance === null ? <span title="Accounting Office balance is unavailable in this POS">—</span> : money.format(Number(row.balance)) }
   ]

@@ -34,7 +34,7 @@ export function CreditMonitoringPage() {
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
 
   const columns: TableColumn<CreditOrder>[] = [
-    { key: 'order', header: 'Order No.', render: (row) => <strong>{row.orderNumber}</strong> },
+    { key: 'order', header: 'Order No.', render: (row) => row.orderNumber },
     { key: 'date', header: 'Date', render: (row) => new Date(row.orderedAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) },
     { key: 'customer', header: 'Customer', render: (row) => row.customer?.name ?? '—' },
     { key: 'mop', header: 'MOP', render: () => 'Utang' },

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSpoilageRequest extends FormRequest
@@ -15,6 +16,7 @@ class StoreSpoilageRequest extends FormRequest
     {
         return [
             'stationId' => ['required', 'integer', 'exists:stations,id'],
+            'incidentDate' => ['sometimes', 'date_format:Y-m-d', 'before_or_equal:'.CarbonImmutable::now('Asia/Manila')->toDateString()],
             'reason' => ['nullable', 'string', 'max:500'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.itemId' => ['required', 'integer', 'distinct', 'exists:items,id'],

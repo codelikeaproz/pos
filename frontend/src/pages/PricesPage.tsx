@@ -11,7 +11,7 @@ import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
-import { activatePrice, addPrice, loadPriceItemOptions, loadPrices } from '../services/priceService'
+import { addPrice, loadPriceItemOptions, loadPrices } from '../services/priceService'
 import type { PriceItemOption, PriceList, PriceRecord } from '../types/price'
 import './prices-page.css'
 
@@ -35,7 +35,6 @@ export function PricesPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [amountError, setAmountError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [activateTarget, setActivateTarget] = useState<PriceRecord | null>(null)
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setPageError(null)
@@ -85,23 +84,11 @@ export function PricesPage() {
     } finally { setSubmitting(false) }
   }
 
-  async function confirmActivation(): Promise<void> {
-    if (!activateTarget) return
-    setSubmitting(true); setFormError(null)
-    try {
-      const result = await activatePrice(activateTarget.id)
-      setActivateTarget(null); showToast(result.message); await refresh()
-    } catch (error) { setFormError(getUserFacingApiMessage(error)) }
-    finally { setSubmitting(false) }
-  }
-
   const columns: TableColumn<PriceRecord>[] = [
-    { key: 'code', header: 'Item Code', render: (row) => <strong>{row.item.itemCode}</strong> },
+    { key: 'code', header: 'Item Code', render: (row) => row.item.itemCode },
     { key: 'name', header: 'Item Name', render: (row) => row.item.name },
     { key: 'amount', header: 'Price', align: 'right', render: (row) => money.format(Number(row.amount)) },
-    { key: 'status', header: 'Status', render: (row) => <span className={`price-status price-status--${row.isActive ? 'active' : 'inactive'}`}>{row.isActive ? 'Active' : 'Inactive'}</span> },
-    { key: 'date', header: 'Date', render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleString() : '—' },
-    { key: 'action', header: 'Action', align: 'right', render: (row) => row.isActive ? '—' : <Button variant="outline" onClick={() => { setFormError(null); setActivateTarget(row) }}>Activate</Button> }
+    { key: 'status', header: 'Status', render: (row) => <span className={`price-status price-status--${row.isActive ? 'active' : 'inactive'}`}>{row.isActive ? 'Active' : 'Inactive'}</span> }
   ]
 
   return <section className="page prices-page">
@@ -111,9 +98,6 @@ export function PricesPage() {
     {loading ? <LoadingState label="Loading prices…" /> : <><p className="page__description">{list.total} price record{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.prices} rowKey={(row) => String(row.id)} emptyMessage="No prices found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Price" onPageChange={setPage} /></>}
     <Modal open={addOpen} title="Add Price" onClose={() => !submitting && setAddOpen(false)} actions={<><Button variant="outline" disabled={submitting} onClick={() => setAddOpen(false)}>Cancel</Button><Button disabled={submitting} onClick={() => void save()} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>Add Price</Button></>}>
       <div className="price-form"><p>Adding a new price will make it the active price for this item.</p><SearchField value={itemSearchInput} onChange={(value) => { setItemSearchInput(value); setItemId('') }} onClear={() => { setItemSearchInput(''); setItemId('') }} placeholder="Search item code or name..." label="Find item" /><Label htmlFor="price-item" required>Item</Label><select id="price-item" className="ui-input" value={itemId} onChange={(event) => setItemId(event.target.value)} disabled={submitting}><option value="">Select an item</option>{options.map((item) => <option key={item.id} value={item.id}>{item.item_code} — {item.name}</option>)}</select><Label htmlFor="price-amount" required>Price</Label><Input id="price-amount" type="number" inputMode="decimal" min="0" step="0.01" value={amount} onChange={(event) => { setAmount(event.target.value); setAmountError(null) }} disabled={submitting} error={Boolean(amountError)} placeholder="0.00" />{amountError ? <span className="page__field-error">{amountError}</span> : null}{formError ? <Alert tone="error">{formError}</Alert> : null}</div>
-    </Modal>
-    <Modal open={activateTarget !== null} title="Activate Historical Price?" onClose={() => !submitting && setActivateTarget(null)} actions={<><Button variant="outline" disabled={submitting} onClick={() => setActivateTarget(null)}>Cancel</Button><Button disabled={submitting} onClick={() => void confirmActivation()}>Activate Price</Button></>}>
-      <p>Make <strong>{activateTarget ? money.format(Number(activateTarget.amount)) : ''}</strong> the active price for <strong>{activateTarget?.item.itemCode} — {activateTarget?.item.name}</strong>?</p>{formError ? <Alert tone="error">{formError}</Alert> : null}
     </Modal>
   </section>
 }

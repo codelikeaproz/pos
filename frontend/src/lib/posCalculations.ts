@@ -37,6 +37,14 @@ export function formatQuantity(value: string): string {
   return quantity.replace(/\.0+$/, '').replace(/(\.\d*?[1-9])0+$/, '$1')
 }
 
+export function formatPosQuantity(value: string): string {
+  const quantity = normalizeQuantity(value)
+  if (!quantity) return value
+  const [whole, fraction] = quantity.split('.')
+  if (fraction === '000') return whole
+  return fraction.endsWith('0') ? `${whole}.${fraction.slice(0, 2)}` : quantity
+}
+
 export function validateCartQuantity(value: string, availableQuantity: string): string | null {
   const quantity = quantityToThousandths(value)
   const available = quantityToThousandths(availableQuantity)
@@ -45,6 +53,11 @@ export function validateCartQuantity(value: string, availableQuantity: string): 
   if (quantity <= 0n) return 'Quantity must be greater than zero.'
   if (available === null || quantity > available) return `Only ${formatQuantity(availableQuantity)} units are available at this station.`
   return null
+}
+
+export function validateManualQuantity(value: string, availableQuantity: string): string | null {
+  if (!/^\d+(?:\.\d{1,2})?$/.test(value.trim())) return 'Enter a quantity with no more than two decimal places.'
+  return validateCartQuantity(value, availableQuantity)
 }
 
 export function lineSubtotalCents(unitPrice: string, quantity: string): bigint {

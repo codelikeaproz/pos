@@ -29,6 +29,7 @@ class PosItemController extends Controller
                 ->orWhere('item_code', 'like', "%{$search}%")))
             ->join('items', 'items.id', '=', 'station_items.item_id')
             ->select('station_items.*')
+            ->withMovementSummary()
             ->orderBy('items.name')->orderBy('station_items.id')
             ->paginate(10)->withQueryString();
 
@@ -63,6 +64,7 @@ class PosItemController extends Controller
                 ->orWhere('units_backup', 'like', "%{$searchTerm}%")))
             ->join('items', 'items.id', '=', 'station_items.item_id')
             ->select('station_items.*')
+            ->when($searchTerm !== '', fn ($query) => $query->orderByRaw('CASE WHEN LOWER(items.item_code) = LOWER(?) THEN 0 ELSE 1 END', [$searchTerm]))
             ->orderBy('items.name')
             ->paginate(10)
             ->withQueryString();

@@ -3,7 +3,7 @@
 # University HomeStay POS
 ## Requirements
 
-> Current POS implementation (2026-09-30): Phase 10.16 supports Cash and Customer-linked Credit / Utang through one checkout. The cashier stays on POS for F7 current-Station Transactions, F9 Qty, F10 New Order, and F12 read-only Station Inventory; Esc exits POS. Credit Customer selection is a dialog opened by the radio button. See [[Architecture]], [[Rules]], and the dated implementation log in [[HandOff]]. Earlier feature lists below retain their original planning context.
+> Phase 10.16 status (2026-10-01): **Complete.** Cash and Customer-linked Credit / Utang share one checkout. F3 opens the Cash Received text dialog; F4 opens Customer selection. The cashier stays on POS for F7 current-Station Transactions, F9 Qty, F10 New Order, and F12 read-only Station Inventory; Esc exits POS. Station-scoped AJAX Item search, exact-code entry, paginated Item results, streamlined icon controls, decimal quantity editing, and the receipt-style post-payment preview are implemented. Printer and Cash Drawer hardware remain deferred. See [[Architecture]], [[Rules]], and the dated implementation log in [[HandOff]]. Earlier feature lists below retain their original planning context.
 
 > Schema clarification originating in Phase 10.11B: the initial table list below is historical planning scope. Consignment Account Management uses `users.station_id` and `users.consignee_id`, not a `consignments` table. The current schema also contains `station_items`, `prices`, and `inventory_movements`. POS Orders are separate from Item Deliveries, which were implemented in Phase 10.13.
 

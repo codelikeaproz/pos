@@ -10,6 +10,7 @@ use App\Models\Item;
 use App\Models\Spoilage;
 use App\Models\Station;
 use App\Models\StationItem;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -73,6 +74,7 @@ class SpoilageController extends Controller
     {
         $data = $request->validated();
         $spoilage = DB::transaction(function () use ($request, $data) {
+            $incidentDate = $data['incidentDate'] ?? CarbonImmutable::now('Asia/Manila')->toDateString();
             $requested = collect($data['items'])->sortBy('itemId')->values();
             // Match checkout and Delivery: lock StationItem rows in Item order before Item rows.
             $stock = StationItem::query()->where('station_id', $data['stationId'])
@@ -98,13 +100,15 @@ class SpoilageController extends Controller
             }
 
             $spoilage = Spoilage::query()->create([
-                'spoilage_number' => 'PENDING-'.Str::uuid(),
+                'spoilage_number' => 'PENDING-'.Str::random(24),
                 'station_id' => $data['stationId'],
                 'recorded_by_id' => $request->user()->id,
                 'reason' => $data['reason'] ?? null,
-                'spoiled_at' => now(),
+                'spoiled_at' => isset($data['incidentDate'])
+                    ? CarbonImmutable::createFromFormat('!Y-m-d', $incidentDate, 'Asia/Manila')->utc()
+                    : now(),
             ]);
-            $spoilage->update(['spoilage_number' => 'SPL-'.$spoilage->spoiled_at->format('Ymd').'-'.str_pad((string) $spoilage->id, 6, '0', STR_PAD_LEFT)]);
+            $spoilage->update(['spoilage_number' => 'SPL-'.str_replace('-', '', $incidentDate).'-'.str_pad((string) $spoilage->id, 6, '0', STR_PAD_LEFT)]);
 
             foreach ($requested as $line) {
                 $item = $items->get($line['itemId']);

@@ -3,7 +3,7 @@ import './table.css'
 
 export type TableColumn<T> = {
   key: string
-  header: string
+  header: ReactNode
   render: (row: T) => ReactNode
   align?: 'left' | 'right' | 'center'
 }

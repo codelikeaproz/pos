@@ -23,6 +23,10 @@ export type PosStationInventoryRow = {
   name: string
   unit: string
   quantity: string
+  currentQuantity: string
+  recordedDeliveredQuantity: string
+  recordedSoldQuantity: string
+  recordedSpoilageQuantity: string
   isActive: boolean
 }
 

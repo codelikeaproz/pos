@@ -10,6 +10,7 @@ use App\Models\SpoilageItem;
 use App\Models\Station;
 use App\Models\StationItem;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -88,6 +89,29 @@ class SpoilageApiTest extends TestCase
         $this->postJson('/api/spoilages', ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.000']]])->assertCreated();
         $this->assertSame('2.000', $balance->fresh()->quantity);
         $this->assertSame(0, Price::query()->count());
+    }
+
+    public function test_incident_date_can_be_backdated_but_not_set_in_the_future(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-10-01 04:00:00', 'UTC'));
+        [$station, $admin] = $this->setupStation();
+        [$item] = $this->stock($station, 'A', 'Apple', '5.000');
+        Sanctum::actingAs($admin);
+
+        $response = $this->postJson('/api/spoilages', [
+            'stationId' => $station->id,
+            'incidentDate' => '2026-09-25',
+            'items' => [['itemId' => $item->id, 'quantity' => '1.000']],
+        ])->assertCreated();
+
+        $this->assertStringStartsWith('SPL-20260925-', $response->json('spoilage.spoilageNumber'));
+        $this->assertSame('2026-09-25', Spoilage::query()->findOrFail($response->json('spoilage.id'))->spoiled_at->setTimezone('Asia/Manila')->toDateString());
+
+        $this->postJson('/api/spoilages', [
+            'stationId' => $station->id,
+            'incidentDate' => '2026-10-02',
+            'items' => [['itemId' => $item->id, 'quantity' => '1.000']],
+        ])->assertUnprocessable()->assertJsonValidationErrors('incidentDate');
     }
 
     public function test_validation_and_stale_stock_reject_without_partial_writes(): void

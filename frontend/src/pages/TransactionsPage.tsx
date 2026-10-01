@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { Alert } from '../components/feedback/Alert'
 import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
-import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
 import { SearchField } from '../components/ui/SearchField'
@@ -76,6 +75,6 @@ export function TransactionsPage() {
     <div className="transaction-summary">{list.total} transaction{list.total === 1 ? '' : 's'}</div>
     {loading ? <LoadingState label="Loading transactions…" /> : <TransactionTable orders={list.orders} emptyMessage={filtered ? 'No transactions found.' : 'No transactions yet.'} onView={(order) => void view(order)} />}
     {!loading && <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Transaction" onPageChange={setPage} />}
-    <Modal open={detail !== null || detailLoading} title="Order Details" size="large" onClose={() => { if (!detailLoading) setDetail(null) }} actions={detail ? <Button variant="outline" onClick={() => setDetail(null)}>Close</Button> : undefined}>{detailLoading ? <LoadingState label="Loading order details…" /> : detail ? <OrderDetailView order={detail} /> : null}</Modal>
+    <Modal open={detail !== null || detailLoading} title="Order Details" size="large" onClose={() => { if (!detailLoading) setDetail(null) }}>{detailLoading ? <LoadingState label="Loading order details…" /> : detail ? <OrderDetailView order={detail} /> : null}</Modal>
   </section>
 }

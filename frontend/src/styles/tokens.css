@@ -33,15 +33,15 @@
 
   /* Typography */
   --font-family: 'Segoe UI', system-ui, sans-serif;
-  --font-size-body: 15px;
-  --font-size-secondary: 14px;
-  --font-size-label: 15px;
-  --font-size-input: 16px;
+  --font-size-body: 14px;
+  --font-size-secondary: 12px;
+  --font-size-label: 13px;
+  --font-size-input: 14px;
   --font-size-nav: 15px;
-  --font-size-button: 15px;
+  --font-size-button: 13px;
   --font-size-page-title: 24px;
   --font-size-section: 18px;
-  --font-size-modal-title: 20px;
+  --font-size-modal-title: 18px;
   --font-size-alert: 16px;
   --line-height: 1.5;
   --line-height-heading: 1.25;
@@ -56,8 +56,8 @@
   --space-8: 32px;
 
   /* Controls */
-  --control-height: 42px;
-  --control-height-sm: 36px;
+  --control-height: 36px;
+  --control-height-sm: 32px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;

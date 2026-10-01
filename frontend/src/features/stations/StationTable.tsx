@@ -11,7 +11,7 @@ type StationTableProps = {
 
 export function StationTable({ stations, onEdit, onDelete }: StationTableProps) {
   const columns: TableColumn<Station>[] = [
-    { key: 'name', header: 'Station Name', render: (station) => <strong>{station.name}</strong> },
+    { key: 'name', header: 'Station Name', render: (station) => station.name },
     { key: 'location', header: 'Location', render: (station) => station.location },
     { key: 'description', header: 'Description', render: (station) => station.description || '—' },
     {
@@ -20,20 +20,20 @@ export function StationTable({ stations, onEdit, onDelete }: StationTableProps) 
       align: 'right',
       render: (station) => (
         <div className="station-table__actions">
-          <Button
+          <Button className="table-icon-action"
             variant="outline"
+            aria-label={`Edit ${station.name}`}
+            title={`Edit ${station.name}`}
             onClick={() => onEdit(station)}
             icon={<AppIcons.edit size={iconSize} strokeWidth={iconStroke} />}
-          >
-            Edit
-          </Button>
-          <Button
+          />
+          <Button className="table-icon-action"
             variant="danger"
+            aria-label={`Delete ${station.name}`}
+            title={`Delete ${station.name}`}
             onClick={() => onDelete(station)}
             icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}
-          >
-            Delete
-          </Button>
+          />
         </div>
       )
     }

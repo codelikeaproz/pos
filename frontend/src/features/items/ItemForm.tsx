@@ -37,7 +37,7 @@ export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: P
       <div className="item-form__row">
         <div className="item-form__field">
           <Label htmlFor={`${formId}-quantity`} required>Quantity</Label>
-          <Input id={`${formId}-quantity`} type="number" inputMode="decimal" min="0" step="0.001" value={quantity} onChange={(event) => setQuantity(event.target.value)} required disabled={disabled} error={Boolean(errors.quantity)} aria-describedby={errors.quantity ? `${formId}-quantity-error` : undefined} placeholder="0" />
+          <Input id={`${formId}-quantity`} type="text" inputMode="decimal" pattern="\d+(\.\d{1,2})?" value={quantity} onChange={(event) => setQuantity(event.target.value)} required disabled={disabled} error={Boolean(errors.quantity)} aria-describedby={errors.quantity ? `${formId}-quantity-error` : undefined} placeholder="0.00" />
           {errors.quantity ? <span id={`${formId}-quantity-error`} className="page__field-error">{errors.quantity}</span> : null}
         </div>
         <div className="item-form__field">

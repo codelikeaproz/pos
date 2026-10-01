@@ -1,23 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Alert } from '../components/feedback/Alert'
-import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { SearchField } from '../components/ui/SearchField'
-import { Pagination } from '../components/ui/Pagination'
 import { Label } from '../components/ui/Label'
 import { useAuth } from '../features/auth/AuthContext'
-import { AvailableItemsTable } from '../features/pos/AvailableItemsTable'
 import { CurrentOrderTable } from '../features/pos/CurrentOrderTable'
+import { CashReceivedDialog } from '../features/pos/CashReceivedDialog'
 import { CustomerSelector } from '../features/pos/CustomerSelector'
 import { PaymentPanel } from '../features/pos/PaymentPanel'
+import { PaymentReceipt } from '../features/pos/PaymentReceipt'
+import { PosItemSearch } from '../features/pos/PosItemSearch'
 import { PosStationInventoryDialog } from '../features/pos/PosStationInventoryDialog'
 import { PosTransactionsDialog } from '../features/pos/PosTransactionsDialog'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
-import { addOneToQuantity, cartTotalCents, formatPesoCents, formatQuantity, moneyToCents, normalizeQuantity, validateCartQuantity } from '../lib/posCalculations'
+import { addOneToQuantity, cartTotalCents, formatPesoCents, formatPosQuantity, formatQuantity, moneyToCents, normalizeQuantity, quantityToThousandths, validateCartQuantity, validateManualQuantity } from '../lib/posCalculations'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
 import { checkoutOrder, loadPosItems } from '../services/posService'
 import type { CartItem, CheckoutOrder, PosItem, PosItemList } from '../types/pos'
@@ -42,11 +40,13 @@ export function OrdersPage() {
   const [quantityPickerOpen, setQuantityPickerOpen] = useState(false)
   const [quantityInput, setQuantityInput] = useState('')
   const [quantityError, setQuantityError] = useState<string | null>(null)
+  const quantityInputRef = useRef<HTMLInputElement>(null)
   const [newOrderOpen, setNewOrderOpen] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
   const [transactionsOpen, setTransactionsOpen] = useState(false)
   const [stationInventoryOpen, setStationInventoryOpen] = useState(false)
   const [cashReceived, setCashReceived] = useState('')
+  const [cashDialogOpen, setCashDialogOpen] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit'>('cash')
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [customerSelectorOpen, setCustomerSelectorOpen] = useState(false)
@@ -80,24 +80,35 @@ export function OrdersPage() {
 
   const total = useMemo(() => cartTotalCents(cart), [cart])
   const cashCents = useMemo(() => moneyToCents(cashReceived), [cashReceived])
-  const changeCents = cashCents !== null && cashCents >= total ? cashCents - total : 0n
+  const changeCents = cashCents !== null && cashCents >= total ? cashCents - total : null
+  const cashNeedsCorrection = paymentMethod === 'cash' && cashCents !== null && cashCents < total
   const stationId = list.station.id || currentUser?.station?.id || 0
 
-  function addItem(item: PosItem): void {
-    setCart((current) => {
-      const existing = current.find((cartItem) => cartItem.itemId === item.id)
-      const nextQuantity = existing ? addOneToQuantity(existing.quantity) : '1.000'
-      if (!nextQuantity) { showToast('Unable to update quantity.', 'info'); return current }
-      const validationError = validateCartQuantity(nextQuantity, item.available_quantity)
-      if (validationError) { showToast(validationError, 'info'); return current }
-      if (existing) return current.map((cartItem) => cartItem.itemId === item.id ? { ...cartItem, quantity: nextQuantity, availableQuantity: item.available_quantity } : cartItem)
-      return [...current, { itemId: item.id, itemCode: item.item_code, name: item.name, unit: item.unit, unitPrice: item.price, quantity: nextQuantity, availableQuantity: item.available_quantity }]
-    })
+  function addItem(item: PosItem): boolean {
+    const existing = cart.find((cartItem) => cartItem.itemId === item.id)
+    const nextQuantity = existing ? addOneToQuantity(existing.quantity) : '1.000'
+    if (!nextQuantity) { showToast('Unable to update quantity.', 'info'); return false }
+    const validationError = validateCartQuantity(nextQuantity, item.available_quantity)
+    if (validationError) { showToast(validationError, 'info'); return false }
+    setCart(existing
+      ? cart.map((cartItem) => cartItem.itemId === item.id ? { ...cartItem, quantity: nextQuantity, availableQuantity: item.available_quantity } : cartItem)
+      : [...cart, { itemId: item.id, itemCode: item.item_code, name: item.name, unit: item.unit, unitPrice: item.price, quantity: nextQuantity, availableQuantity: item.available_quantity }])
+    setSearchInput(''); setSearch(''); setPage(1)
+    return true
   }
 
   function openQuantityEditor(item: CartItem): void {
-    setEditing(item); setQuantityInput(formatQuantity(item.quantity)); setQuantityError(null)
+    setEditing(item); setQuantityInput(formatPosQuantity(item.quantity)); setQuantityError(null)
   }
+
+  useEffect(() => {
+    if (!editing) return
+    const frame = window.requestAnimationFrame(() => {
+      quantityInputRef.current?.focus()
+      quantityInputRef.current?.select()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [editing])
 
   function chooseQuantity(): void {
     if (cart.length === 0) { showToast('Add an item before changing quantity.', 'info'); return }
@@ -110,10 +121,16 @@ export function OrdersPage() {
     setTransactionsOpen(true)
   }
 
-  function changePaymentMethod(method: 'cash' | 'credit'): void {
+  const closeCashDialog = useCallback(() => setCashDialogOpen(false), [])
+
+  function openCashDialog(): void {
     setPaymentError(null)
-    if (method === 'credit') { setCustomerSelectorOpen(true); return }
-    setPaymentMethod('cash'); setSelectedCustomer(null)
+    setCashDialogOpen(true)
+  }
+
+  function openCreditDialog(): void {
+    setPaymentError(null)
+    setCustomerSelectorOpen(true)
   }
 
   function closeCustomerSelector(): void {
@@ -123,12 +140,24 @@ export function OrdersPage() {
 
   function updateQuantity(): void {
     if (!editing) return
-    const validationError = validateCartQuantity(quantityInput, editing.availableQuantity)
+    const validationError = validateManualQuantity(quantityInput, editing.availableQuantity)
     if (validationError) { setQuantityError(validationError); return }
     const normalizedQuantity = normalizeQuantity(quantityInput)
     if (!normalizedQuantity) { setQuantityError('Enter a valid quantity.'); return }
     setCart((current) => current.map((item) => item.itemId === editing.itemId ? { ...item, quantity: normalizedQuantity } : item))
     setEditing(null); setQuantityError(null)
+  }
+
+  function stepQuantity(direction: 1 | -1): void {
+    if (!editing) return
+    const current = quantityInput.trim() ? quantityToThousandths(quantityInput) : 0n
+    if (current === null) { setQuantityError('Enter a valid quantity before using the arrows.'); return }
+    const next = current + BigInt(direction) * 1000n
+    if (next <= 0n) { setQuantityError('Quantity must be greater than zero.'); return }
+    const nextValue = formatPosQuantity(`${next / 1000n}.${(next % 1000n).toString().padStart(3, '0')}`)
+    const validationError = validateCartQuantity(nextValue, editing.availableQuantity)
+    if (validationError) { setQuantityError(validationError); return }
+    setQuantityInput(nextValue); setQuantityError(null)
   }
 
   function startNewOrder(): void {
@@ -143,7 +172,9 @@ export function OrdersPage() {
 
   useEffect(() => {
     function onShortcut(event: KeyboardEvent): void {
-      if (editing || quantityPickerOpen || newOrderOpen || exitOpen || customerSelectorOpen || transactionsOpen || stationInventoryOpen || completedOrder || processingPayment) return
+      if (editing || quantityPickerOpen || newOrderOpen || exitOpen || cashDialogOpen || customerSelectorOpen || transactionsOpen || stationInventoryOpen || completedOrder || processingPayment) return
+      if (event.key === 'F3') { event.preventDefault(); openCashDialog() }
+      if (event.key === 'F4') { event.preventDefault(); openCreditDialog() }
       if (event.key === 'F7') { event.preventDefault(); openTransactions() }
       if (event.key === 'F9') { event.preventDefault(); chooseQuantity() }
       if (event.key === 'F10') { event.preventDefault(); startNewOrder() }
@@ -160,8 +191,7 @@ export function OrdersPage() {
 
   async function pay(): Promise<void> {
     if (processingPayment || cart.length === 0) return
-    if (paymentMethod === 'cash' && cashCents === null) { setPaymentError('Enter a valid Cash amount with no more than two decimal places.'); return }
-    if (paymentMethod === 'cash' && cashCents !== null && cashCents < total) { setPaymentError('Cash received is less than the order total.'); return }
+    if (paymentMethod === 'cash' && (cashCents === null || cashCents < total)) { openCashDialog(); return }
     if (paymentMethod === 'credit' && !selectedCustomer) { setPaymentError('Select a Customer for Credit / Utang.'); setCustomerSelectorOpen(true); return }
     setProcessingPayment(true); setPaymentError(null)
     try {
@@ -183,18 +213,19 @@ export function OrdersPage() {
 
   return <section className="page pos-page">
     <header className="pos-masthead"><div><p className="pos-masthead__eyebrow">POINT OF SALE AND INVENTORY SYSTEM</p><h1>CMU HomeStay</h1></div><div className="pos-masthead__identity"><span>Station: <strong>{stationName}</strong></span><span>User: <strong>{currentUser?.name ?? 'Unknown user'}</strong></span></div></header>
-    {error ? <div className="pos-page__notice"><Alert tone="warning" title="POS items could not be loaded">{error}</Alert></div> : <div className="pos-layout">
-      <div className="pos-left-column"><div className="pos-brand-stage" role="img" aria-label="Freshly prepared meals" /><section className="pos-panel pos-inventory"><div className="pos-panel__heading"><div><h2>Available Items</h2><p>{list.total} item{list.total === 1 ? '' : 's'} assigned to this Station</p></div></div><SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search items or codes..." label="Search available items" />{loading ? <LoadingState label="Loading available items…" /> : <AvailableItemsTable items={list.items} onAdd={addItem} />}{!loading && <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Available Item" onPageChange={setPage} />}</section><p className="pos-clock">{currentTime}</p></div>
-      <section className="pos-right-column"><div className="pos-transaction-top"><div><span className="pos-transaction-top__label">Transaction Number</span><strong>Assigned after payment</strong></div><div><span className="pos-transaction-top__label">Customer</span><strong>{paymentMethod === 'credit' ? selectedCustomer?.name ?? 'Select Customer' : 'Walk-in'}</strong></div></div><section className="pos-panel pos-order"><div className="pos-panel__heading"><div><h2>Current Order</h2><p>{cart.length} item{cart.length === 1 ? '' : 's'} in cart</p></div></div><div className="pos-order__table"><CurrentOrderTable items={cart} onEdit={openQuantityEditor} onRemove={(itemId) => setCart((current) => current.filter((item) => item.itemId !== itemId))} /></div></section><PaymentPanel total={formatPesoCents(total)} cashReceived={cashReceived} change={formatPesoCents(changeCents)} paymentMethod={paymentMethod} customer={selectedCustomer} onMethodChange={changePaymentMethod} onSelectCustomer={() => setCustomerSelectorOpen(true)} error={paymentError} processing={processingPayment} disabled={cart.length === 0} onCashChange={(value) => { setCashReceived(value); setPaymentError(null) }} onPay={() => void pay()} /></section>
-    </div>}
-    <footer className="pos-action-strip"><div className="pos-action-strip__shortcuts"><button type="button" onClick={openTransactions} disabled={processingPayment}>F7 · View Transactions</button><button type="button" onClick={chooseQuantity} disabled={processingPayment}>F9 · Qty</button><button type="button" onClick={startNewOrder} disabled={processingPayment}>F10 · New Order</button><button type="button" onClick={() => setStationInventoryOpen(true)} disabled={processingPayment}>F12 · Station Inventory</button></div><button type="button" className="pos-action-strip__exit" onClick={exitPos} disabled={processingPayment}>Esc · Exit POS</button></footer>
-    <Modal open={editing !== null} title="Change Quantity" onClose={() => setEditing(null)} actions={<><Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={updateQuantity} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>Update</Button></>}><div className="pos-quantity-dialog"><p><strong>{editing?.name}</strong></p><p>Available: {editing ? formatQuantity(editing.availableQuantity) : ''} {editing?.unit}</p><div><Label htmlFor="cart-quantity" required>Quantity</Label><Input id="cart-quantity" type="number" inputMode="decimal" min="0.001" step="0.001" value={quantityInput} onChange={(event) => { setQuantityInput(event.target.value); setQuantityError(null) }} error={Boolean(quantityError)} autoFocus />{quantityError ? <span className="page__field-error">{quantityError}</span> : null}</div></div></Modal>
-    <Modal open={quantityPickerOpen} title="Choose Item for Quantity" onClose={() => setQuantityPickerOpen(false)} actions={<Button variant="outline" onClick={() => setQuantityPickerOpen(false)}>Cancel</Button>}><div className="pos-quantity-picker">{cart.map((item) => <button key={item.itemId} type="button" onClick={() => { setQuantityPickerOpen(false); openQuantityEditor(item) }}><strong>{item.name}</strong><span>{item.itemCode} · {formatQuantity(item.quantity)} {item.unit}</span></button>)}</div></Modal>
-    <Modal open={newOrderOpen} title="Start New Order?" onClose={() => setNewOrderOpen(false)} actions={<><Button variant="outline" onClick={() => setNewOrderOpen(false)}>Cancel</Button><Button onClick={clearCart} icon={<AppIcons.newOrder size={iconSize} strokeWidth={iconStroke} />}>Start New Order</Button></>}><div className="pos-new-order-warning"><AppIcons.warning size={24} /><p>The current order contains items that have not been paid. Starting a new order will clear the current cart.</p></div></Modal>
-    <Modal open={exitOpen} title="Exit POS?" onClose={() => setExitOpen(false)} actions={<><Button variant="outline" onClick={() => setExitOpen(false)}>Stay in POS</Button><Button onClick={() => navigate('/dashboard')}>Exit POS</Button></>}><p>The current cart has not been submitted. Exiting POS will discard it.</p></Modal>
-    <CustomerSelector open={customerSelectorOpen} selected={selectedCustomer} onClose={closeCustomerSelector} onSelect={(customer) => { setSelectedCustomer(customer); setPaymentMethod('credit'); setPaymentError(null); setCustomerSelectorOpen(false) }} />
+    <div className="pos-layout">
+      <div className="pos-left-column"><section className="pos-panel pos-inventory"><div className="pos-panel__heading"><div><h2>Available Items</h2><p>{list.total} item{list.total === 1 ? '' : 's'} assigned to this Station</p></div></div><PosItemSearch inline value={searchInput} search={search} list={list} loading={loading} error={error} suspended={Boolean(editing || quantityPickerOpen || newOrderOpen || exitOpen || cashDialogOpen || customerSelectorOpen || transactionsOpen || stationInventoryOpen || completedOrder || processingPayment)} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} onPageChange={setPage} onAdd={addItem} /></section></div>
+      <section className="pos-right-column"><div className="pos-transaction-top"><div><span className="pos-transaction-top__label">Transaction Number</span><strong>Assigned after payment</strong></div><div><span className="pos-transaction-top__label">Customer</span><strong>{paymentMethod === 'credit' ? selectedCustomer?.name ?? 'Select Customer' : 'Walk-in'}</strong></div></div><section className="pos-panel pos-order"><div className="pos-panel__heading"><div><h2>Current Order</h2><p>{cart.length} item{cart.length === 1 ? '' : 's'} in cart</p></div></div><div className="pos-order__table"><CurrentOrderTable items={cart} onEdit={openQuantityEditor} onRemove={(itemId) => setCart((current) => current.filter((item) => item.itemId !== itemId))} /></div></section><PaymentPanel total={formatPesoCents(total)} cashReceived={cashReceived} change={changeCents === null ? '—' : formatPesoCents(changeCents)} paymentMethod={paymentMethod} customer={selectedCustomer} onCashSelect={openCashDialog} onCreditSelect={openCreditDialog} onSelectCustomer={openCreditDialog} error={paymentError ?? (cashNeedsCorrection ? 'Cash Received is below the current total. Press F3 to update it.' : null)} processing={processingPayment} disabled={cart.length === 0} onPay={() => void pay()} /></section>
+    </div>
+    <footer className="pos-action-strip"><time className="pos-action-strip__clock" dateTime={now.toISOString()}>{currentTime}</time><div className="pos-action-strip__shortcuts"><button type="button" onClick={openTransactions} disabled={processingPayment}>F7 · View Transactions</button><button type="button" onClick={chooseQuantity} disabled={processingPayment}>F9 · Qty</button><button type="button" onClick={startNewOrder} disabled={processingPayment}>F10 · New Order</button><button type="button" onClick={() => setStationInventoryOpen(true)} disabled={processingPayment}>F12 · Station Inventory</button></div><button type="button" className="pos-action-strip__exit" onClick={exitPos} disabled={processingPayment}>Esc · Exit POS</button></footer>
+    <Modal open={editing !== null} title="Change Quantity" onClose={() => setEditing(null)} actions={<Button onClick={updateQuantity} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>Update</Button>}><div className="pos-quantity-dialog"><p>{editing?.name}</p><p>Available: {editing ? formatQuantity(editing.availableQuantity) : ''} {editing?.unit}</p><div><Label htmlFor="cart-quantity" required>Quantity</Label><div className="pos-quantity-control"><Input ref={quantityInputRef} id="cart-quantity" type="text" inputMode="decimal" autoComplete="off" value={quantityInput} onChange={(event) => { setQuantityInput(event.target.value); setQuantityError(null) }} onKeyDown={(event) => { if (event.nativeEvent.isComposing) return; if (event.key === 'Enter') { event.preventDefault(); updateQuantity() } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') { event.preventDefault(); stepQuantity(event.key === 'ArrowUp' ? 1 : -1) } }} error={Boolean(quantityError)} /><div className="pos-quantity-control__steps"><button type="button" aria-label="Increase quantity by one" title="Increase by one" onClick={() => { stepQuantity(1); quantityInputRef.current?.focus() }}>▲</button><button type="button" aria-label="Decrease quantity by one" title="Decrease by one" onClick={() => { stepQuantity(-1); quantityInputRef.current?.focus() }}>▼</button></div></div>{quantityError ? <span className="page__field-error">{quantityError}</span> : null}</div></div></Modal>
+    <Modal open={quantityPickerOpen} title="Choose Item for Quantity" onClose={() => setQuantityPickerOpen(false)}><div className="pos-quantity-picker">{cart.map((item) => <button key={item.itemId} type="button" onClick={() => { setQuantityPickerOpen(false); openQuantityEditor(item) }}><span>{item.name}</span><span>{item.itemCode} · {formatPosQuantity(item.quantity)} {item.unit}</span></button>)}</div></Modal>
+    <Modal open={newOrderOpen} title="Start New Order?" onClose={() => setNewOrderOpen(false)} actions={<Button onClick={clearCart} icon={<AppIcons.newOrder size={iconSize} strokeWidth={iconStroke} />}>Start New Order</Button>}><div className="pos-new-order-warning"><AppIcons.warning size={24} /><p>The current order contains items that have not been paid. Starting a new order will clear the current cart.</p></div></Modal>
+    <Modal open={exitOpen} title="Exit POS?" onClose={() => setExitOpen(false)} actions={<Button onClick={() => navigate('/dashboard')}>Exit POS</Button>}><p>The current cart has not been submitted. Exiting POS will discard it.</p></Modal>
+    <CashReceivedDialog open={cashDialogOpen} totalCents={total} currentAmount={cashReceived} onClose={closeCashDialog} onConfirm={(amount) => { setCashReceived(amount); setPaymentMethod('cash'); setSelectedCustomer(null); setPaymentError(null); setCashDialogOpen(false) }} />
+    <CustomerSelector open={customerSelectorOpen} selected={selectedCustomer} onClose={closeCustomerSelector} onSelect={(customer) => { setSelectedCustomer(customer); setPaymentMethod('credit'); setCashReceived(''); setPaymentError(null); setCustomerSelectorOpen(false) }} />
     <PosTransactionsDialog open={transactionsOpen} stationId={stationId} onClose={() => setTransactionsOpen(false)} />
     <PosStationInventoryDialog open={stationInventoryOpen} onClose={() => setStationInventoryOpen(false)} />
-    <Modal open={completedOrder !== null} title="Order Successful" onClose={() => setCompletedOrder(null)} actions={<Button onClick={() => setCompletedOrder(null)} icon={<AppIcons.success size={iconSize} strokeWidth={iconStroke} />}>Done</Button>}><div className="pos-payment-success"><AppIcons.success size={48} strokeWidth={iconStroke} /><dl><div><dt>Order Number</dt><dd>{completedOrder?.orderNumber}</dd></div><div><dt>Total</dt><dd>{completedOrder ? `₱${completedOrder.totalAmount}` : ''}</dd></div>{completedOrder?.paymentMethod === 'credit' ? <><div><dt>Payment Method</dt><dd>Credit / Utang</dd></div><div><dt>Customer</dt><dd>{completedOrder.customer?.name}</dd></div></> : <><div><dt>Cash</dt><dd>{completedOrder?.cashReceived ? `₱${completedOrder.cashReceived}` : ''}</dd></div><div><dt>Change</dt><dd>{completedOrder?.changeAmount ? `₱${completedOrder.changeAmount}` : ''}</dd></div></>}</dl></div></Modal>
+    <Modal open={completedOrder !== null} title="Order Successful" onClose={() => setCompletedOrder(null)} actions={<Button onClick={() => setCompletedOrder(null)}>Done</Button>}>{completedOrder ? <PaymentReceipt order={completedOrder} /> : null}</Modal>
   </section>
 }

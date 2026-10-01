@@ -6,10 +6,10 @@ import type { Consignee } from '../../types/consignee'
 type Props = { consignees: Consignee[]; onEdit: (value: Consignee) => void; onDelete: (value: Consignee) => void }
 export function ConsigneeTable({ consignees, onEdit, onDelete }: Props) {
   const columns: TableColumn<Consignee>[] = [
-    { key: 'name', header: 'Name', render: (value) => <strong>{value.name}</strong> },
+    { key: 'name', header: 'Name', render: (value) => value.name },
     { key: 'contactNumber', header: 'Contact Number', render: (value) => value.contactNumber || '—' },
     { key: 'email', header: 'Email', render: (value) => value.email || '—' },
-    { key: 'actions', header: 'Actions', align: 'right', render: (value) => <div className="consignee-table__actions"><Button variant="outline" onClick={() => onEdit(value)} icon={<AppIcons.edit size={iconSize} strokeWidth={iconStroke} />}>Edit</Button><Button variant="danger" onClick={() => onDelete(value)} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>Delete</Button></div> }
+    { key: 'actions', header: 'Actions', align: 'right', render: (value) => <div className="consignee-table__actions"><Button className="table-icon-action" variant="outline" aria-label={`Edit ${value.name}`} title={`Edit ${value.name}`} onClick={() => onEdit(value)} icon={<AppIcons.edit size={iconSize} strokeWidth={iconStroke} />} /><Button className="table-icon-action" variant="danger" aria-label={`Delete ${value.name}`} title={`Delete ${value.name}`} onClick={() => onDelete(value)} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />} /></div> }
   ]
   return <Table columns={columns} rows={consignees} rowKey={(value) => String(value.id)} emptyMessage="No consignees found." />
 }

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useId, useRef } from 'react'
+import { ReactNode, RefObject, useEffect, useId, useRef } from 'react'
 import { AppIcons, iconSize, iconStroke } from '../../lib/icons'
 import { Button } from '../ui/Button'
 import './modal.css'
@@ -10,11 +10,17 @@ export type ModalProps = {
   onClose: () => void
   actions?: ReactNode
   size?: 'default' | 'large'
+  initialFocusRef?: RefObject<HTMLElement | null>
 }
 
-export function Modal({ open, title, children, onClose, actions, size = 'default' }: ModalProps) {
+export function Modal({ open, title, children, onClose, actions, size = 'default', initialFocusRef }: ModalProps) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     if (!open) {
@@ -22,20 +28,24 @@ export function Modal({ open, title, children, onClose, actions, size = 'default
     }
 
     const previous = document.activeElement as HTMLElement | null
-    dialogRef.current?.focus()
+    const frame = window.requestAnimationFrame(() => {
+      const firstField = dialogRef.current?.querySelector<HTMLElement>('.ui-modal__body input:not(:disabled), .ui-modal__body select:not(:disabled), .ui-modal__body textarea:not(:disabled), .ui-modal__body button:not(:disabled)')
+      ;(initialFocusRef?.current ?? firstField ?? dialogRef.current)?.focus()
+    })
 
     function onKeyDown(event: KeyboardEvent): void {
       if (event.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
       }
     }
 
     document.addEventListener('keydown', onKeyDown)
     return () => {
       document.removeEventListener('keydown', onKeyDown)
+      window.cancelAnimationFrame(frame)
       previous?.focus()
     }
-  }, [open, onClose])
+  }, [open, initialFocusRef])
 
   if (!open) {
     return null

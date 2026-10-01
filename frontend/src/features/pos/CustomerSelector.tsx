@@ -31,7 +31,7 @@ export function CustomerSelector({ open, selected, onClose, onSelect }: { open: 
   }, [open, search, page])
   useEffect(() => { if (open) setChoice(selected) }, [open, selected])
 
-  return <Modal open={open} title="Select Customer" onClose={onClose} actions={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button disabled={!choice} onClick={() => { if (choice) onSelect(choice) }}>Select</Button></>}>
+  return <Modal open={open} title="Select Customer" onClose={onClose} actions={<Button disabled={!choice} onClick={() => { if (choice) onSelect(choice) }}>Select</Button>}>
     <div className="pos-customer-selector">
       <SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search name or address..." label="Search Customers" />
       {error ? <Alert tone="error">{error}</Alert> : null}

@@ -4,6 +4,71 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.16.1 status — Complete (2026-10-01)
+
+Form usability follow-up: fixed the shared Modal focus lifecycle that caused parent-controlled fields to lose focus after each keystroke. Modal opening now focuses the first enabled body control once, supports an explicit initial-focus ref, uses a ref for the current close callback, preserves focus through rerenders/AJAX refreshes, and restores the opener on close. This applies across Product, Customer, Price, Delivery, Spoilage, POS quantity, and other shared dialogs.
+
+Manual quantity entry is limited to two decimal places in Product, POS quantity editing, Item Delivery, Spoilage, and the retained Station assignment form. Database columns, ledger arithmetic, and backend compatibility remain `DECIMAL(12,3)` so existing `1.125` history is not rounded or migrated. Raw Delivery/Spoilage `.000` displays now use the shared clean formatter.
+
+Spoilage UI follow-up: Report Spoilage uses the compact multi-item selection structure. Station and selectable Manila Incident Date appear first, followed by Item search, Available Station Items on the left, and Selected Spoilage Items with editable quantities on the right. Available Items use individual checkboxes plus Select All/Unselect All; selection remains synchronized with the selected table. Remarks and Submit remain below. Submission still calls the existing atomic Phase 10.14 API, which derives the reporting User, validates current Station stock, writes immutable snapshots and negative SPOILAGE movements, and rolls back on failure.
+
+Incident Date is now selectable for delayed Spoilage reporting. The UI defaults it to today's Manila date and prevents choosing a future date; the API validates the same rule and persists a selected past date. SPL numbering uses the selected Manila calendar date directly, avoiding a UTC midnight date shift. Requests from older clients that omit Incident Date retain the server-time behavior.
+
+MySQL identifier fix: Item Delivery and Spoilage use 32-character unique number columns. Their temporary insert identifiers now use `PENDING-` plus 24 random characters, fitting the existing schema exactly before replacement with the final `DEL-YYYYMMDD-######` or `SPL-YYYYMMDD-######` number. The former `PENDING-` plus UUID value was 44 characters and failed on MySQL before the final-number update; SQLite tests had not enforced the declared VARCHAR length. No migration was required.
+
+Responsibility revision: **Station Inventory is a read-only stock monitoring module. Item Delivery is the supported workflow for introducing Item stock into a Station.** Station Inventory contains Station selection, Search, pagination, View Spoilage, and Description, Item Code, Qty, Sold, Spoilage, and Remaining Qty. Assign Item, Edit, Remove, Status, and Actions were removed. View Spoilage opens the existing Spoilage Management history scoped to the selected Station. Existing backend inventory mutation behavior and tests remain available for a future authorized adjustment workflow.
+
+Item Delivery remains authoritative for stock entry. It creates a missing StationItem or increases an existing balance, writes positive DELIVERY movement history, and commits the header, Item snapshots, stock changes, and movements atomically. The dialog now follows the compact legacy structure: Station and Receiver, Item search, Available Items on the left, Selected Delivery Items with editable Qty on the right, review, and submit. History remains read-only with an Eye details action and compact snapshot table.
+
+Responsibility-boundary verification passed: focused Delivery, Station Inventory, F12, Price/checkout integration, and checkout rollback coverage passed (**40 tests, 348 assertions**); the full Laravel suite passed (**139 tests, 1,068 assertions**). Frontend TypeScript checking, Electron production build, Pint, and `git diff --check` passed.
+
+Price UI follow-up: the Price history table now shows only Item Code, Item Name, Price, and Status; Date and Action were removed from the table. Adding a Price remains the page's supported active-price change workflow, while the existing historical activation API remains unchanged.
+
+Reconciled the implemented application with the compact density of the legacy HomeStay UI. Shared tables now use compact 12–13px typography, narrow rows, and regular-weight body data; shared inputs, buttons, badges, pagination, and dialogs are smaller while retaining accessible focus and responsive behavior. Conventional table actions are compact Lucide icons with accessible labels and titles. Product activation/deactivation uses CircleCheck/CircleOff rather than Delete. Destructive confirmations and primary form actions retain clear text.
+
+Audited Product Management, Station Inventory, Price, Item Delivery, Spoilage, Customer Management, Credit Monitoring, Transaction History/F7 Station Transactions, transaction details, Stations, User Management, Suppliers, Consignees, Consignment, POS Available Items, POS Current Order, and F12 Station Inventory. Customer Management and Credit Monitoring remain read-only where applicable and received no invented actions. The sidebar order and business workflows are unchanged.
+
+Admin Station Inventory columns are Description, Item Code, Qty, Sold, Spoilage, and Remaining Qty. Qty is calculated with decimal database arithmetic as `Remaining + Sold + Spoilage`, so the displayed columns always reconcile while DELIVERY, signed ADJUSTMENT, and pre-ledger opening balances remain reflected through authoritative Remaining. Sold is absolute recorded SALE, Spoilage is absolute recorded SPOILAGE, and Remaining is `station_items.quantity`. F12 remains Item, Code, Unit, Sold, Spoilage, and Remaining.
+
+Final reconciliation verification: focused inventory, Delivery, Spoilage, checkout, Price, and Customer/Credit coverage passed (**48 tests, 524 assertions**). The full Laravel suite passed (**139 tests, 1,070 assertions**); frontend TypeScript checking, Electron production build, Pint, migration status, and `git diff --check` passed. All existing migrations are applied and no migration was added.
+
+Historical limitation: movement summaries begin with the current movement ledger. Pre-ledger balances were not reconstructed, Orders were not replayed, and missing history was not fabricated. A row can legitimately show zero recorded Delivered/Sold/Spoilage with a nonzero Remaining balance. No migration or database architecture change was introduced.
+
+Verification: the full Laravel suite passed with a temporary test-only application key (**139 tests, 1,068 assertions**). Focused Station Inventory and POS inventory coverage passed (**16 tests, 133 assertions**). Pint, frontend TypeScript checking, the Electron production build, and `git diff --check` passed. The source-level visual audit covered implemented tables and dialogs; a live browser walkthrough could not be performed because local browser access was denied by the environment. No commit or push was made.
+
+### Phase 10.16 status — Complete (2026-10-01)
+
+Cash and Customer-linked Credit / Utang checkout are complete through the shared atomic Order workflow. Cash uses F3 and a focused Cash Received text dialog; Credit uses F4 and searchable Customer selection. The payment panel shows read-only totals, and Pay performs the checkout. Both methods retain server-side active-Price resolution, stale-price protection, Station stock locks, OrderItem snapshots, stock deduction, and SALE movements. Credit stores null Cash Received and Change and appears in Credit Monitoring.
+
+The cashier remains inside POS for F7 Station Transactions, F9 quantity editing, F10 New Order, and F12 read-only Station Inventory; Esc exits POS. Available Items uses Station-scoped debounced AJAX name/code search, exact-code Enter, pagination, visible stock with unit, and icon-only Add. Current Order separates Item Code and uses icon-only quantity and remove actions. Quantity editing supports Backspace, Enter-to-update, one-unit arrow steps, and up to three fractional digits.
+
+Successful payment opens an on-screen receipt preview with CMU HomeStay, Station, transaction number, snapshot Item lines, quantity × Unit Price, line prices, Total Price, Credit Customer when applicable, and the thank-you message. Receipt printer commands, Cash Drawer hardware, Discount, O.R Transactions, and F8 Credit Transactions remain deferred.
+
+Latest verification for the POS follow-up: frontend TypeScript checking, Electron production build, focused POS API tests (9 tests, 61 assertions), and `git diff --check` passed. The earlier complete Phase 10.16 backend run remains recorded below as 136 tests and 1,043 assertions. Manual receipt-printer verification is unavailable because hardware integration has not started. These changes are uncommitted.
+
+### POS item search layout update — 2026-10-01
+
+- Replaced the generic post-payment summary with an on-screen receipt preview: CMU HomeStay and Station, transaction number, item name, quantity × snapshot Unit Price, line price, Total Price, and a thank-you message. Credit receipts include the Customer. This prepares the display structure for future printing without adding printer integration.
+
+- Refined POS tables: Item names are regular weight, and Current Order now has a separate Item Code column. The Change Quantity field uses a decimal text input so Backspace edits normally; up/down controls step by one while preserving fractional quantities. POS displays integers as `2`, common fractional values as `1.50` or `2.50`, and keeps three-decimal precision where needed.
+
+- Simplified the Available Items results into a Name, Item Code, Available, Unit Price, Action table with a plus-only Add control. Available shows quantity and unit together, such as `8 bottle`; zero-stock Add remains disabled with a tooltip. Current Order actions are pencil and trash icons with item-specific accessible labels and tooltips. Search, pagination, and exact-code Enter remain in place.
+
+- Follow-up: restored Available Items to the left column and removed the food image. The AJAX name/code search and paginated results remain there; exact-code Enter and disabled zero-stock Add remain available. The cart and payment stay on the right, and the clock stays in the footer.
+- Simplified POS dialogs by removing footer Cancel/Close actions where the header X already closes them. Change Quantity focuses and selects its input so a cashier can type and press Enter to update; the Update button remains.
+
+- Moved the debounced AJAX Item search above Customer. The left column now contains only the food image, and the live Manila clock moved into the footer.
+- The focused search shows a paginated dropdown of sellable Items, with name, code, Station stock, Price, and Add. Typing searches names or codes; Enter adds one exact-code match. Exact code matches rank first in the existing POS items response, even when many names also match. Zero-stock Items stay visible but cannot be added.
+- Adding an Item clears the search. Escape or clicking outside closes the dropdown. Search errors remain near the field so the cart and payment area remain usable. Checkout, F12 Station Inventory, and database schema are unchanged.
+
+### Development log — 2026-10-01 (POS F3/F4 payment controls)
+
+- Replaced Cash/Credit radio buttons with plain-text F3 Cash and F4 Credit / Utang controls in the POS payment panel. Mode of Payment is the main heading; F3 and F4 align with Total Amount and Cash Received. The corresponding keys open Cash Received or the existing Customer selector while the POS is active. The heading and Pay show no icons. The shared application top bar is hidden only on POS; the POS masthead remains.
+- Cash entry now happens in a dialog with one ordinary text input, Order Total, and live Change. There is no on-screen keypad. Confirming a valid amount returns to the POS; the panel shows read-only Cash Received and Change. Pay remains a separate action. Missing or insufficient Cash Received reopens the dialog before checkout.
+- Cancelling a payment dialog preserves the previous method. Confirming Cash clears the selected Customer; selecting Credit clears the confirmed cash amount. Existing checkout API, stock and Price safeguards, and F7/F9/F10/F12/Esc behavior remain in place. No database migration was added.
+
+The 2026-09-30 log below describes the previous radio-button UI and is retained as phase history.
+
 ### Development log — 2026-09-30 (Phase 10.16 and POS follow-up)
 
 - Added Credit / Utang to the existing POS checkout. Cash remains valid for Walk-in sales; Credit requires an existing Customer and stores null Cash Received and Change. Both methods share server-side Price validation, Station stock locking, Order Item snapshots, stock deduction, and SALE movements in one database transaction. Credit sales appear in read-only Credit Monitoring; Accounting Office settlement is outside this POS.
@@ -22,7 +87,7 @@ The POS keeps the cart visible while F7 opens current-Station read-only transact
 
 ### Phase 10.16 current-state note
 
-POS now supports Cash and Credit / Utang in its existing payment area and checkout transaction. Cash requires Cash Received, calculates Change, and allows Walk-in Orders. Credit requires a Customer selected through the searchable, paginated Customer dialog; the backend validates the ID before writes. A Credit Order has `payment_method = credit`, a Customer FK, and null Cash Received/Change. Both payment methods use the same StationItem and Item locks, active Price and stale-price checks, OrderItem snapshots, stock deduction, and negative SALE movements. Successful Credit Orders appear in Credit Monitoring from Orders. The original `create_orders_table` migration defines nullable Cash Received and Change fields; the development schema already matches it. Credit Monitoring Total is recorded Credit sales, not outstanding balance. Customer Balance is unavailable without Accounting Office settlement data; this POS does not settle Credit. Earlier phase notes below are historical.
+**Complete.** POS supports Cash and Credit / Utang in one checkout transaction. Cash requires confirmed Cash Received, calculates Change, and allows Walk-in Orders. Credit requires a Customer selected through the searchable, paginated Customer dialog; the backend validates the ID before writes. A Credit Order has `payment_method = credit`, a Customer FK, and null Cash Received/Change. Both payment methods use the same StationItem and Item locks, active Price and stale-price checks, OrderItem snapshots, stock deduction, and negative SALE movements. Successful Credit Orders appear in Credit Monitoring from Orders. The original `create_orders_table` migration defines nullable Cash Received and Change fields; the development schema already matches it. Credit Monitoring Total is recorded Credit sales, not outstanding balance. Customer Balance is unavailable without Accounting Office settlement data; this POS does not settle Credit. The current cashier UX and receipt-preview follow-ups are summarized at the top of this handoff. Earlier phase notes below are historical.
 
 ### Phase 10.15 current-state note
 

@@ -1,0 +1,6 @@
+.pos-cash-dialog { display: flex; flex-direction: column; gap: var(--space-4); }
+.pos-cash-dialog__row { display: flex; justify-content: space-between; gap: var(--space-3); align-items: baseline; }
+.pos-cash-dialog__row strong { color: var(--color-brand-green); font-size: 20px; }
+.pos-cash-dialog__amount { display: flex; flex-direction: column; gap: var(--space-2); }
+.pos-cash-dialog__amount .ui-input { font-size: 24px; font-weight: 700; text-align: right; }
+.pos-cash-dialog__hint { margin: 0; color: var(--color-text-secondary); font-size: var(--font-size-secondary); }

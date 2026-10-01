@@ -21,7 +21,7 @@ export async function loadSpoilage(id: number): Promise<Spoilage> {
   return response.spoilage
 }
 
-export async function createSpoilage(stationId: number, reason: string, items: Array<{ itemId: number; quantity: string }>): Promise<Spoilage> {
-  const response = await apiRequest<{ spoilage: Spoilage }>('/api/spoilages', { method: 'POST', body: { stationId, reason: reason.trim() || null, items } })
+export async function createSpoilage(stationId: number, incidentDate: string, reason: string, items: Array<{ itemId: number; quantity: string }>): Promise<Spoilage> {
+  const response = await apiRequest<{ spoilage: Spoilage }>('/api/spoilages', { method: 'POST', body: { stationId, incidentDate, reason: reason.trim() || null, items } })
   return response.spoilage
 }

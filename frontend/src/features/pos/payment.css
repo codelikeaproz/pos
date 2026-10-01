@@ -1,27 +1,21 @@
 .pos-payment { display: grid; grid-template-columns: minmax(0, 1fr) minmax(175px, .85fr); align-items: start; gap: var(--space-3) var(--space-6); padding: var(--space-5); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: #fff; }
-.pos-payment__heading { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-3); color: var(--color-brand-green); }
-.pos-payment__heading h3, .pos-payment__heading p { margin: 0; }
-.pos-payment__heading p { color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
-.pos-payment__methods { grid-column: 1; grid-row: 2 / span 3; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; margin: 0; padding: 0; border: 0; }
-.pos-payment__methods legend { margin-bottom: var(--space-2); font-weight: 600; }
-.pos-payment__methods label { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; }
-.pos-payment__methods input { accent-color: var(--color-brand-green); }
-.pos-payment__total, .pos-payment__change { grid-column: 2; display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
-.pos-payment__total span, .pos-payment__change span { font-size: var(--font-size-secondary); }
-.pos-payment__total strong, .pos-payment__change strong { color: var(--color-brand-green); font-size: 20px; white-space: nowrap; }
-.pos-payment > div:has(#cash-received) { grid-column: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.pos-payment > div:has(#cash-received) label { white-space: nowrap; }
-.pos-payment #cash-received { width: min(140px, 100%); text-align: right; }
-.pos-payment__change { padding-top: var(--space-2); border-top: 1px dashed var(--color-border-strong); }
-.pos-payment__customer { grid-column: 2; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.pos-payment__heading { grid-column: 1 / -1; margin: 0; color: var(--color-brand-green); font-size: var(--font-size-modal-title); }
+.pos-payment__method { grid-column: 1; align-self: center; width: fit-content; padding: var(--space-1) 0; border: 0; background: transparent; color: var(--color-text); font: inherit; text-align: left; cursor: pointer; }
+.pos-payment__method--cash { grid-row: 2; }
+.pos-payment__method--credit { grid-row: 3; }
+.pos-payment__method--active { color: var(--color-brand-green); font-weight: 700; }
+.pos-payment__method:hover:not(:disabled) { text-decoration: underline; }
+.pos-payment__method:focus-visible { outline: 2px solid var(--color-brand-green); outline-offset: 2px; }
+.pos-payment__method:disabled { opacity: .55; cursor: not-allowed; }
+.pos-payment__total, .pos-payment__cash, .pos-payment__change { grid-column: 2; display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.pos-payment__total { grid-row: 2; }
+.pos-payment__cash { grid-row: 3; }
+.pos-payment__total span, .pos-payment__cash span, .pos-payment__change span { font-size: var(--font-size-secondary); }
+.pos-payment__total strong, .pos-payment__cash strong, .pos-payment__change strong { color: var(--color-brand-green); font-size: 20px; white-space: nowrap; }
+.pos-payment__change { grid-row: 4; padding-top: var(--space-2); border-top: 1px dashed var(--color-border-strong); }
+.pos-payment__customer { grid-column: 2; grid-row: 3 / span 2; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
 .pos-payment__customer p { margin: 0; }
 .pos-payment > .ui-alert { grid-column: 1 / -1; }
 .pos-payment > .ui-btn { grid-column: 1 / -1; width: 100%; min-height: 52px; margin-top: var(--space-3); background: var(--color-brand-yellow); border-color: #ddad00; color: #352900; font-size: 20px; }
 .pos-payment > .ui-btn:hover:not(:disabled) { background: #edb900; }
-.pos-payment-success { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); text-align: center; }
-.pos-payment-success > svg { color: var(--color-success); }
-.pos-payment-success dl { width: 100%; margin: 0; }
-.pos-payment-success dl > div { display: flex; justify-content: space-between; padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
-.pos-payment-success dt { color: var(--color-text-secondary); }
-.pos-payment-success dd { margin: 0; font-weight: 700; }
-@media (max-width: 650px) { .pos-payment { grid-template-columns: 1fr; } .pos-payment__heading, .pos-payment__methods, .pos-payment__total, .pos-payment__change, .pos-payment__customer, .pos-payment > div:has(#cash-received), .pos-payment > .ui-alert, .pos-payment > .ui-btn { grid-column: 1; grid-row: auto; } }
+@media (max-width: 650px) { .pos-payment { grid-template-columns: 1fr; } .pos-payment__heading, .pos-payment__method, .pos-payment__total, .pos-payment__cash, .pos-payment__change, .pos-payment__customer, .pos-payment > .ui-alert, .pos-payment > .ui-btn { grid-column: 1; grid-row: auto; } }

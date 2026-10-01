@@ -54,7 +54,7 @@ export function PosTransactionsDialog({ open, stationId, onClose }: { open: bool
   function close(): void { back(); onClose() }
   const showingDetail = detail !== null || detailLoading
 
-  return <Modal open={open} title={showingDetail ? 'Order Details' : 'Station Transactions'} size="large" onClose={close} actions={showingDetail ? <><Button variant="outline" onClick={back}>Back to Transactions</Button><Button onClick={close}>Close</Button></> : <Button variant="outline" onClick={close}>Close</Button>}>
+  return <Modal open={open} title={showingDetail ? 'Order Details' : 'Station Transactions'} size="large" onClose={close} actions={showingDetail ? <Button variant="outline" onClick={back}>Back to Transactions</Button> : undefined}>
     {showingDetail ? detailLoading ? <LoadingState label="Loading Order details…" /> : detail ? <OrderDetailView order={detail} /> : null : <div className="pos-dialog-content">
       <p className="pos-dialog-content__note">Read-only sales from the current Station.</p>
       <div className="pos-dialog-content__filters"><SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search Order number or Cashier..." label="Search Station transactions" /><div><Label htmlFor="pos-transactions-from">From</Label><Input id="pos-transactions-from" type="date" value={fromDate} onChange={(event) => { setFromDate(event.target.value); setPage(1) }} /></div><div><Label htmlFor="pos-transactions-to">To</Label><Input id="pos-transactions-to" type="date" min={fromDate || undefined} value={toDate} onChange={(event) => { setToDate(event.target.value); setPage(1) }} /></div></div>

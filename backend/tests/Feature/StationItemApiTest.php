@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\InventoryMovement;
 use App\Models\Item;
 use App\Models\Station;
 use App\Models\StationItem;
@@ -95,6 +96,48 @@ class StationItemApiTest extends TestCase
         }
         $this->getJson("/api/station-items?station_id={$station->id}&search=missing")->assertOk()->assertJsonCount(0, 'data');
         $this->getJson('/api/station-item-options?item_search=CODE-11')->assertOk()->assertJsonCount(1, 'items')->assertJsonCount(2, 'stations');
+    }
+
+    public function test_inventory_summary_aggregates_recorded_movements_without_recalculating_current_balance(): void
+    {
+        $admin = User::factory()->admin()->create();
+        Sanctum::actingAs($admin);
+        $station = $this->station();
+        $otherStation = Station::query()->create(['name' => 'Other', 'location' => 'Other']);
+        $item = $this->item(reorderPoint: '1.000');
+        $otherItem = $this->item('ITM-002', 'Cake');
+        $stationItem = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '7.625']);
+        $untouched = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $otherItem->id, 'quantity' => '4.250']);
+        $otherBalance = StationItem::query()->create(['station_id' => $otherStation->id, 'item_id' => $item->id, 'quantity' => '99.000']);
+
+        foreach ([
+            ['DELIVERY', '10.500'], ['DELIVERY', '1.125'],
+            ['SALE', '-2.250'], ['SALE', '-0.375'],
+            ['SPOILAGE', '-1.125'], ['SPOILAGE', '-0.500'],
+            ['ADJUSTMENT', '0.375'], ['ADJUSTMENT', '-0.125'],
+        ] as [$type, $quantity]) {
+            InventoryMovement::query()->create(['station_item_id' => $stationItem->id, 'item_id' => $item->id, 'quantity_change' => $quantity, 'type' => $type, 'actor_id' => $admin->id]);
+        }
+        InventoryMovement::query()->create(['station_item_id' => $otherBalance->id, 'item_id' => $item->id, 'quantity_change' => '-50.000', 'type' => 'SALE', 'actor_id' => $admin->id]);
+        InventoryMovement::query()->create(['station_item_id' => $untouched->id, 'item_id' => $otherItem->id, 'quantity_change' => '-1.000', 'type' => 'SALE', 'actor_id' => $admin->id]);
+
+        $response = $this->getJson("/api/station-items?station_id={$station->id}&search=ITM-001")
+            ->assertOk()->assertJsonCount(1, 'data');
+
+        $response->assertJsonPath('data.0.current_quantity', '7.625')
+            ->assertJsonPath('data.0.recorded_delivered_quantity', '11.625')
+            ->assertJsonPath('data.0.recorded_sold_quantity', '2.625')
+            ->assertJsonPath('data.0.recorded_spoilage_quantity', '1.625')
+            ->assertJsonPath('data.0.reconciled_quantity', '11.875')
+            ->assertJsonPath('data.0.stock_status', 'in_stock');
+
+        $this->getJson("/api/station-items?station_id={$station->id}&search=ITM-002")
+            ->assertOk()
+            ->assertJsonPath('data.0.current_quantity', '4.250')
+            ->assertJsonPath('data.0.recorded_delivered_quantity', '0.000')
+            ->assertJsonPath('data.0.recorded_sold_quantity', '1.000')
+            ->assertJsonPath('data.0.recorded_spoilage_quantity', '0.000')
+            ->assertJsonPath('data.0.reconciled_quantity', '5.250');
     }
 
     private function station(): Station

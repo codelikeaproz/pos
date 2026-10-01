@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Alert } from '../../components/feedback/Alert'
 import { LoadingState } from '../../components/feedback/LoadingState'
 import { Modal } from '../../components/feedback/Modal'
-import { Button } from '../../components/ui/Button'
 import { Pagination } from '../../components/ui/Pagination'
 import { SearchField } from '../../components/ui/SearchField'
 import { Table, type TableColumn } from '../../components/ui/Table'
@@ -34,13 +33,15 @@ export function PosStationInventoryDialog({ open, onClose }: { open: boolean; on
   }, [open, search, page])
 
   const columns: TableColumn<PosStationInventoryRow>[] = [
-    { key: 'name', header: 'Item', render: (row) => <strong>{row.name}</strong> },
+    { key: 'name', header: 'Item', render: (row) => row.name },
     { key: 'code', header: 'Code', render: (row) => row.itemCode },
-    { key: 'stock', header: 'Station Stock', align: 'right', render: (row) => `${formatQuantity(row.quantity)} ${row.unit}` },
-    { key: 'status', header: 'Item Status', render: (row) => row.isActive ? 'Active' : 'Inactive' }
+    { key: 'unit', header: 'Unit', render: (row) => row.unit },
+    { key: 'sold', header: 'Sold', align: 'right', render: (row) => formatQuantity(row.recordedSoldQuantity) },
+    { key: 'spoilage', header: 'Spoilage', align: 'right', render: (row) => formatQuantity(row.recordedSpoilageQuantity) },
+    { key: 'remaining', header: 'Remaining', align: 'right', render: (row) => formatQuantity(row.currentQuantity) }
   ]
 
-  return <Modal open={open} title="Station Inventory" size="large" onClose={onClose} actions={<Button variant="outline" onClick={onClose}>Close</Button>}>
+  return <Modal open={open} title="Station Inventory" size="large" onClose={onClose}>
     <div className="pos-dialog-content">
       <p className="pos-dialog-content__note">{list.station.name || 'Your Station'} · Read-only stock balances, including inactive and unpriced Items.</p>
       <SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search item name or code..." label="Search Station inventory" />

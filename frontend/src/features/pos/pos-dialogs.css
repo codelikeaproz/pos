@@ -1,6 +1,6 @@
-.pos-dialog-content { display: flex; flex-direction: column; gap: var(--space-3); }
+.pos-dialog-content { display: flex; flex-direction: column; gap: var(--space-2); }
 .pos-dialog-content__note { margin: 0; color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
-.pos-dialog-content__filters { display: grid; grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(145px, 180px)); gap: var(--space-3); align-items: end; }
+.pos-dialog-content__filters { display: grid; grid-template-columns: minmax(220px, 1fr) repeat(2, 150px); gap: var(--space-2); align-items: end; }
 .pos-dialog-content__filters > div:not(:first-child) { display: flex; flex-direction: column; }
-.pos-dialog-content .ui-table-wrap { max-height: 380px; overflow: auto; }
+.pos-dialog-content .ui-table-wrap { max-height: 480px; overflow: auto; }
 @media (max-width: 750px) { .pos-dialog-content__filters { grid-template-columns: 1fr; } }

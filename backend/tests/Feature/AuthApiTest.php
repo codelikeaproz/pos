@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\Privilege;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -110,6 +111,7 @@ class AuthApiTest extends TestCase
     public function test_current_user_returns_authenticated_user(): void
     {
         $user = User::factory()->admin()->create();
+        $user->privileges()->attach(Privilege::query()->create(['description' => 'Cashier']));
 
         Sanctum::actingAs($user);
 
@@ -117,6 +119,7 @@ class AuthApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('user.id', $user->id)
             ->assertJsonPath('user.role', UserRole::Admin->value)
+            ->assertJsonPath('user.privileges.0.description', 'Cashier')
             ->assertJsonMissingPath('user.password')
             ->assertJsonMissingPath('token');
     }

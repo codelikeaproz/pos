@@ -21,11 +21,11 @@ export const navItems: NavItem[] = [
   { path: '/credit-monitoring', label: 'Credit Monitoring', icon: AppIcons.creditMonitoring, title: 'Credit Monitoring', description: 'View recorded Utang transactions.', allowedRoles: ['admin'] },
   { path: '/or-transactions', label: 'O.R Transactions', icon: AppIcons.officialReceipt, title: 'O.R Transactions', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
   { path: '/stations', label: 'Stations', icon: AppIcons.station, title: 'Stations', description: 'Manage POS locations and Stations.', allowedRoles: ['admin'] },
-  { path: '/privilege-assignment', label: 'Privilege Assignment', icon: AppIcons.privilegeAssignment, title: 'Privilege Assignment', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/privilege-assignment', label: 'Privilege Assignment', icon: AppIcons.privilegeAssignment, title: 'Privilege Assignment', description: 'Assign business classifications to Users.', allowedRoles: ['admin'] },
   { path: '/customer-management', label: 'Customer Management', icon: AppIcons.customerManagement, title: 'Customer Management', description: 'Browse and add Customers.', allowedRoles: ['admin'] },
-  { path: '/privilege', label: 'Privilege', icon: AppIcons.privilege, title: 'Privilege', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/privilege', label: 'Privilege', icon: AppIcons.privilege, title: 'Privilege', description: 'Manage business classifications.', allowedRoles: ['admin'] },
   { path: '/prices', label: 'Price', icon: AppIcons.price, title: 'Price', description: 'Manage price history and the current selling price.', allowedRoles: ['admin'] },
-  { path: '/sale-remittance', label: 'Sale Remittance', icon: AppIcons.payment, title: 'Sale Remittance', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/sale-remittance', label: 'Sale Remittance', icon: AppIcons.payment, title: 'Sale Remittance', description: 'Record completed Cash sales as remitted.', allowedRoles: ['admin'] },
   { path: '/item-deliveries', label: 'Item Delivery', icon: AppIcons.itemDelivery, title: 'Item Delivery', description: 'Deliver items to Stations and review history.', allowedRoles: ['admin'] },
   { path: '/employees', label: 'User Management', icon: AppIcons.employee, title: 'User Management', description: 'Manage users and their access roles.', allowedRoles: ['admin'] }
 ]

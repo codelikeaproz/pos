@@ -4,6 +4,20 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.18 status — Complete (2026-10-01)
+
+Sale Remittance now lists completed Cash Orders with backend search, Manila date filters, and ten-row pagination. Admins can select individual/current-page eligible Orders, review an integer-cent preview total, confirm, and submit an atomic batch. The backend locks rows deterministically, calculates the authoritative total, records server time and authenticated Admin, and prevents double remittance. Credit Orders, Order snapshots, and inventory remain untouched. Sale Remittance is enabled in the Admin sidebar; O.R Transactions remains deferred.
+
+Verification passed: focused Sale Remittance tests **5 tests, 35 assertions**; full Laravel suite **153 tests, 1,158 assertions**; frontend TypeScript checking; Electron production build; Pint; and `git diff --check`. The disposable development database was rebuilt and seeded from the consolidated migrations; all migrations are applied. No commit or push was made.
+
+### Phase 10.17 status — Complete (2026-10-01)
+
+Privilege Management and Privilege Assignment now use the existing Admin authorization boundary. New `privileges` and `user_privilege` tables model business classifications independently from `users.role`. Users may hold multiple Privileges, assignments are explicitly saved and transactionally synchronized, and assigning a Privilege named Admin does not grant Admin access.
+
+The Admin sidebar entries are enabled. Privilege Management provides live search, ten-record pagination, Add, and icon-first Edit without deletion. Privilege Assignment provides searchable paginated Users, all available Privileges, multiple checkbox selection, explicit Save, and confirmation before switching Users with unsaved changes. Sale Remittance remains Coming Soon.
+
+Verification passed: focused Privilege tests **8 tests, 46 assertions**; full Laravel suite **148 tests, 1,122 assertions**; frontend TypeScript checking; Electron production build; Pint; and `git diff --check`. Both Phase 10.17 migrations are applied locally with nothing pending. No commit or push was made.
+
 ### Phase 10.16.1 status — Complete (2026-10-01)
 
 Form usability follow-up: fixed the shared Modal focus lifecycle that caused parent-controlled fields to lose focus after each keystroke. Modal opening now focuses the first enabled body control once, supports an explicit initial-focus ref, uses a ref for the current close callback, preserves focus through rerenders/AJAX refreshes, and restores the opener on close. This applies across Product, Customer, Price, Delivery, Spoilage, POS quantity, and other shared dialogs.

@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PosCheckoutController;
 use App\Http\Controllers\Api\PosItemController;
 use App\Http\Controllers\Api\PriceController;
+use App\Http\Controllers\Api\PrivilegeAssignmentController;
+use App\Http\Controllers\Api\PrivilegeController;
+use App\Http\Controllers\Api\SaleRemittanceController;
 use App\Http\Controllers\Api\SpoilageController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationItemController;
@@ -79,6 +82,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/prices', [PriceController::class, 'store'])->middleware('admin');
     Route::post('/prices/{price}/activate', [PriceController::class, 'activate'])->middleware('admin');
     Route::get('/price-item-options', [PriceController::class, 'options'])->middleware('admin');
+    Route::get('/sale-remittances', [SaleRemittanceController::class, 'index'])->middleware('admin');
+    Route::post('/sale-remittances', [SaleRemittanceController::class, 'store'])->middleware('admin');
+
+    Route::get('/privileges', [PrivilegeController::class, 'index'])->middleware('admin');
+    Route::post('/privileges', [PrivilegeController::class, 'store'])->middleware('admin');
+    Route::match(['put', 'patch'], '/privileges/{privilege}', [PrivilegeController::class, 'update'])->middleware('admin');
+    Route::get('/privilege-assignments', [PrivilegeAssignmentController::class, 'index'])->middleware('admin');
+    Route::put('/privilege-assignments/{user}', [PrivilegeAssignmentController::class, 'update'])->middleware('admin');
 
     Route::apiResource('consignees', ConsigneeController::class)
         ->middleware('admin');

@@ -26,6 +26,9 @@ class UserResource extends JsonResource
             'station' => $this->station
                 ? ['id' => $this->station->id, 'name' => $this->station->name]
                 : null,
+            'privileges' => $this->relationLoaded('privileges')
+                ? PrivilegeResource::collection($this->privileges)->resolve()
+                : [],
         ];
     }
 }

@@ -1,0 +1,2 @@
+export type SaleRemittanceRow = { id:number; orderNumber:string; orderedAt:string; customer:{id:number;name:string}|null; paymentMethod:'cash'; station:{id:number;name:string}; cashier:{id:number;name:string}; totalAmount:string; status:'remitted'|'not_remitted'; remittedAt:string|null; remittedBy:{id:number;name:string}|null }
+export type SaleRemittanceList = { orders:SaleRemittanceRow[]; currentPage:number; lastPage:number; total:number }

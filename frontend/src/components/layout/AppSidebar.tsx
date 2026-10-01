@@ -22,7 +22,8 @@ export function AppSidebar() {
       <div className="app-sidebar__logo" role="img" aria-label="University HomeStay logo area" />
       <div className="app-sidebar__user">
         <p><span>Username:</span> <strong>{currentUser?.name ?? '—'}</strong></p>
-        <p><span>User Privilege:</span> <strong>{currentUser ? roleLabel(currentUser.role) : '—'}</strong></p>
+        <p><span>System Role:</span> <strong>{currentUser ? roleLabel(currentUser.role) : '—'}</strong></p>
+        <p><span>Privileges:</span> <strong>{currentUser?.privileges.length ? currentUser.privileges.map((privilege) => privilege.description).join(', ') : 'None assigned'}</strong></p>
       </div>
     </div>
     <nav className="app-sidebar__nav" aria-label="Modules">

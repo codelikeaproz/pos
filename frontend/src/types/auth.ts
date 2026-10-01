@@ -6,6 +6,7 @@ export type CurrentUser = {
   email: string
   role: UserRole
   station: { id: number; name: string } | null
+  privileges: { id: number; description: string }[]
 }
 
 export type AuthStatus = 'unauthenticated' | 'authenticating' | 'authenticated'

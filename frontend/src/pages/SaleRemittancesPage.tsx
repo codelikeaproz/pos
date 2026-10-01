@@ -1,0 +1,34 @@
+import { useCallback,useEffect,useMemo,useState } from 'react'
+import { Alert } from '../components/feedback/Alert'
+import { LoadingState } from '../components/feedback/LoadingState'
+import { Modal } from '../components/feedback/Modal'
+import { useToast } from '../components/feedback/Toast'
+import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+import { Label } from '../components/ui/Label'
+import { Pagination } from '../components/ui/Pagination'
+import { SearchField } from '../components/ui/SearchField'
+import { Table,type TableColumn } from '../components/ui/Table'
+import { AppIcons,iconSize,iconStroke } from '../lib/icons'
+import { getUserFacingApiMessage } from '../services/apiClient'
+import { loadSaleRemittances,remitSales } from '../services/saleRemittanceService'
+import type { SaleRemittanceList,SaleRemittanceRow } from '../types/saleRemittance'
+import './sale-remittances-page.css'
+
+const EMPTY:SaleRemittanceList={orders:[],currentPage:1,lastPage:1,total:0}
+const money=new Intl.NumberFormat('en-PH',{style:'currency',currency:'PHP'})
+function cents(amount:string):number{const [whole,fraction='']=amount.split('.');return Number(whole)*100+Number(fraction.padEnd(2,'0').slice(0,2))}
+
+export function SaleRemittancesPage(){
+ const {showToast}=useToast(); const [list,setList]=useState(EMPTY); const [searchInput,setSearchInput]=useState(''); const [search,setSearch]=useState(''); const [fromDate,setFromDate]=useState(''); const [toDate,setToDate]=useState(''); const [page,setPage]=useState(1); const [selected,setSelected]=useState<number[]>([]); const [loading,setLoading]=useState(true); const [submitting,setSubmitting]=useState(false); const [confirm,setConfirm]=useState(false); const [error,setError]=useState<string|null>(null)
+ useEffect(()=>{const timer=window.setTimeout(()=>{setPage(1);setSearch(searchInput.trim())},350);return()=>window.clearTimeout(timer)},[searchInput])
+ const refresh=useCallback(async(signal?:AbortSignal)=>{setLoading(true);setError(null);try{const result=await loadSaleRemittances(search,fromDate,toDate,page,signal);setList(result);setSelected(current=>current.filter(id=>result.orders.some(row=>row.id===id&&row.status==='not_remitted')))}catch(reason){if(!signal?.aborted)setError(getUserFacingApiMessage(reason))}finally{if(!signal?.aborted)setLoading(false)}},[search,fromDate,toDate,page])
+ useEffect(()=>{const controller=new AbortController();void refresh(controller.signal);return()=>controller.abort()},[refresh])
+ const eligible=list.orders.filter(row=>row.status==='not_remitted'); const allSelected=eligible.length>0&&eligible.every(row=>selected.includes(row.id)); const totalCents=useMemo(()=>list.orders.filter(row=>selected.includes(row.id)).reduce((sum,row)=>sum+cents(row.totalAmount),0),[list.orders,selected])
+ function toggle(id:number,checked:boolean){setSelected(current=>checked?[...current,id]:current.filter(value=>value!==id))}
+ async function submit(){setSubmitting(true);setError(null);try{const result=await remitSales(selected);showToast(`${result.remittedCount} sale${result.remittedCount===1?'':'s'} remitted — ${money.format(Number(result.remitTotal))}`);setConfirm(false);setSelected([]);await refresh()}catch(reason){setError(getUserFacingApiMessage(reason));setConfirm(false);await refresh()}finally{setSubmitting(false)}}
+ const columns:TableColumn<SaleRemittanceRow>[]=[
+  {key:'order',header:'Order No.',render:r=>r.orderNumber},{key:'date',header:'Date',render:r=>new Date(r.orderedAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'})},{key:'customer',header:'Customer',render:r=>r.customer?.name??'Walk-in'},{key:'mop',header:'MOP',render:()=> 'Cash'},{key:'station',header:'Station',render:r=>r.station.name},{key:'cashier',header:'Cashier',render:r=>r.cashier.name},{key:'total',header:'Total',align:'right',render:r=>money.format(Number(r.totalAmount))},{key:'status',header:'Status',render:r=>r.status==='remitted'?'Remitted':'Not Remitted'},{key:'dateRemitted',header:'Date Remitted',render:r=>r.remittedAt?new Date(r.remittedAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'}):'—'},{key:'by',header:'Remitted By',render:r=>r.remittedBy?.name??'—'},{key:'select',header:<input type="checkbox" checked={allSelected} onChange={e=>setSelected(e.target.checked?eligible.map(r=>r.id):[])} aria-label="Select all eligible Orders on this page" title="Select all eligible Orders on this page" />,render:r=>r.status==='not_remitted'?<input type="checkbox" checked={selected.includes(r.id)} onChange={e=>toggle(r.id,e.target.checked)} aria-label={`Select ${r.orderNumber}`} />:'—'}]
+ return <section className="page sale-remittance-page"><header className="page__header"><div><h1 className="page__title">Sale Remittance</h1><p className="page__description">Record completed Cash sales remitted by the cashier.</p></div></header><div className="sale-remittance__filters"><SearchField value={searchInput} onChange={setSearchInput} onClear={()=>{setSearchInput('');setSearch('');setPage(1)}} placeholder="Search Order, Customer, Station, or Cashier..." label="Search Sale Remittance"/><div><Label htmlFor="remit-from">From</Label><Input id="remit-from" type="date" value={fromDate} onChange={e=>{setFromDate(e.target.value);setPage(1);setSelected([])}}/></div><div><Label htmlFor="remit-to">To</Label><Input id="remit-to" type="date" min={fromDate||undefined} value={toDate} onChange={e=>{setToDate(e.target.value);setPage(1);setSelected([])}}/></div></div>{error?<Alert tone="error">{error}</Alert>:null}{loading?<LoadingState label="Loading Cash sales…"/>:<><Table columns={columns} rows={list.orders} rowKey={r=>String(r.id)} emptyMessage="No Cash sales found."/><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Cash sale" onPageChange={next=>{setPage(next);setSelected([])}}/><p className="sale-remittance__selection-note">Select All applies only to eligible Orders on this page.</p><div className="sale-remittance__summary"><span>Remit Total: <strong>{money.format(totalCents/100)}</strong></span><Button disabled={selected.length===0} onClick={()=>setConfirm(true)} icon={<AppIcons.payment size={iconSize} strokeWidth={iconStroke}/>}>Remit</Button></div></>}
+ <Modal open={confirm} title="Remit Sales" onClose={()=>!submitting&&setConfirm(false)} actions={<Button disabled={submitting} onClick={()=>void submit()} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke}/>}>{submitting?'Remitting…':'Confirm Remittance'}</Button>}><p>Selected Orders: <strong>{selected.length}</strong></p><p>Remit Total: <strong>{money.format(totalCents/100)}</strong></p><p>These selected Cash sales will be marked as remitted.</p></Modal></section>
+}

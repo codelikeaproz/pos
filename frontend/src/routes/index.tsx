@@ -13,6 +13,9 @@ import { ItemsPage } from '../pages/ItemsPage'
 import { ItemDeliveriesPage } from '../pages/ItemDeliveriesPage'
 import { OrdersPage } from '../pages/OrdersPage'
 import { PricesPage } from '../pages/PricesPage'
+import { SaleRemittancesPage } from '../pages/SaleRemittancesPage'
+import { PrivilegesPage } from '../pages/PrivilegesPage'
+import { PrivilegeAssignmentsPage } from '../pages/PrivilegeAssignmentsPage'
 import { StationsPage } from '../pages/StationsPage'
 import { StationInventoryPage } from '../pages/StationInventoryPage'
 import { SpoilagesPage } from '../pages/SpoilagesPage'
@@ -39,6 +42,9 @@ export const appRoutes: RouteObject[] = [
               { path: 'employees', element: <EmployeesPage /> },
               { path: 'items', element: <ItemsPage /> },
               { path: 'prices', element: <PricesPage /> },
+              { path: 'privilege', element: <PrivilegesPage /> },
+              { path: 'privilege-assignment', element: <PrivilegeAssignmentsPage /> },
+              { path: 'sale-remittance', element: <SaleRemittancesPage /> },
               { path: 'stations', element: <StationsPage /> },
               { path: 'station-inventory', element: <StationInventoryPage /> },
               { path: 'item-deliveries', element: <ItemDeliveriesPage /> },

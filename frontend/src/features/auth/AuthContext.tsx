@@ -34,6 +34,7 @@ type AuthContextValue = {
   currentUser: CurrentUser | null
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  refreshCurrentUser: () => Promise<void>
   bootstrapError: string | null
   authNotice: AuthNotice | null
 }
@@ -165,16 +166,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const refreshCurrentUser = useCallback(async () => {
+    const user = await fetchCurrentUser()
+    setCurrentUser(user)
+  }, [])
+
   const value = useMemo(
     () => ({
       status,
       currentUser,
       login,
       logout,
+      refreshCurrentUser,
       bootstrapError,
       authNotice
     }),
-    [status, currentUser, login, logout, bootstrapError, authNotice]
+    [status, currentUser, login, logout, refreshCurrentUser, bootstrapError, authNotice]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

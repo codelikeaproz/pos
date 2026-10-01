@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     /** @var list<string> */
-    protected $fillable = ['order_number', 'ordered_at', 'station_id', 'cashier_id', 'customer_id', 'payment_method', 'total_amount', 'cash_received', 'change_amount'];
+    protected $fillable = ['order_number', 'ordered_at', 'station_id', 'cashier_id', 'customer_id', 'payment_method', 'total_amount', 'cash_received', 'change_amount', 'remitted_at', 'remitted_by_id'];
 
     protected static function booted(): void
     {
@@ -22,7 +22,7 @@ class Order extends Model
 
     protected function casts(): array
     {
-        return ['ordered_at' => 'datetime', 'total_amount' => 'decimal:2', 'cash_received' => 'decimal:2', 'change_amount' => 'decimal:2'];
+        return ['ordered_at' => 'datetime', 'remitted_at' => 'datetime', 'total_amount' => 'decimal:2', 'cash_received' => 'decimal:2', 'change_amount' => 'decimal:2'];
     }
 
     public function station(): BelongsTo
@@ -38,6 +38,11 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function remittedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'remitted_by_id');
     }
 
     public function orderItems(): HasMany

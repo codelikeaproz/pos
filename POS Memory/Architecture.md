@@ -1,6 +1,22 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.18 Sale Remittance (2026-10-01)
+
+Completed Cash Orders are the Sale Remittance source of truth. `orders.remitted_at` derives Not Remitted/Remitted status and nullable `orders.remitted_by_id` records the Admin who performed the irreversible administrative action. The list excludes Credit Orders and loads Customer, Station, Cashier, and remitting User without per-row requests.
+
+Batch remittance validates IDs, sorts and locks Order rows inside one database transaction, recalculates the authoritative total from stored Order amounts, rejects stale or ineligible batches atomically, and changes only remittance metadata. It does not modify Order financial snapshots, Station inventory, or Inventory Movements. Sale Remittance is separate from Checkout and from external Credit settlement.
+
+### Phase 10.17 Privilege and Privilege Assignment (2026-10-01)
+
+`users.role` remains the authoritative application authorization boundary. Laravel's `admin` middleware and the React role routes continue to use only the existing `admin` and `end_user` role values.
+
+`privileges` stores simple business classifications. `user_privilege` provides a many-to-many relationship, so a User can have several Privileges and one Privilege can classify several Users. Assignment synchronization runs atomically. These records do not grant routes, change sidebar visibility, or synchronize `users.role`; an End User assigned the business Privilege named `Admin` remains an End User for authorization.
+
+Admin-only `/api/privileges` endpoints provide paginated search, create, and edit. Deletion is intentionally omitted to preserve assigned definitions. Admin-only `/api/privilege-assignments` endpoints list Users with assignments and replace one User's assignment set. User deletion cascades current pivot rows so existing User Management deletion remains valid, while Privilege deletion is restricted at the database boundary.
+
+The confirmed sidebar entries Privilege Assignment and Privilege are enabled. Sale Remittance and O.R Transactions remain deferred.
+
 ### Phase 10.16.1 compact UI and Station Inventory summary (2026-10-01)
 
 Shared Modal focus initializes only when a dialog opens. The component keeps the latest close callback in a ref, automatically focuses the first enabled body control unless a caller supplies `initialFocusRef`, and restores the prior control on close. Controlled field rerenders and AJAX option refreshes no longer refocus the dialog container or interrupt typing.

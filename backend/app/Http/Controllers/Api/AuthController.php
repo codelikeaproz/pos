@@ -30,7 +30,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful.',
-            'user' => (new UserResource($user))->resolve(),
+            'user' => (new UserResource($user->load('privileges')))->resolve(),
             'token' => $token,
         ]);
     }
@@ -47,7 +47,7 @@ class AuthController extends Controller
     public function currentUser(Request $request): JsonResponse
     {
         return response()->json([
-            'user' => (new UserResource($request->user()))->resolve(),
+            'user' => (new UserResource($request->user()->load('privileges')))->resolve(),
         ]);
     }
 }

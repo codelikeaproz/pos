@@ -1,0 +1,4 @@
+.privileges-page .ui-search-field { max-width: 48rem; }
+.privileges-page .ui-table th:last-child,
+.privileges-page .ui-table td:last-child { width: 4rem; white-space: nowrap; }
+.privilege-form { display: grid; gap: .4rem; }

@@ -2,6 +2,16 @@
 
 ## Development Rules
 
+### Phase 10.18 Sale Remittance rules
+
+Only completed Cash Orders may be remitted. Credit Orders are never eligible. The backend is authoritative: lock submitted Orders in ascending ID order, calculate the Remit Total from stored decimal Order totals, and update `remitted_at` and `remitted_by_id` atomically. Reject missing, Credit, already-remitted, or duplicate selections without partial writes. Remittance is read-only after completion and creates no inventory movement or financial mutation. Select All means eligible rows on the current page only.
+
+### Phase 10.17 Privilege rules
+
+Keep `users.role` as the sole application authorization source. Privileges are business classifications only: they may be assigned many-to-many, but must never grant Admin middleware access, generate role-based navigation, or change a User's role. Synchronize assignments in a database transaction and validate every submitted ID, including duplicate IDs.
+
+Privilege descriptions are trimmed, limited to 100 characters, and unique without regard to case. Preserve assigned Privileges by omitting destructive deletion. Privilege Assignment selects existing Users only and requires an explicit Save; never silently discard unsaved checkbox changes. Keep Sale Remittance, dynamic permission matrices, and per-route Privilege authorization outside Phase 10.17.
+
 ### Phase 10.16.1 compact table and inventory-summary rules
 
 Use the shared compact table density across implemented modules: approximately 12px medium headers, 13px regular body text, small supporting text, and narrow cell padding. Do not bold table body names, codes, quantities, prices, references, dates, people, statuses, or totals. Use compact Lucide icon actions for conventional Add, Edit, View, Activate, Deactivate, Delete, and Remove operations. Every icon action requires an item-specific accessible label, title, keyboard focus state, and appropriate disabled state. Keep text on primary Save, Submit, Pay, Confirm, and destructive confirmation actions.

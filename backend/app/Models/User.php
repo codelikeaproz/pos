@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -82,5 +83,10 @@ class User extends Authenticatable
     public function spoilagesRecorded(): HasMany
     {
         return $this->hasMany(Spoilage::class, 'recorded_by_id');
+    }
+
+    public function privileges(): BelongsToMany
+    {
+        return $this->belongsToMany(Privilege::class, 'user_privilege')->withTimestamps();
     }
 }

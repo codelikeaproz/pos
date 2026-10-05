@@ -108,7 +108,7 @@ class SpoilageController extends Controller
                     ? CarbonImmutable::createFromFormat('!Y-m-d', $incidentDate, 'Asia/Manila')->utc()
                     : now(),
             ]);
-            $spoilage->update(['spoilage_number' => 'SPL-'.str_replace('-', '', $incidentDate).'-'.str_pad((string) $spoilage->id, 6, '0', STR_PAD_LEFT)]);
+            $spoilage->update(['spoilage_number' => 'SPL'.str_replace('-', '', $incidentDate).str_pad((string) $spoilage->id, 6, '0', STR_PAD_LEFT)]);
 
             foreach ($requested as $line) {
                 $item = $items->get($line['itemId']);

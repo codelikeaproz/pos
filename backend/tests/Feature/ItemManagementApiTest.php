@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\InventoryMovement;
 use App\Models\Item;
+use App\Models\StationItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -31,7 +33,6 @@ class ItemManagementApiTest extends TestCase
         $response = $this->postJson('/api/items', [
             'item_code' => 'FD-001',
             'name' => 'Cheeseburger',
-            'quantity' => '12.500',
             'units_backup' => 'SERVING',
             'unit' => '7',
             'reorder_point' => '3.000',
@@ -43,7 +44,7 @@ class ItemManagementApiTest extends TestCase
             ->assertJsonPath('item.units_backup', 'SERVING')
             ->assertJsonPath('item.unit', '7')
             ->assertJsonPath('item.reorder_point', '3.000')
-            ->assertJsonPath('item.quantity', '12.500')
+            ->assertJsonMissingPath('item.quantity')
             ->assertJsonPath('item.is_active', true)
             ->assertJsonPath('item.price', '85.00');
 
@@ -52,7 +53,7 @@ class ItemManagementApiTest extends TestCase
             ->assertOk()->assertJsonPath('item.name', 'Cheeseburger');
         $this->deleteJson("/api/items/{$itemId}")->assertConflict();
         $this->putJson("/api/items/{$itemId}", [
-            'item_code' => 'FD-001', 'name' => 'Cheeseburger', 'quantity' => '12.500',
+            'item_code' => 'FD-001', 'name' => 'Cheeseburger',
             'units_backup' => 'SERVING', 'unit' => '7', 'reorder_point' => '3.000',
             'is_active' => false,
         ])->assertOk()->assertJsonPath('item.is_active', false);
@@ -73,7 +74,7 @@ class ItemManagementApiTest extends TestCase
     {
         Sanctum::actingAs(User::factory()->admin()->create());
         $this->postJson('/api/items', [])->assertUnprocessable()
-            ->assertJsonValidationErrors(['item_code', 'name', 'quantity', 'units_backup', 'unit', 'reorder_point', 'price']);
+            ->assertJsonValidationErrors(['item_code', 'name', 'units_backup', 'unit', 'reorder_point', 'price']);
     }
 
     public function test_price_validation_accepts_two_decimals_and_rejects_invalid_values(): void
@@ -90,13 +91,11 @@ class ItemManagementApiTest extends TestCase
         }
     }
 
-    public function test_item_code_quantity_and_unit_validation(): void
+    public function test_item_code_and_unit_validation_and_rejects_product_quantity(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->postJson('/api/items', $this->validItem(['quantity' => '-1']))
-            ->assertUnprocessable()->assertJsonValidationErrors('quantity');
-        $this->postJson('/api/items', $this->validItem(['quantity' => '1.2345']))
+        $this->postJson('/api/items', $this->validItem(['quantity' => '999999']))
             ->assertUnprocessable()->assertJsonValidationErrors('quantity');
         $this->postJson('/api/items', $this->validItem(['unit' => '']))
             ->assertUnprocessable()->assertJsonValidationErrors('unit');
@@ -119,9 +118,9 @@ class ItemManagementApiTest extends TestCase
         $item->prices()->create(['amount' => '10.00', 'is_active' => true]);
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->putJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Updated', 'quantity' => '5.250', 'units_backup' => 'KILOGRAM', 'unit' => '9', 'reorder_point' => '2.000']))
+        $this->putJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Updated', 'units_backup' => 'KILOGRAM', 'unit' => '9', 'reorder_point' => '2.000']))
             ->assertOk()->assertJsonPath('item.price', '10.00');
-        $this->patchJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Patched', 'quantity' => '6', 'units_backup' => 'BOX', 'unit' => '3']))
+        $this->patchJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Patched', 'units_backup' => 'BOX', 'unit' => '3']))
             ->assertOk()->assertJsonPath('item.name', 'Patched')->assertJsonPath('item.price', '10.00');
         $this->putJson("/api/items/{$item->id}", $this->validItem(['item_code' => 'EDIT-001', 'price' => '12.50']))
             ->assertUnprocessable()->assertJsonValidationErrors('price');
@@ -133,6 +132,19 @@ class ItemManagementApiTest extends TestCase
         $payload = $this->validItem(['item_code' => 'WATER-001', 'name' => 'Bottled Water', 'price' => '20.00']);
         $this->postJson('/api/items', $payload)->assertCreated();
         $this->postJson('/api/items', [...$payload, 'item_code' => 'WATER-002'])->assertCreated();
+    }
+
+    public function test_creating_and_updating_product_does_not_create_or_change_stock(): void
+    {
+        Sanctum::actingAs(User::factory()->admin()->create());
+        $response = $this->postJson('/api/items', $this->validItem())->assertCreated();
+        $itemId = $response->json('item.id');
+        $this->assertDatabaseCount('station_items', 0);
+        $this->assertDatabaseCount('inventory_movements', 0);
+
+        $this->putJson("/api/items/{$itemId}", $this->validUpdate(['name' => 'Updated Product']))->assertOk();
+        $this->assertSame(0, StationItem::query()->where('item_id', $itemId)->count());
+        $this->assertSame(0, InventoryMovement::query()->where('item_id', $itemId)->count());
     }
 
     public function test_searches_item_code_name_and_unit_name_and_returns_zero_results(): void
@@ -164,7 +176,6 @@ class ItemManagementApiTest extends TestCase
         return array_merge([
             'item_code' => 'ITM-001',
             'name' => 'Test Item',
-            'quantity' => '10.000',
             'units_backup' => 'PIECE',
             'unit' => '1',
             'reorder_point' => '2.000',

@@ -17,6 +17,7 @@ class StationController extends Controller
         $searchTerm = $request->string('search')->trim()->toString();
 
         $stations = Station::query()
+            ->withCount('users')
             ->when($searchTerm !== '', function ($query) use ($searchTerm) {
                 $query->where(function ($searchQuery) use ($searchTerm) {
                     $searchQuery
@@ -38,14 +39,14 @@ class StationController extends Controller
 
         return response()->json([
             'message' => 'Station added successfully.',
-            'station' => (new StationResource($station))->resolve(),
+            'station' => (new StationResource($station->loadCount('users')))->resolve(),
         ], 201);
     }
 
     public function show(Station $station): JsonResponse
     {
         return response()->json([
-            'station' => (new StationResource($station))->resolve(),
+            'station' => (new StationResource($station->loadCount('users')))->resolve(),
         ]);
     }
 
@@ -55,7 +56,7 @@ class StationController extends Controller
 
         return response()->json([
             'message' => 'Station updated successfully.',
-            'station' => (new StationResource($station->fresh()))->resolve(),
+            'station' => (new StationResource($station->fresh()->loadCount('users')))->resolve(),
         ]);
     }
 

@@ -3,6 +3,7 @@ export type Station = {
   name: string
   location: string
   description: string | null
+  assigned_users_count: number
 }
 
 export type StationInput = {

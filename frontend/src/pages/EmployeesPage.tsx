@@ -233,10 +233,6 @@ export function EmployeesPage() {
         title={editingEmployee ? 'Edit Employee' : 'Add Employee'}
         onClose={closeFormDialog}
         actions={
-          <>
-            <Button variant="outline" onClick={closeFormDialog} disabled={submitting}>
-              Cancel
-            </Button>
             <Button
               type="submit"
               form={formId}
@@ -245,7 +241,6 @@ export function EmployeesPage() {
             >
               {submitting ? 'Saving…' : 'Save Employee'}
             </Button>
-          </>
         }
       >
         {formError ? (
@@ -276,17 +271,6 @@ export function EmployeesPage() {
           }
         }}
         actions={
-          <>
-            <Button
-              variant="outline"
-              disabled={submitting}
-              onClick={() => {
-                setDeleteTarget(null)
-                setFormError(null)
-              }}
-            >
-              Cancel
-            </Button>
             <Button
               variant="danger"
               disabled={submitting}
@@ -295,7 +279,6 @@ export function EmployeesPage() {
             >
               {submitting ? 'Deleting…' : 'Delete Employee'}
             </Button>
-          </>
         }
       >
         {formError ? (

@@ -15,7 +15,6 @@ class Item extends Model
     protected $fillable = [
         'item_code',
         'name',
-        'quantity',
         'units_backup',
         'unit',
         'reorder_point',
@@ -27,7 +26,6 @@ class Item extends Model
     protected function casts(): array
     {
         return [
-            'quantity' => 'decimal:3',
             'reorder_point' => 'decimal:3',
             'price' => 'decimal:2',
             'is_active' => 'boolean',

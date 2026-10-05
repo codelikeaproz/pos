@@ -147,6 +147,6 @@ class StationItemApiTest extends TestCase
 
     private function item(string $code = 'ITM-001', string $name = 'Coke', string $reorderPoint = '2.000', string $unitsBackup = 'PIECE'): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'quantity' => '0.000', 'units_backup' => $unitsBackup, 'unit' => '1', 'reorder_point' => $reorderPoint, 'price' => '10.00']);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => $unitsBackup, 'unit' => '1', 'reorder_point' => $reorderPoint, 'price' => '10.00']);
     }
 }

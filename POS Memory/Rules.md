@@ -2,6 +2,14 @@
 
 ## Development Rules
 
+### Phase 10.18.1 product and inventory boundary rules
+
+Keep Product Management limited to product definition. An Item has no global quantity, and Item create/update requests must reject a submitted `quantity`. Product writes must not create or mutate `station_items` or `inventory_movements`.
+
+Use `station_items.quantity` as the only current stock balance and scope every balance by both Station and Item. Item Delivery is the supported stock-entry workflow; POS checkout and Spoilage are supported deduction workflows. Keep their balance update and matching DELIVERY, SALE, or SPOILAGE movement in the same database transaction. Station Inventory and F12 remain read-only views of this authority.
+
+Retain the ADJUSTMENT movement type and existing backend compatibility, but do not expose a Product Management adjustment path. Use active `prices.amount` for current selling prices and immutable detail snapshots for transaction history.
+
 ### Phase 10.18 Sale Remittance rules
 
 Only completed Cash Orders may be remitted. Credit Orders are never eligible. The backend is authoritative: lock submitted Orders in ascending ID order, calculate the Remit Total from stored decimal Order totals, and update `remitted_at` and `remitted_by_id` atomically. Reject missing, Credit, already-remitted, or duplicate selections without partial writes. Remittance is read-only after completion and creates no inventory movement or financial mutation. Select All means eligible rows on the current page only.
@@ -60,11 +68,11 @@ Keep the confirmed Admin sidebar module names and order: Dashboard, POS, Product
 
 ### Phase 10.14 Spoilage rules
 
-Spoilage is Admin-only, station-scoped, and inventory-only. Select existing StationItems with positive balance; inactive Items remain eligible when stock exists, and no active Price is required. Reject duplicate lines, invalid precision, and quantities exceeding the locked current Station balance. Deduct `station_items.quantity` and write a matching negative `SPOILAGE` movement in one transaction. Keep completed Spoilage read-only; do not add edit/delete routes or redundant stock totals. Never update transitional `items.quantity` during Spoilage.
+Spoilage is Admin-only, station-scoped, and inventory-only. Select existing StationItems with positive balance; inactive Items remain eligible when stock exists, and no active Price is required. Reject duplicate lines, invalid precision, and quantities exceeding the locked current Station balance. Deduct `station_items.quantity` and write a matching negative `SPOILAGE` movement in one transaction. Keep completed Spoilage read-only; do not add edit/delete routes or redundant stock totals.
 
 ### Phase 10.13 Item Delivery rules
 
-Only Admin users may create or browse Item Deliveries. Derive `delivered_by_id` and delivery number on the server; receiver must be an End User assigned to the selected Station. Reject inactive Items, duplicate Item lines, and invalid or nonpositive quantities. Keep `item_delivery_items` as immutable history. A completed Delivery increases authoritative `station_items.quantity` and writes a matching positive `DELIVERY` movement in the same transaction; `items.quantity` stays transitional and unchanged. Delivery numbers and POS Order numbers are separate. No Delivery edit or delete route.
+Only Admin users may create or browse Item Deliveries. Derive `delivered_by_id` and delivery number on the server; receiver must be an End User assigned to the selected Station. Reject inactive Items, duplicate Item lines, and invalid or nonpositive quantities. Keep `item_delivery_items` as immutable history. A completed Delivery increases authoritative `station_items.quantity` and writes a matching positive `DELIVERY` movement in the same transaction. Delivery numbers and POS Order numbers are separate. No Delivery edit or delete route.
 
 ### Phase 10.12 current pricing rules
 
@@ -74,7 +82,7 @@ POS lists only active Items with exactly one active Price and uses that amount. 
 
 ### Phase 10.11B current rules
 
-Older phase text below is historical. `station_items.quantity` is the current inventory authority; `items.quantity` is transitional only. New SALE and ADJUSTMENT changes write matching `inventory_movements` rows in the same transaction under StationItem row locks. Movement history starts in Phase 10.11B; do not synthesize movements for prior Orders. Restrictive FKs preserve Price and movement history. Deactivate Items for product retirement rather than deleting records with history.
+Older phase text below is historical. `station_items.quantity` is the current inventory authority; `items` no longer has a quantity column. New SALE and ADJUSTMENT changes write matching `inventory_movements` rows in the same transaction under StationItem row locks. Movement history starts in Phase 10.11B; do not synthesize movements for prior Orders. Restrictive FKs preserve Price and movement history. Deactivate Items for product retirement rather than deleting records with history.
 
 `prices` stores price history. Activation locks the Item and switches active records atomically; the resolver rejects ambiguous active prices. POS and checkout temporarily read `items.price`; OrderItem snapshots remain historical. Item names may repeat, while `item_code` is unique. Future Item Deliveries use a reference distinct from `orders.order_number`.
 

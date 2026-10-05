@@ -30,7 +30,10 @@ export function StationTable({ stations, onEdit, onDelete }: StationTableProps) 
           <Button className="table-icon-action"
             variant="danger"
             aria-label={`Delete ${station.name}`}
-            title={`Delete ${station.name}`}
+            title={station.assigned_users_count > 0
+              ? `${station.name} cannot be deleted while users are assigned.`
+              : `Delete ${station.name}`}
+            disabled={station.assigned_users_count > 0}
             onClick={() => onDelete(station)}
             icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}
           />

@@ -8,6 +8,7 @@ import { Label } from '../components/ui/Label'
 import { Pagination } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
+import { formatManilaDateTime } from '../lib/dateTime'
 import { AppIcons, iconSize } from '../lib/icons'
 import { formatQuantity } from '../lib/posCalculations'
 import { getUserFacingApiMessage } from '../services/apiClient'
@@ -85,7 +86,7 @@ export function ItemDeliveriesPage() {
     { key: 'station', header: 'Station', render: (row) => row.station.name },
     { key: 'deliveredBy', header: 'Delivered By', render: (row) => row.deliveredBy.name },
     { key: 'receivedBy', header: 'Received By', render: (row) => row.receivedBy.name },
-    { key: 'date', header: 'Date', render: (row) => new Date(row.deliveredAt).toLocaleString() },
+    { key: 'date', header: 'Date', render: (row) => formatManilaDateTime(row.deliveredAt) },
     { key: 'details', header: 'Details', align: 'center', render: (row) => <Button className="table-icon-action" variant="outline" aria-label={`View ${row.deliveryNumber}`} title={`View ${row.deliveryNumber}`} onClick={() => void view(row)} icon={<AppIcons.view size={iconSize} />} /> }
   ]
 
@@ -124,7 +125,7 @@ export function ItemDeliveriesPage() {
     {!creating && error ? <Alert tone="error">{error}</Alert> : null}
     {loading ? <LoadingState label="Loading deliveries…" /> : <><p className="page__description">{list.total} deliver{list.total === 1 ? 'y' : 'ies'}</p><Table columns={columns} rows={list.deliveries} rowKey={(row) => String(row.id)} emptyMessage="No deliveries found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Delivery" onPageChange={setPage} /></>}
 
-    <Modal open={creating} size="large" title="Deliver Items" onClose={() => { if (!submitting) setCreating(false) }} actions={<><Button variant="outline" disabled={submitting} onClick={() => setCreating(false)}>Cancel</Button><Button disabled={submitting} onClick={submitForm} icon={<AppIcons.save size={iconSize} />}>Submit Delivery</Button></>}>
+    <Modal open={creating} size="large" title="Deliver Items" onClose={() => { if (!submitting) setCreating(false) }} actions={<Button disabled={submitting} onClick={submitForm} icon={<AppIcons.save size={iconSize} />}>Submit Delivery</Button>}>
       <div className="delivery-form"><div><Label htmlFor="delivery-station" required>Destination Station</Label><select id="delivery-station" className="ui-input" value={stationId} onChange={(event) => { setStationId(event.target.value); setReceiverId('') }}><option value="">Select Station</option>{options.stations.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></div><div><Label htmlFor="delivery-receiver" required>Receiver</Label><select id="delivery-receiver" className="ui-input" value={receiverId} disabled={!stationId} onChange={(event) => setReceiverId(event.target.value)}><option value="">Select Receiver</option>{options.receivers.map((user) => <option key={user.id} value={user.id}>{user.name} — {user.email}</option>)}</select></div></div>
       <div className="delivery-item-search"><Label>Search Items</Label><SearchField value={itemSearchInput} onChange={setItemSearchInput} onClear={() => setItemSearchInput('')} placeholder="Search item code or name..." label="Search available items" /></div>
       <div className="delivery-workspace">
@@ -133,8 +134,25 @@ export function ItemDeliveriesPage() {
       </div>
       {error ? <Alert tone="error">{error}</Alert> : null}
     </Modal>
-    <Modal open={confirming} title="Confirm Item Delivery" onClose={() => { if (!submitting) setConfirming(false) }} actions={<><Button variant="outline" disabled={submitting} onClick={() => setConfirming(false)}>Cancel</Button><Button disabled={submitting} onClick={() => void confirm()} icon={<AppIcons.save size={iconSize} />}>Confirm Delivery</Button></>}><p>Station: <strong>{options.stations.find((station) => String(station.id) === stationId)?.name}</strong></p><p>Receiver: <strong>{options.receivers.find((user) => String(user.id) === receiverId)?.name}</strong></p><p>Items: <strong>{cart.length}</strong></p><p>Confirm delivery?</p></Modal>
-    <Modal open={result !== null} title="Delivery Completed" onClose={() => setResult(null)} actions={<Button onClick={() => setResult(null)}>Close</Button>}>{result ? <><p><strong>{result.deliveryNumber}</strong></p><p>Station: {result.station.name}</p><p>Receiver: {result.receivedBy.name}</p><p>Items: {result.itemCount}</p><p>Date: {new Date(result.deliveredAt).toLocaleString()}</p></> : null}</Modal>
-    <Modal open={detail !== null} size="large" title="Delivery Details" onClose={() => setDetail(null)}>{detail ? <><div className="delivery-detail-meta"><p><span>Delivery No.</span>{detail.deliveryNumber}</p><p><span>Station</span>{detail.station.name}</p><p><span>Delivered By</span>{detail.deliveredBy.name}</p><p><span>Received By</span>{detail.receivedBy.name}</p><p><span>Date</span>{new Date(detail.deliveredAt).toLocaleString()}</p></div><Table columns={detailColumns} rows={detail.items ?? []} rowKey={(row) => String(row.id)} emptyMessage="No delivery items recorded." /></> : null}</Modal>
+    <Modal open={confirming} title="Confirm Item Delivery" onClose={() => { if (!submitting) setConfirming(false) }} actions={<Button disabled={submitting} onClick={() => void confirm()} icon={<AppIcons.save size={iconSize} />}>Confirm Delivery</Button>}>
+      <div className="modal-summary">
+        <div className="modal-summary__grid">
+          <div className="modal-summary__field"><span>Destination Station</span><strong>{options.stations.find((station) => String(station.id) === stationId)?.name}</strong></div>
+          <div className="modal-summary__field"><span>Receiver</span><strong>{options.receivers.find((user) => String(user.id) === receiverId)?.name}</strong></div>
+          <div className="modal-summary__field"><span>Selected Items</span><strong>{cart.length}</strong></div>
+        </div>
+        <p className="modal-summary__notice">Review the delivery details before confirming. Stock will be added to the selected Station.</p>
+      </div>
+    </Modal>
+    <Modal open={result !== null} title="Delivery Completed" onClose={() => setResult(null)}>{result ? <div className="modal-summary">
+      <p className="modal-summary__reference">{result.deliveryNumber}</p>
+      <div className="modal-summary__grid">
+        <div className="modal-summary__field"><span>Station</span><strong>{result.station.name}</strong></div>
+        <div className="modal-summary__field"><span>Receiver</span><strong>{result.receivedBy.name}</strong></div>
+        <div className="modal-summary__field"><span>Delivered Items</span><strong>{result.itemCount}</strong></div>
+        <div className="modal-summary__field"><span>Date Completed</span><strong>{formatManilaDateTime(result.deliveredAt)}</strong></div>
+      </div>
+    </div> : null}</Modal>
+    <Modal open={detail !== null} size="large" title="Delivery Details" onClose={() => setDetail(null)}>{detail ? <><div className="delivery-detail-meta"><p><span>Delivery No.</span>{detail.deliveryNumber}</p><p><span>Station</span>{detail.station.name}</p><p><span>Delivered By</span>{detail.deliveredBy.name}</p><p><span>Received By</span>{detail.receivedBy.name}</p><p><span>Date</span>{formatManilaDateTime(detail.deliveredAt)}</p></div><Table columns={detailColumns} rows={detail.items ?? []} rowKey={(row) => String(row.id)} emptyMessage="No delivery items recorded." /></> : null}</Modal>
   </section>
 }

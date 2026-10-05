@@ -2,7 +2,6 @@ export type Item = {
   id: number
   item_code: string
   name: string
-  quantity: string
   units_backup: string
   unit: string
   reorder_point: string

@@ -128,7 +128,7 @@ class PosCheckoutController extends Controller
                 'cash_received' => $cashCents === null ? null : $this->formatFixed($cashCents, 2),
                 'change_amount' => $cashCents === null ? null : $this->formatFixed($cashCents - $totalCents, 2),
             ]);
-            $order->forceFill(['order_number' => 'ORD-'.$order->ordered_at->format('Ymd').'-'.str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)])->save();
+            $order->forceFill(['order_number' => 'ORD'.$order->ordered_at->setTimezone('Asia/Manila')->format('Ymd').str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)])->save();
 
             foreach ($lines as $line) {
                 $stationItem = $line['stationItem'];

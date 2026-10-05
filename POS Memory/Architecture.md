@@ -1,5 +1,13 @@
-# University HomeStay POS
+	# University HomeStay POS
 ## Architecture
+
+### Phase 10.18.1 Product and inventory boundary cleanup (2026-10-05)
+
+`items` is the product master and no longer stores a quantity. It defines Item identity, unit metadata, status, and the transitional initial-price field. Product creation and editing do not create a Station balance or Inventory Movement.
+
+`station_items.quantity` is the only current stock balance, independently scoped by Station and Item. Item Delivery creates or increases that balance and writes positive DELIVERY movements. POS checkout decreases it with negative SALE movements. Spoilage decreases it with negative SPOILAGE movements. Station Inventory and F12 read this balance; they do not own a second stock value.
+
+`inventory_movements` remains the audit ledger for recorded stock changes. The ADJUSTMENT type and backend compatibility remain available for the existing controlled adjustment path, while Product Management exposes no stock-entry or correction control. Current selling prices come from the active `prices.amount`; Order and Delivery detail rows preserve immutable transaction snapshots.
 
 ### Phase 10.18 Sale Remittance (2026-10-01)
 
@@ -25,7 +33,7 @@ Inventory quantity storage and calculations remain exact thousandths with `DECIM
 
 The Spoilage reporting dialog uses a compact two-table layout: Available Station Items with individual and master checkboxes on the left, and Selected Spoilage Items with editable quantities on the right. Station, Item search, selectable Manila Incident Date, and Remarks remain presentation over the existing Phase 10.14 transaction. The authenticated actor, snapshots, stock validation, locks, negative SPOILAGE movements, and rollback behavior remain authoritative.
 
-Spoilage accepts an optional explicit Manila `incidentDate` for delayed reporting. The current UI always sends the selected date, defaults it to today, and disallows future dates. The API rejects future dates, persists a backdated incident at the selected Manila calendar day, and uses that date in `SPL-YYYYMMDD-######`; omitted dates remain compatible with server-time creation.
+Spoilage accepts an optional explicit Manila `incidentDate` for delayed reporting. The current UI always sends the selected date, defaults it to today, and disallows future dates. The API rejects future dates, persists a backdated incident at the selected Manila calendar day, and uses that date in `SPLYYYYMMDD######`; omitted dates remain compatible with server-time creation.
 
 Station Inventory is a read-only stock monitoring module. Item Delivery is the supported workflow for introducing Item stock into a Station. Station Inventory provides Station selection, Search, pagination, View Spoilage, and the columns Description, Item Code, Qty, Sold, Spoilage, and Remaining Qty. View Spoilage routes to the existing Spoilage Management history scoped to the selected Station; it does not duplicate Spoilage logic. Station Inventory exposes no Assign, Edit, Remove, Delivery, Status, or Actions column. Existing backend inventory mutation capabilities remain implemented but are not part of this monitoring UI.
 
@@ -63,7 +71,7 @@ After successful checkout, POS displays a receipt-style confirmation using the r
 
 `customers` is distinct from Consignees: a Customer purchases on credit, while a Consignee participates in the separate consignment account workflow. Customer stores only name and address. `orders.customer_id` is nullable for cash/Walk-in Orders and restricts deletion when linked; a credit Order requires a Customer through the Order model invariant. Existing cash checkout remains unchanged. No credit checkout UI or endpoint exists yet.
 
-Credit Monitoring reads existing `orders` with `payment_method = credit`, joined to Customer, Station, and Cashier. The UI displays MOP as Utang. Age is calculated from the Order date to today's date in Asia/Manila calendar days; it is not stored. Date filters use inclusive Manila dates. Total Amount sums all matching recorded credit sale totals in integer cents before pagination. This is a transaction total, not an outstanding balance. The Customer Balance column displays unavailable because Accounting Office settlement data is not represented in the POS database. The separate Accounting Office system owns settlement/payment; this POS has no settlement action or guessed integration. The existing `ORD-YYYYMMDD-######` identifier is retained, with no separate O.R number.
+Credit Monitoring reads existing `orders` with `payment_method = credit`, joined to Customer, Station, and Cashier. The UI displays MOP as Utang. Age is calculated from the Order date to today's date in Asia/Manila calendar days; it is not stored. Date filters use inclusive Manila dates. Total Amount sums all matching recorded credit sale totals in integer cents before pagination. This is a transaction total, not an outstanding balance. The Customer Balance column displays unavailable because Accounting Office settlement data is not represented in the POS database. The separate Accounting Office system owns settlement/payment; this POS has no settlement action or guessed integration. Orders use the compact `ORDYYYYMMDD######` identifier, with no separate O.R number.
 
 The confirmed sidebar order remains unchanged; Customer Management and Credit Monitoring are now enabled Admin modules. Credit Monitoring is read-only. Existing inventory, Price, Delivery, Spoilage, and cash checkout paths are unchanged.
 
@@ -91,7 +99,7 @@ Submission locks the Station row to serialize first-time assignments, then exist
 
 The POS inventory endpoint includes an Item only when it is active, belongs to the authenticated Station's `station_items`, and has exactly one active Price. Checkout locks StationItem and Item rows, resolves active Price records, compares their amounts with each cart line's `expectedUnitPrice`, and returns HTTP 409 with `currentPrices` if a displayed price changed. The frontend keeps the cart, updates displayed prices, refreshes POS data, and requires Pay again. Successful checkout snapshots the active amount into `order_items.unit_price` and writes stock and SALE movements atomically.
 
-`items.price` remains a transitional legacy column for initial Item creation and historical backfill; Price Management changes do not synchronize it. It is not used to price new sales. Existing Item editing shows the active Price read-only. `items.quantity` remains transitional; `station_items.quantity` remains authoritative stock. Earlier sections below describe their historical phase state.
+`items.price` remains a transitional legacy column for initial Item creation and historical backfill; Price Management changes do not synchronize it. It is not used to price new sales. Existing Item editing shows the active Price read-only. `items` has no quantity column; `station_items.quantity` is authoritative stock. Earlier sections below describe their historical phase state.
 
 ### Phase 10.11B current schema
 
@@ -791,7 +799,7 @@ Order + OrderItem snapshots
 station_items.quantity deduction
 ```
 
-Checkout accepts only Item IDs, quantities, `paymentMethod = cash`, and Cash received. Laravel resolves the Cashier and Station from the authenticated User, calculates each rounded line subtotal and total from current Item prices, generates `ORD-YYYYMMDD-######` after the Order receives its database ID, calculates Change, and returns a safe receipt-ready summary.
+Checkout accepts only Item IDs, quantities, `paymentMethod = cash`, and Cash received. Laravel resolves the Cashier and Station from the authenticated User, calculates each rounded line subtotal and total from current Item prices, generates `ORDYYYYMMDD######` after the Order receives its database ID, calculates Change, and returns a safe receipt-ready summary.
 
 `station_items.quantity` is the authoritative stock and is locked and deducted atomically. `items.quantity` remains transitional legacy data and is never modified by checkout. Completed Orders and their snapshot rows are immutable in this phase; Transaction History, voids, refunds, stock reversal, Customer, Remit, receipt printing, and Cash Drawer integration remain deferred.
 

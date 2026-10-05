@@ -9,6 +9,7 @@ import { Label } from '../components/ui/Label'
 import { Pagination } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
+import { formatManilaDate, formatManilaDateTime } from '../lib/dateTime'
 import { AppIcons, iconSize } from '../lib/icons'
 import { formatQuantity } from '../lib/posCalculations'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
@@ -101,7 +102,7 @@ export function SpoilagesPage() {
     { key: 'station', header: 'Station', render: (row) => row.station.name },
     { key: 'recordedBy', header: 'Recorded By', render: (row) => row.recordedBy.name },
     { key: 'reason', header: 'Reason', render: (row) => row.reason || '—' },
-    { key: 'date', header: 'Date', render: (row) => new Date(row.spoiledAt).toLocaleString() },
+    { key: 'date', header: 'Date', render: (row) => formatManilaDateTime(row.spoiledAt) },
     { key: 'action', header: 'Action', align: 'center', render: (row) => <Button className="table-icon-action" variant="outline" aria-label={`View ${row.spoilageNumber}`} title={`View ${row.spoilageNumber}`} onClick={() => void view(row)} icon={<AppIcons.view size={iconSize} />} /> }
   ]
   const detailColumns: TableColumn<NonNullable<Spoilage['items']>[number]>[] = [
@@ -138,7 +139,7 @@ export function SpoilagesPage() {
     {!creating && error ? <Alert tone="error">{error}</Alert> : null}
     {loading ? <LoadingState label="Loading Spoilage…" /> : <><p className="page__description">{list.total} Spoilage record{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.spoilages} rowKey={(row) => String(row.id)} emptyMessage="No Spoilage found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Spoilage" onPageChange={setPage} /></>}
 
-    <Modal open={creating} size="large" title="Report Spoilage" onClose={() => { if (!submitting) setCreating(false) }} actions={<><Button variant="outline" disabled={submitting} onClick={() => setCreating(false)}>Cancel</Button><Button disabled={submitting} onClick={submitForm} icon={<AppIcons.save size={iconSize} />}>Submit Spoilage</Button></>}>
+    <Modal open={creating} size="large" title="Report Spoilage" onClose={() => { if (!submitting) setCreating(false) }} actions={<Button disabled={submitting} onClick={submitForm} icon={<AppIcons.save size={iconSize} />}>Submit Spoilage</Button>}>
       <div className="spoilage-report-header">
         <div><Label htmlFor="spoilage-station" required>Station</Label><select id="spoilage-station" className="ui-input" value={stationId} onChange={(event) => { setStationId(event.target.value); setFilterStation(event.target.value); setPage(1); setCart([]); setError(null) }}><option value="">Select Station</option>{options.stations.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></div>
         <div><Label htmlFor="spoilage-incident-date" required>Incident Date</Label><Input id="spoilage-incident-date" type="date" max={todayInManila()} value={incidentDate} onChange={(event) => setIncidentDate(event.target.value)} /></div>
@@ -151,8 +152,24 @@ export function SpoilagesPage() {
       <div className="spoilage-remarks"><Label htmlFor="spoilage-reason">Remarks</Label><textarea id="spoilage-reason" className="ui-input" maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} /></div>
       {error ? <Alert tone="error">{error}</Alert> : null}
     </Modal>
-    <Modal open={confirming} title="Confirm Spoilage" onClose={() => { if (!submitting) setConfirming(false) }} actions={<><Button variant="outline" disabled={submitting} onClick={() => setConfirming(false)}>Cancel</Button><Button disabled={submitting} onClick={() => void confirm()} icon={<AppIcons.warning size={iconSize} />}>Confirm Spoilage</Button></>}><p>Station: <strong>{options.stations.find((station) => String(station.id) === stationId)?.name}</strong></p><p>Items: <strong>{cart.length}</strong></p><p>Reason: {reason.trim() || 'None provided'}</p><p>This will permanently reduce Station inventory.</p></Modal>
-    <Modal open={result !== null} title="Spoilage Recorded" onClose={() => setResult(null)} actions={<Button onClick={() => setResult(null)}>Close</Button>}>{result ? <><p><strong>{result.spoilageNumber}</strong></p><p>Station: {result.station.name}</p><p>Items: {result.itemCount}</p><p>Date: {new Date(result.spoiledAt).toLocaleString()}</p></> : null}</Modal>
-    <Modal open={detail !== null} size="large" title="Spoilage Details" onClose={() => setDetail(null)}>{detail ? <><div className="spoilage-detail-summary"><div><span>Spoilage No.</span><p>{detail.spoilageNumber}</p></div><div><span>Station</span><p>{detail.station.name}</p></div><div><span>Recorded By</span><p>{detail.recordedBy.name}</p></div><div><span>Incident Date</span><p>{new Date(detail.spoiledAt).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}</p></div><div className="spoilage-detail-summary__remarks"><span>Remarks</span><p>{detail.reason || 'None provided'}</p></div></div><section className="spoilage-detail-items"><h3>Spoiled Items</h3><Table columns={detailColumns} rows={detail.items ?? []} rowKey={(row) => String(row.id)} emptyMessage="No Spoilage Items recorded." /></section></> : null}</Modal>
+    <Modal open={confirming} title="Confirm Spoilage" onClose={() => { if (!submitting) setConfirming(false) }} actions={<Button disabled={submitting} onClick={() => void confirm()} icon={<AppIcons.warning size={iconSize} />}>Confirm Spoilage</Button>}>
+      <div className="modal-summary">
+        <div className="modal-summary__grid">
+          <div className="modal-summary__field"><span>Station</span><strong>{options.stations.find((station) => String(station.id) === stationId)?.name}</strong></div>
+          <div className="modal-summary__field"><span>Selected Items</span><strong>{cart.length}</strong></div>
+          <div className="modal-summary__field"><span>Remarks</span><strong>{reason.trim() || 'None provided'}</strong></div>
+        </div>
+        <p className="modal-summary__notice">Review the details before confirming. The selected quantities will be deducted from Station inventory.</p>
+      </div>
+    </Modal>
+    <Modal open={result !== null} title="Spoilage Recorded" onClose={() => setResult(null)}>{result ? <div className="modal-summary">
+      <p className="modal-summary__reference">{result.spoilageNumber}</p>
+      <div className="modal-summary__grid">
+        <div className="modal-summary__field"><span>Station</span><strong>{result.station.name}</strong></div>
+        <div className="modal-summary__field"><span>Spoiled Items</span><strong>{result.itemCount}</strong></div>
+        <div className="modal-summary__field"><span>Date Recorded</span><strong>{formatManilaDateTime(result.spoiledAt)}</strong></div>
+      </div>
+    </div> : null}</Modal>
+    <Modal open={detail !== null} size="large" title="Spoilage Details" onClose={() => setDetail(null)}>{detail ? <><div className="spoilage-detail-summary"><div><span>Spoilage No.</span><p>{detail.spoilageNumber}</p></div><div><span>Station</span><p>{detail.station.name}</p></div><div><span>Recorded By</span><p>{detail.recordedBy.name}</p></div><div><span>Incident Date</span><p>{formatManilaDate(detail.spoiledAt)}</p></div><div className="spoilage-detail-summary__remarks"><span>Remarks</span><p>{detail.reason || 'None provided'}</p></div></div><section className="spoilage-detail-items"><h3>Spoiled Items</h3><Table columns={detailColumns} rows={detail.items ?? []} rowKey={(row) => String(row.id)} emptyMessage="No Spoilage Items recorded." /></section></> : null}</Modal>
   </section>
 }

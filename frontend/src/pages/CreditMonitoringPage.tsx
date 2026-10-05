@@ -6,6 +6,7 @@ import { Label } from '../components/ui/Label'
 import { Pagination } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
+import { formatManilaDateTime } from '../lib/dateTime'
 import { getUserFacingApiMessage } from '../services/apiClient'
 import { loadCreditMonitoring } from '../services/creditMonitoringService'
 import type { CreditMonitoringList, CreditOrder } from '../types/creditMonitoring'
@@ -35,7 +36,7 @@ export function CreditMonitoringPage() {
 
   const columns: TableColumn<CreditOrder>[] = [
     { key: 'order', header: 'Order No.', render: (row) => row.orderNumber },
-    { key: 'date', header: 'Date', render: (row) => new Date(row.orderedAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) },
+    { key: 'date', header: 'Date', render: (row) => formatManilaDateTime(row.orderedAt) },
     { key: 'customer', header: 'Customer', render: (row) => row.customer?.name ?? '—' },
     { key: 'mop', header: 'MOP', render: () => 'Utang' },
     { key: 'station', header: 'Station', render: (row) => row.station.name },

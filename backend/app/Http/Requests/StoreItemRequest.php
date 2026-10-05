@@ -17,7 +17,7 @@ class StoreItemRequest extends FormRequest
         return [
             'item_code' => ['required', 'string', 'max:100', 'unique:items,item_code'],
             'name' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],
+            'quantity' => ['prohibited'],
             'units_backup' => ['required', 'string', 'max:50'],
             'unit' => ['required', 'string', 'max:20'],
             'reorder_point' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],

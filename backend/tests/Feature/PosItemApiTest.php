@@ -204,13 +204,11 @@ class PosItemApiTest extends TestCase
         string $code = 'ITM-001',
         string $name = 'Test Item',
         string $unit = 'PIECE',
-        string $price = '20.00',
-        string $globalQuantity = '0.000'
+        string $price = '20.00'
     ): Item {
         $item = Item::query()->create([
             'item_code' => $code,
             'name' => $name,
-            'quantity' => $globalQuantity,
             'units_backup' => $unit,
             'unit' => '1',
             'reorder_point' => '0.000',

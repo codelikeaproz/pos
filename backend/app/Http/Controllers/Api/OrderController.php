@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
 use App\Http\Resources\OrderHistoryResource;
 use App\Models\Order;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -33,8 +34,10 @@ class OrderController extends Controller
                 ->where('order_number', 'like', "%{$search}%")
                 ->orWhereHas('cashier', fn ($cashier) => $cashier->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('station', fn ($station) => $station->where('name', 'like', "%{$search}%"))))
-            ->when(isset($validated['from_date']), fn ($query) => $query->whereDate('ordered_at', '>=', $validated['from_date']))
-            ->when(isset($validated['to_date']), fn ($query) => $query->whereDate('ordered_at', '<=', $validated['to_date']))
+            ->when(isset($validated['from_date']), fn ($query) => $query->where('ordered_at', '>=',
+                CarbonImmutable::parse($validated['from_date'], 'Asia/Manila')->startOfDay()->utc()->toDateTimeString()))
+            ->when(isset($validated['to_date']), fn ($query) => $query->where('ordered_at', '<',
+                CarbonImmutable::parse($validated['to_date'], 'Asia/Manila')->addDay()->startOfDay()->utc()->toDateTimeString()))
             ->orderByDesc('ordered_at')->orderByDesc('id')->paginate(10)->withQueryString();
 
         return OrderHistoryResource::collection($orders)->response();

@@ -78,7 +78,6 @@ class PosCheckoutApiTest extends TestCase
     public function test_checkout_uses_authoritative_values_and_deducts_only_station_stock(): void
     {
         [$user, $station, $item, $stock] = $this->context();
-        $globalQuantity = $item->quantity;
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/pos/checkout', $this->payload($item->id, '1.500', '100.00') + [
@@ -99,10 +98,9 @@ class PosCheckoutApiTest extends TestCase
             ->assertJsonPath('order.items.0.subtotal', '37.50');
 
         $order = Order::query()->firstOrFail();
-        $this->assertMatchesRegularExpression('/^ORD-\d{8}-\d{6}$/', $order->order_number);
+        $this->assertMatchesRegularExpression('/^ORD\d{14}$/', $order->order_number);
         $this->assertNotNull($order->ordered_at);
         $this->assertSame('3.500', $stock->fresh()->quantity);
-        $this->assertSame($globalQuantity, $item->fresh()->quantity);
         $response->assertJsonMissingPath('order.cashier.password')->assertJsonMissingPath('order.cashier.remember_token');
     }
 
@@ -134,7 +132,7 @@ class PosCheckoutApiTest extends TestCase
         $this->assertSame('3.500', $stock->fresh()->quantity);
         $this->assertDatabaseHas('inventory_movements', ['type' => 'SALE', 'quantity_change' => '-1.500']);
         $this->assertSame(1, InventoryMovement::query()->count());
-        $this->assertMatchesRegularExpression('/^ORD-\d{8}-\d{6}$/', $response->json('order.orderNumber'));
+        $this->assertMatchesRegularExpression('/^ORD\d{14}$/', $response->json('order.orderNumber'));
 
         Sanctum::actingAs(User::factory()->admin()->create());
         $this->getJson('/api/credit-monitoring')->assertOk()->assertJsonPath('data.0.customer.name', 'Maria Cruz')
@@ -270,7 +268,7 @@ class PosCheckoutApiTest extends TestCase
 
     private function item(string $code = 'ITM-001', string $name = 'Test Item', string $price = '25.00'): Item
     {
-        $item = Item::query()->create(['item_code' => $code, 'name' => $name, 'quantity' => '99.000', 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
+        $item = Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
         Price::query()->create(['item_id' => $item->id, 'amount' => $price, 'is_active' => true]);
 
         return $item;

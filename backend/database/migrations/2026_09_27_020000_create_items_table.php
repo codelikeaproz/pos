@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->string('item_code')->unique();
             $table->string('name');
-            $table->decimal('quantity', 12, 3);
             $table->string('units_backup', 50);
             $table->string('unit', 20);
             $table->decimal('reorder_point', 12, 3)->default(0);

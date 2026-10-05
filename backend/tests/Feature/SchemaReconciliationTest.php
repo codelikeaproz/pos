@@ -118,7 +118,7 @@ class SchemaReconciliationTest extends TestCase
 
     private function item(string $code = 'ONE', string $name = 'Item', string $price = '20.00'): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'quantity' => '0.000', 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
     }
 
     private function stock(): array

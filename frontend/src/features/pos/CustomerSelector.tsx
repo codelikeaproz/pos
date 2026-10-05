@@ -12,7 +12,7 @@ import './customer-selector.css'
 
 const EMPTY: CustomerList = { customers: [], currentPage: 1, lastPage: 1, total: 0 }
 
-export function CustomerSelector({ open, selected, onClose, onSelect }: { open: boolean; selected: Customer | null; onClose: () => void; onSelect: (customer: Customer) => void }) {
+export function CustomerSelector({ open, selected, onClose, onSelect }: { open: boolean; selected: Customer | null; onClose: () => void; onSelect: (customer: Customer | null) => void }) {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -31,11 +31,11 @@ export function CustomerSelector({ open, selected, onClose, onSelect }: { open: 
   }, [open, search, page])
   useEffect(() => { if (open) setChoice(selected) }, [open, selected])
 
-  return <Modal open={open} title="Select Customer" onClose={onClose} actions={<Button disabled={!choice} onClick={() => { if (choice) onSelect(choice) }}>Select</Button>}>
+  return <Modal open={open} title="Select Customer" onClose={onClose} actions={<Button onClick={() => onSelect(choice)}>Select</Button>}>
     <div className="pos-customer-selector">
       <SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search name or address..." label="Search Customers" />
       {error ? <Alert tone="error">{error}</Alert> : null}
-      {loading ? <LoadingState label="Loading Customers…" /> : <div className="pos-customer-selector__results" role="radiogroup" aria-label="Customers">{list.customers.map((customer) => <label key={customer.id} className="pos-customer-selector__row"><input type="radio" name="selected-customer" checked={choice?.id === customer.id} onChange={() => setChoice(customer)} /><span><strong>{customer.name}</strong><small>#{customer.id} · {customer.address}</small></span></label>)}{list.customers.length === 0 ? <p>No Customers found.</p> : null}</div>}
+      {loading ? <LoadingState label="Loading Customers…" /> : <div className="pos-customer-selector__results" role="group" aria-label="Customers">{list.customers.length > 0 ? <div className="pos-customer-selector__header" aria-hidden="true"><span></span><span>Customer</span><span>Address</span></div> : null}{list.customers.map((customer) => { const checked = choice?.id === customer.id; return <label key={customer.id} className="pos-customer-selector__row"><input type="checkbox" checked={checked} onChange={() => setChoice(checked ? null : customer)} /><strong>{customer.name}</strong><span>{customer.address}</span></label> })}{list.customers.length === 0 ? <p>No Customers found.</p> : null}</div>}
       <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Customer" onPageChange={setPage} />
     </div>
   </Modal>

@@ -170,7 +170,7 @@ class PriceManagementApiTest extends TestCase
 
     private function item(string $code = 'ITEM-1', string $name = 'Item', string $legacyPrice = '20.00'): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'quantity' => '0.000', 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $legacyPrice]);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $legacyPrice]);
     }
 
     private function checkout(int $itemId, string $expectedPrice): array

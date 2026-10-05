@@ -169,12 +169,9 @@ export function StationsPage() {
         open={formDialog !== null}
         title={editingStation ? 'Edit Station' : 'Add Station'}
         onClose={closeFormDialog}
-        actions={<>
-          <Button variant="outline" onClick={closeFormDialog} disabled={submitting}>Cancel</Button>
-          <Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>
+        actions={<Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>
             {submitting ? 'Saving…' : editingStation ? 'Save Changes' : 'Save Station'}
-          </Button>
-        </>}
+          </Button>}
       >
         {formError ? <Alert tone="error" title="Station could not be saved">{formError}</Alert> : null}
         {formDialog ? <StationForm key={formId} formId={formId} station={editingStation} errors={fieldErrors} disabled={submitting} onSubmit={(input) => void handleSave(input)} /> : null}
@@ -184,12 +181,9 @@ export function StationsPage() {
         open={deleteTarget !== null}
         title="Delete Station?"
         onClose={() => { if (!submitting) { setDeleteTarget(null); setFormError(null) } }}
-        actions={<>
-          <Button variant="outline" disabled={submitting} onClick={() => { setDeleteTarget(null); setFormError(null) }}>Cancel</Button>
-          <Button variant="danger" disabled={submitting} onClick={() => void handleDelete()} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>
+        actions={<Button variant="danger" disabled={submitting} onClick={() => void handleDelete()} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>
             {submitting ? 'Deleting…' : 'Delete Station'}
-          </Button>
-        </>}
+          </Button>}
       >
         {formError ? <Alert tone="error" title="Station could not be deleted">{formError}</Alert> : null}
         <div className="station-delete">

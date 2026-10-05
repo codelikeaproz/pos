@@ -4,6 +4,26 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.18.1 status — Complete (2026-10-05)
+
+UI cleanup: modal forms and confirmations that already provide a header X no longer repeat a Cancel button in the footer. Their Save, Submit, Confirm, or destructive primary action remains. Unsaved-change prompts retain their distinct Keep Editing and Discard Changes choices.
+
+Delivery and Spoilage confirmation/completion dialogs now share an organized summary design: a reference number where available, bordered labeled fields in a responsive grid, and a separate confirmation notice describing the inventory effect.
+
+Date/time reconciliation: Transaction History, Order details, Credit Monitoring, Sale Remittance, Item Delivery, and Spoilage tables and dialogs now use one shared `Asia/Manila` formatter rather than the computer's local timezone. Transaction History date filters also convert Manila calendar-day boundaries to UTC, matching Credit Monitoring and Sale Remittance and preventing records near midnight from appearing under the wrong date.
+
+MySQL timezone correction: the MySQL and MariaDB connections now explicitly use UTC. Delivery and Spoilage use `TIMESTAMP` columns, and an inherited `+08:00` database session previously converted a stored UTC instant to Manila time before Laravel interpreted it as UTC, causing the frontend to add another eight hours. Existing timestamps remain unchanged; they now serialize as their correct UTC instant and display once in Manila time, matching the POS clock.
+
+Transaction references now use compact identifiers without separators: `ORDYYYYMMDD######`, `DELYYYYMMDD######`, and `SPLYYYYMMDD######`. Their date segment uses the Manila calendar date. Existing local Order, Delivery, and Spoilage references were converted in place without changing record IDs.
+
+Product Management now owns product definitions only. The obsolete global `items.quantity` field was removed from the schema, model, API resources and validation contract, React types, Product form, and Product table. Item create/update explicitly rejects a submitted quantity and does not create or change Station stock or Inventory Movements.
+
+`station_items.quantity` is the sole current inventory balance, independently scoped by Station and Item. Item Delivery remains the supported stock-entry workflow; POS checkout and Spoilage remain the supported deduction workflows. Each keeps its Station balance change and matching DELIVERY, SALE, or SPOILAGE movement atomic. Station Inventory and F12 remain read-only. Active `prices.amount` remains the selling-price authority, and historical detail snapshots remain unchanged.
+
+The original Item creation migration no longer defines `items.quantity`. The existing local development schema was reconciled by dropping only that obsolete column; no value was copied or merged into a Station. Before reconciliation, the database contained one Item with global quantity `20.000` and one Station balance totaling `9.000`, confirming that the two values were already inconsistent. The authoritative Station balance remains `9.000`. No refresh, reset, wipe, or extra migration was required.
+
+Regression coverage proves one product can be delivered as 20 units to Station A and 10 to Station B, then sold by 3 at A and spoiled by 2 at B, leaving independent balances of 17 and 8. The ADJUSTMENT movement type and existing backend compatibility remain; Product Management exposes no adjustment control.
+
 ### Phase 10.18 status — Complete (2026-10-01)
 
 Sale Remittance now lists completed Cash Orders with backend search, Manila date filters, and ten-row pagination. Admins can select individual/current-page eligible Orders, review an integer-cent preview total, confirm, and submit an atomic batch. The backend locks rows deterministically, calculates the authoritative total, records server time and authenticated Admin, and prevents double remittance. Credit Orders, Order snapshots, and inventory remain untouched. Sale Remittance is enabled in the Admin sidebar; O.R Transactions remains deferred.

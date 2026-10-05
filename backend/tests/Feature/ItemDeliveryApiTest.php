@@ -22,7 +22,7 @@ class ItemDeliveryApiTest extends TestCase
     public function test_routes_are_admin_only_and_history_is_immutable(): void
     {
         [$station, $receiver, $admin] = $this->setupDelivery();
-        $delivery = ItemDelivery::query()->create(['delivery_number' => 'DEL-20260930-000001', 'station_id' => $station->id, 'delivered_by_id' => $admin->id, 'received_by_id' => $receiver->id, 'delivered_at' => now()]);
+        $delivery = ItemDelivery::query()->create(['delivery_number' => 'DEL20260930000001', 'station_id' => $station->id, 'delivered_by_id' => $admin->id, 'received_by_id' => $receiver->id, 'delivered_at' => now()]);
         $this->getJson('/api/item-deliveries')->assertUnauthorized();
         $this->getJson('/api/item-delivery-options')->assertUnauthorized();
         $this->postJson('/api/item-deliveries', [])->assertUnauthorized();
@@ -47,12 +47,11 @@ class ItemDeliveryApiTest extends TestCase
             'items' => [['itemId' => $first->id, 'quantity' => '20.250'], ['itemId' => $second->id, 'quantity' => '2.500']],
         ])->assertCreated()->json('delivery');
 
-        $this->assertMatchesRegularExpression('/^DEL-\d{8}-\d{6}$/', $delivery['deliveryNumber']);
+        $this->assertMatchesRegularExpression('/^DEL\d{14}$/', $delivery['deliveryNumber']);
         $this->assertSame($admin->id, ItemDelivery::query()->firstOrFail()->delivered_by_id);
         $this->assertSame($receiver->id, ItemDelivery::query()->firstOrFail()->received_by_id);
         $this->assertSame('120.250', $stock->fresh()->quantity);
         $this->assertDatabaseHas('station_items', ['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '2.500']);
-        $this->assertSame('0.000', $first->fresh()->quantity);
         $this->assertDatabaseCount('item_delivery_items', 2);
         $this->assertSame(['20.250', '2.500'], InventoryMovement::query()->orderBy('item_id')->pluck('quantity_change')->all());
         $this->assertSame(2, InventoryMovement::query()->where('type', 'DELIVERY')->count());
@@ -134,9 +133,9 @@ class ItemDeliveryApiTest extends TestCase
     public function test_database_uniqueness_protects_delivery_numbers_and_station_item_pairs(): void
     {
         [$station, $receiver, $admin, $item] = $this->setupDelivery();
-        ItemDelivery::query()->create(['delivery_number' => 'DEL-20260930-000001', 'station_id' => $station->id, 'delivered_by_id' => $admin->id, 'received_by_id' => $receiver->id, 'delivered_at' => now()]);
+        ItemDelivery::query()->create(['delivery_number' => 'DEL20260930000001', 'station_id' => $station->id, 'delivered_by_id' => $admin->id, 'received_by_id' => $receiver->id, 'delivered_at' => now()]);
         try {
-            ItemDelivery::query()->create(['delivery_number' => 'DEL-20260930-000001', 'station_id' => $station->id, 'delivered_by_id' => $admin->id, 'received_by_id' => $receiver->id, 'delivered_at' => now()]);
+            ItemDelivery::query()->create(['delivery_number' => 'DEL20260930000001', 'station_id' => $station->id, 'delivered_by_id' => $admin->id, 'received_by_id' => $receiver->id, 'delivered_at' => now()]);
             $this->fail('Expected unique delivery number constraint');
         } catch (QueryException) {
             $this->assertDatabaseCount('item_deliveries', 1);
@@ -177,6 +176,6 @@ class ItemDeliveryApiTest extends TestCase
 
     private function item(string $code, string $name): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'quantity' => '0.000', 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
     }
 }

@@ -27,8 +27,8 @@ class OrderHistoryApiTest extends TestCase
     public function test_admin_can_list_all_orders_filter_by_station_and_view_details(): void
     {
         [$firstStation, $secondStation, $firstCashier, $secondCashier] = $this->contexts();
-        $first = $this->order($firstStation, $firstCashier, 'ORD-20260901-000001', '2026-09-01 08:00:00');
-        $second = $this->order($secondStation, $secondCashier, 'ORD-20260902-000002', '2026-09-02 08:00:00');
+        $first = $this->order($firstStation, $firstCashier, 'ORD20260901000001', '2026-09-01 08:00:00');
+        $second = $this->order($secondStation, $secondCashier, 'ORD20260902000002', '2026-09-02 08:00:00');
         Sanctum::actingAs(User::factory()->admin()->create());
 
         $this->getJson('/api/orders')->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('data.0.id', $second->id)
@@ -74,6 +74,18 @@ class OrderHistoryApiTest extends TestCase
         $this->getJson('/api/orders?to_date=2026-09-10')->assertOk()->assertJsonCount(1, 'data');
     }
 
+    public function test_date_filters_use_manila_calendar_boundaries(): void
+    {
+        [$station, , $cashier] = $this->contexts();
+        $order = $this->order($station, $cashier, 'ORD-MANILA-MIDNIGHT', '2026-09-30 16:30:00');
+        Sanctum::actingAs(User::factory()->admin()->create());
+
+        $this->getJson('/api/orders?from_date=2026-10-01&to_date=2026-10-01')
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $order->id);
+        $this->getJson('/api/orders?from_date=2026-09-30&to_date=2026-09-30')
+            ->assertOk()->assertJsonCount(0, 'data');
+    }
+
     public function test_history_paginates_ten_and_orders_newest_first(): void
     {
         [$station, , $cashier] = $this->contexts();
@@ -111,7 +123,7 @@ class OrderHistoryApiTest extends TestCase
 
     private function order(Station $station, User $cashier, string $number, string $orderedAt): Order
     {
-        $item = Item::query()->firstOrCreate(['item_code' => 'MASTER'], ['name' => 'Master', 'quantity' => '0.000', 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
+        $item = Item::query()->firstOrCreate(['item_code' => 'MASTER'], ['name' => 'Master', 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
         $order = Order::query()->create(['order_number' => $number, 'ordered_at' => $orderedAt, 'station_id' => $station->id, 'cashier_id' => $cashier->id, 'payment_method' => 'cash', 'total_amount' => '50.00', 'cash_received' => '100.00', 'change_amount' => '50.00']);
         $order->orderItems()->create(['item_id' => $item->id, 'item_code' => 'OLD-CODE', 'item_name' => 'Old Name', 'unit' => 'PACK', 'quantity' => '2.000', 'unit_price' => '25.00', 'subtotal' => '50.00']);
 

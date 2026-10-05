@@ -116,12 +116,12 @@ export function SuppliersPage() {
         <Pagination currentPage={supplierList.currentPage} lastPage={supplierList.lastPage} label="Supplier" onPageChange={setPage} />
       </>}
 
-      <Modal open={formDialog !== null} title={editingSupplier ? 'Edit Supplier' : 'Add Supplier'} onClose={closeForm} actions={<><Button variant="outline" onClick={closeForm} disabled={submitting}>Cancel</Button><Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingSupplier ? 'Save Changes' : 'Save Supplier'}</Button></>}>
+      <Modal open={formDialog !== null} title={editingSupplier ? 'Edit Supplier' : 'Add Supplier'} onClose={closeForm} actions={<Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingSupplier ? 'Save Changes' : 'Save Supplier'}</Button>}>
         {formError ? <Alert tone="error" title="Supplier could not be saved">{formError}</Alert> : null}
         {formDialog ? <SupplierForm key={formId} formId={formId} supplier={editingSupplier} errors={fieldErrors} disabled={submitting} onSubmit={(input) => void save(input)} /> : null}
       </Modal>
 
-      <Modal open={deleteTarget !== null} title="Delete Supplier?" onClose={() => { if (!submitting) { setDeleteTarget(null); setFormError(null) } }} actions={<><Button variant="outline" disabled={submitting} onClick={() => { setDeleteTarget(null); setFormError(null) }}>Cancel</Button><Button variant="danger" disabled={submitting} onClick={() => void remove()} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Deleting…' : 'Delete Supplier'}</Button></>}>
+      <Modal open={deleteTarget !== null} title="Delete Supplier?" onClose={() => { if (!submitting) { setDeleteTarget(null); setFormError(null) } }} actions={<Button variant="danger" disabled={submitting} onClick={() => void remove()} icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Deleting…' : 'Delete Supplier'}</Button>}>
         {formError ? <Alert tone="error" title="Supplier could not be deleted">{formError}</Alert> : null}
         <div className="supplier-delete"><AppIcons.warning className="supplier-delete__icon" size={32} strokeWidth={iconStroke} aria-hidden="true" /><div><p>Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?</p><p>This action cannot be undone.</p></div></div>
       </Modal>

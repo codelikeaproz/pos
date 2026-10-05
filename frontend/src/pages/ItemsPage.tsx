@@ -19,7 +19,7 @@ const EMPTY_LIST: ItemList = { items: [], currentPage: 1, lastPage: 1, total: 0 
 
 function fieldErrorsFrom(error: unknown): ItemFieldErrors {
   if (!(error instanceof ApiError)) return {}
-  return { item_code: error.errors.item_code?.[0], name: error.errors.name?.[0], quantity: error.errors.quantity?.[0], units_backup: error.errors.units_backup?.[0], unit: error.errors.unit?.[0], reorder_point: error.errors.reorder_point?.[0], price: error.errors.price?.[0] }
+  return { item_code: error.errors.item_code?.[0], name: error.errors.name?.[0], units_backup: error.errors.units_backup?.[0], unit: error.errors.unit?.[0], reorder_point: error.errors.reorder_point?.[0], price: error.errors.price?.[0] }
 }
 
 export function ItemsPage() {
@@ -96,12 +96,12 @@ export function ItemsPage() {
         <Pagination currentPage={itemList.currentPage} lastPage={itemList.lastPage} label="Item" onPageChange={setPage} />
       </>}
 
-      <Modal open={formDialog !== null} title={editingItem ? 'Edit Item' : 'Add Item'} onClose={closeForm} actions={<><Button variant="outline" onClick={closeForm} disabled={submitting}>Cancel</Button><Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingItem ? 'Save Changes' : 'Save Item'}</Button></>}>
+      <Modal open={formDialog !== null} title={editingItem ? 'Edit Item' : 'Add Item'} onClose={closeForm} actions={<Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingItem ? 'Save Changes' : 'Save Item'}</Button>}>
         {formError ? <Alert tone="error" title="Item could not be saved">{formError}</Alert> : null}
         {formDialog ? <ItemForm key={formId} formId={formId} item={editingItem} errors={fieldErrors} disabled={submitting} onSubmit={(input) => void save(input)} /> : null}
       </Modal>
 
-      <Modal open={deactivateTarget !== null} title="Deactivate Item?" onClose={() => { if (!submitting) { setDeactivateTarget(null); setFormError(null) } }} actions={<><Button variant="outline" disabled={submitting} onClick={() => setDeactivateTarget(null)}>Cancel</Button><Button variant="danger" disabled={submitting} onClick={() => deactivateTarget && void changeStatus(deactivateTarget, false)}>Deactivate Item</Button></>}>
+      <Modal open={deactivateTarget !== null} title="Deactivate Item?" onClose={() => { if (!submitting) { setDeactivateTarget(null); setFormError(null) } }} actions={<Button variant="danger" disabled={submitting} onClick={() => deactivateTarget && void changeStatus(deactivateTarget, false)}>Deactivate Item</Button>}>
         {formError ? <Alert tone="error">{formError}</Alert> : null}
         <p>Deactivate <strong>{deactivateTarget?.name}</strong>? It will no longer appear in POS for new sales. Its station stock and sales history will remain.</p>
       </Modal>

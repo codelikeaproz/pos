@@ -17,6 +17,7 @@ class StationResource extends JsonResource
             'name' => $this->name,
             'location' => $this->location,
             'description' => $this->description,
+            'assigned_users_count' => $this->users_count,
         ];
     }
 }

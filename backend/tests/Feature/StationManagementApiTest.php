@@ -51,6 +51,23 @@ class StationManagementApiTest extends TestCase
         $this->assertDatabaseMissing('stations', ['id' => $stationId]);
     }
 
+    public function test_station_with_an_assigned_user_cannot_be_deleted(): void
+    {
+        $station = Station::query()->create(['name' => 'Main Station', 'location' => 'Main Lobby']);
+        User::factory()->endUser()->create(['station_id' => $station->id]);
+        Sanctum::actingAs(User::factory()->admin()->create());
+
+        $this->getJson('/api/stations')
+            ->assertOk()
+            ->assertJsonPath('data.0.assigned_users_count', 1);
+
+        $this->deleteJson("/api/stations/{$station->id}")
+            ->assertConflict()
+            ->assertJsonPath('message', 'This station is assigned to an account and cannot be deleted.');
+
+        $this->assertDatabaseHas('stations', ['id' => $station->id]);
+    }
+
     public function test_station_validation_rejects_missing_and_duplicate_names(): void
     {
         Station::query()->create(['name' => 'Main Station', 'location' => 'Main Lobby']);

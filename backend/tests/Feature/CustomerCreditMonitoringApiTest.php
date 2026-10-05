@@ -142,7 +142,7 @@ class CustomerCreditMonitoringApiTest extends TestCase
     private function order(Station $station, User $cashier, ?int $customerId, string $method, string $total, ?string $orderedAt = null, int $sequence = 1): Order
     {
         return Order::query()->create([
-            'order_number' => 'ORD-20260930-'.str_pad((string) (Order::query()->count() + $sequence), 6, '0', STR_PAD_LEFT),
+            'order_number' => 'ORD20260930'.str_pad((string) (Order::query()->count() + $sequence), 6, '0', STR_PAD_LEFT),
             'ordered_at' => $orderedAt ?? now(),
             'station_id' => $station->id,
             'cashier_id' => $cashier->id,

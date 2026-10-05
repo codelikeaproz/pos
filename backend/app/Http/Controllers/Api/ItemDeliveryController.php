@@ -90,7 +90,7 @@ class ItemDeliveryController extends Controller
                 'received_by_id' => $receiver->id,
                 'delivered_at' => now(),
             ]);
-            $delivery->update(['delivery_number' => 'DEL-'.$delivery->delivered_at->format('Ymd').'-'.str_pad((string) $delivery->id, 6, '0', STR_PAD_LEFT)]);
+            $delivery->update(['delivery_number' => 'DEL'.$delivery->delivered_at->setTimezone('Asia/Manila')->format('Ymd').str_pad((string) $delivery->id, 6, '0', STR_PAD_LEFT)]);
 
             foreach ($requested as $line) {
                 $item = $items->get($line['itemId']);

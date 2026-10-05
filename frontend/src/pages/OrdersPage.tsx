@@ -14,11 +14,12 @@ import { PaymentReceipt } from '../features/pos/PaymentReceipt'
 import { PosItemSearch } from '../features/pos/PosItemSearch'
 import { PosStationInventoryDialog } from '../features/pos/PosStationInventoryDialog'
 import { PosTransactionsDialog } from '../features/pos/PosTransactionsDialog'
+import { SeniorDiscountDialog } from '../features/pos/SeniorDiscountDialog'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
-import { addOneToQuantity, cartTotalCents, formatPesoCents, formatPosQuantity, formatQuantity, moneyToCents, normalizeQuantity, quantityToThousandths, validateCartQuantity, validateManualQuantity } from '../lib/posCalculations'
+import { addOneToQuantity, cartTotalCents, formatPesoCents, formatPosQuantity, formatQuantity, moneyToCents, normalizeQuantity, quantityToThousandths, seniorDiscountCents, validateCartQuantity, validateManualQuantity } from '../lib/posCalculations'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
 import { checkoutOrder, loadPosItems } from '../services/posService'
-import type { CartItem, CheckoutOrder, PosItem, PosItemList } from '../types/pos'
+import type { CartItem, CheckoutOrder, PosItem, PosItemList, SeniorDiscount } from '../types/pos'
 import type { Customer } from '../types/customer'
 import './orders-page.css'
 import '../features/pos/header-actions.css'
@@ -44,6 +45,9 @@ export function OrdersPage() {
   const [newOrderOpen, setNewOrderOpen] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
   const [transactionsOpen, setTransactionsOpen] = useState(false)
+  const [orTransactionsOpen, setOrTransactionsOpen] = useState(false)
+  const [discountDialogOpen, setDiscountDialogOpen] = useState(false)
+  const [seniorDiscount, setSeniorDiscount] = useState<SeniorDiscount | null>(null)
   const [stationInventoryOpen, setStationInventoryOpen] = useState(false)
   const [cashReceived, setCashReceived] = useState('')
   const [cashDialogOpen, setCashDialogOpen] = useState(false)
@@ -78,11 +82,17 @@ export function OrdersPage() {
     return () => controller.abort()
   }, [loadItems])
 
-  const total = useMemo(() => cartTotalCents(cart), [cart])
+  const subtotal = useMemo(() => cartTotalCents(cart), [cart])
+  const discount = useMemo(() => seniorDiscount ? seniorDiscountCents(subtotal, seniorDiscount.customerCount, seniorDiscount.seniorCount) : 0n, [seniorDiscount, subtotal])
+  const total = subtotal - discount
   const cashCents = useMemo(() => moneyToCents(cashReceived), [cashReceived])
   const changeCents = cashCents !== null && cashCents >= total ? cashCents - total : null
   const cashNeedsCorrection = paymentMethod === 'cash' && cashCents !== null && cashCents < total
   const stationId = list.station.id || currentUser?.station?.id || 0
+
+  useEffect(() => {
+    if (cart.length === 0 && seniorDiscount) setSeniorDiscount(null)
+  }, [cart.length, seniorDiscount])
 
   function addItem(item: PosItem): boolean {
     const existing = cart.find((cartItem) => cartItem.itemId === item.id)
@@ -119,6 +129,16 @@ export function OrdersPage() {
   function openTransactions(): void {
     if (!stationId) { showToast('This account is not assigned to a Station.', 'info'); return }
     setTransactionsOpen(true)
+  }
+
+  function openOrTransactions(): void {
+    if (!stationId) { showToast('This account is not assigned to a Station.', 'info'); return }
+    setOrTransactionsOpen(true)
+  }
+
+  function openDiscount(): void {
+    if (cart.length === 0) { showToast('Add an item before applying a discount.', 'info'); return }
+    setDiscountDialogOpen(true)
   }
 
   const closeCashDialog = useCallback(() => setCashDialogOpen(false), [])
@@ -172,9 +192,13 @@ export function OrdersPage() {
 
   useEffect(() => {
     function onShortcut(event: KeyboardEvent): void {
-      if (editing || quantityPickerOpen || newOrderOpen || exitOpen || cashDialogOpen || customerSelectorOpen || transactionsOpen || stationInventoryOpen || completedOrder || processingPayment) return
+      const discountShortcut = event.ctrlKey && event.key.toLowerCase() === 'd'
+      if (discountShortcut) event.preventDefault()
+      if (editing || quantityPickerOpen || newOrderOpen || exitOpen || cashDialogOpen || customerSelectorOpen || discountDialogOpen || orTransactionsOpen || transactionsOpen || stationInventoryOpen || completedOrder || processingPayment) return
+      if (discountShortcut) { openDiscount(); return }
       if (event.key === 'F3') { event.preventDefault(); openCashDialog() }
       if (event.key === 'F4') { event.preventDefault(); openCreditDialog() }
+      if (event.key === 'F6') { event.preventDefault(); openOrTransactions() }
       if (event.key === 'F7') { event.preventDefault(); openTransactions() }
       if (event.key === 'F9') { event.preventDefault(); chooseQuantity() }
       if (event.key === 'F10') { event.preventDefault(); startNewOrder() }
@@ -186,7 +210,7 @@ export function OrdersPage() {
   })
 
   function clearCart(): void {
-    setCart([]); setCashReceived(''); setPaymentMethod('cash'); setSelectedCustomer(null); setPaymentError(null); setEditing(null); setQuantityPickerOpen(false); setNewOrderOpen(false); showToast('New order ready.', 'info')
+    setCart([]); setCashReceived(''); setPaymentMethod('cash'); setSelectedCustomer(null); setSeniorDiscount(null); setPaymentError(null); setEditing(null); setQuantityPickerOpen(false); setNewOrderOpen(false); showToast('New order ready.', 'info')
   }
 
   async function pay(): Promise<void> {
@@ -195,8 +219,8 @@ export function OrdersPage() {
     if (paymentMethod === 'credit' && !selectedCustomer) { setPaymentError('Select a Customer for Credit / Utang.'); setCustomerSelectorOpen(true); return }
     setProcessingPayment(true); setPaymentError(null)
     try {
-      const order = await checkoutOrder(cart, paymentMethod, cashReceived, selectedCustomer?.id ?? null)
-      setCompletedOrder(order); setCart([]); setCashReceived(''); setPaymentMethod('cash'); setSelectedCustomer(null)
+      const order = await checkoutOrder(cart, paymentMethod, cashReceived, selectedCustomer?.id ?? null, seniorDiscount)
+      setCompletedOrder(order); setCart([]); setCashReceived(''); setPaymentMethod('cash'); setSelectedCustomer(null); setSeniorDiscount(null)
       await loadItems()
     } catch (checkoutError) {
       setPaymentError(getUserFacingApiMessage(checkoutError))
@@ -214,10 +238,10 @@ export function OrdersPage() {
   return <section className="page pos-page">
     <header className="pos-masthead"><div><p className="pos-masthead__eyebrow">POINT OF SALE AND INVENTORY SYSTEM</p><h1>CMU HomeStay</h1></div><div className="pos-masthead__identity"><span>Station: <strong>{stationName}</strong></span><span>User: <strong>{currentUser?.name ?? 'Unknown user'}</strong></span></div></header>
     <div className="pos-layout">
-      <div className="pos-left-column"><section className="pos-panel pos-inventory"><div className="pos-panel__heading"><div><h2>Available Items</h2><p>{list.total} item{list.total === 1 ? '' : 's'} assigned to this Station</p></div></div><PosItemSearch inline value={searchInput} search={search} list={list} loading={loading} error={error} suspended={Boolean(editing || quantityPickerOpen || newOrderOpen || exitOpen || cashDialogOpen || customerSelectorOpen || transactionsOpen || stationInventoryOpen || completedOrder || processingPayment)} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} onPageChange={setPage} onAdd={addItem} /></section></div>
-      <section className="pos-right-column"><div className="pos-transaction-top"><div><span className="pos-transaction-top__label">Transaction Number</span><strong>Assigned after payment</strong></div><div><span className="pos-transaction-top__label">Customer</span><strong>{paymentMethod === 'credit' ? selectedCustomer?.name ?? 'Select Customer' : 'Walk-in'}</strong></div></div><section className="pos-panel pos-order"><div className="pos-panel__heading"><div><h2>Current Order</h2><p>{cart.length} item{cart.length === 1 ? '' : 's'} in cart</p></div></div><div className="pos-order__table"><CurrentOrderTable items={cart} onEdit={openQuantityEditor} onRemove={(itemId) => setCart((current) => current.filter((item) => item.itemId !== itemId))} /></div></section><PaymentPanel total={formatPesoCents(total)} cashReceived={cashReceived} change={changeCents === null ? '—' : formatPesoCents(changeCents)} paymentMethod={paymentMethod} customer={selectedCustomer} onCashSelect={openCashDialog} onCreditSelect={openCreditDialog} error={paymentError ?? (cashNeedsCorrection ? 'Cash Received is below the current total. Press F3 to update it.' : null)} processing={processingPayment} disabled={cart.length === 0} onPay={() => void pay()} /></section>
+      <div className="pos-left-column"><section className="pos-panel pos-inventory"><div className="pos-panel__heading"><div><h2>Available Items</h2><p>{list.total} item{list.total === 1 ? '' : 's'} assigned to this Station</p></div></div><PosItemSearch inline value={searchInput} search={search} list={list} loading={loading} error={error} suspended={Boolean(editing || quantityPickerOpen || newOrderOpen || exitOpen || cashDialogOpen || customerSelectorOpen || discountDialogOpen || orTransactionsOpen || transactionsOpen || stationInventoryOpen || completedOrder || processingPayment)} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} onPageChange={setPage} onAdd={addItem} /></section></div>
+      <section className="pos-right-column"><div className="pos-transaction-top"><div><span className="pos-transaction-top__label">Transaction Number</span><strong>Assigned after payment</strong></div><div><span className="pos-transaction-top__label">Customer</span><strong>{paymentMethod === 'credit' ? selectedCustomer?.name ?? 'Select Customer' : 'Walk-in'}</strong></div></div><section className="pos-panel pos-order"><div className="pos-panel__heading"><div><h2>Current Order</h2><p>{cart.length} item{cart.length === 1 ? '' : 's'} in cart</p></div></div><div className="pos-order__table"><CurrentOrderTable items={cart} onEdit={openQuantityEditor} onRemove={(itemId) => setCart((current) => current.filter((item) => item.itemId !== itemId))} /></div></section><PaymentPanel subtotal={formatPesoCents(subtotal)} discount={formatPesoCents(discount)} total={formatPesoCents(total)} cashReceived={cashReceived} change={changeCents === null ? '—' : formatPesoCents(changeCents)} paymentMethod={paymentMethod} customer={selectedCustomer} onCashSelect={openCashDialog} onCreditSelect={openCreditDialog} error={paymentError ?? (cashNeedsCorrection ? 'Cash Received is below the current total. Press F3 to update it.' : null)} processing={processingPayment} disabled={cart.length === 0} onPay={() => void pay()} /></section>
     </div>
-    <footer className="pos-action-strip"><time className="pos-action-strip__clock" dateTime={now.toISOString()}>{currentTime}</time><div className="pos-action-strip__shortcuts"><button type="button" onClick={openTransactions} disabled={processingPayment}>F7 · View Transactions</button><button type="button" onClick={chooseQuantity} disabled={processingPayment}>F9 · Qty</button><button type="button" onClick={startNewOrder} disabled={processingPayment}>F10 · New Order</button><button type="button" onClick={() => setStationInventoryOpen(true)} disabled={processingPayment}>F12 · Station Inventory</button></div><button type="button" className="pos-action-strip__exit" onClick={exitPos} disabled={processingPayment}>Esc · Exit POS</button></footer>
+    <footer className="pos-action-strip"><time className="pos-action-strip__clock" dateTime={now.toISOString()}>{currentTime}</time><div className="pos-action-strip__shortcuts"><button type="button" onClick={openDiscount} disabled={processingPayment}>Ctrl+D · Apply Discount</button><button type="button" onClick={openOrTransactions} disabled={processingPayment}>F6 · O.R Transactions</button><button type="button" onClick={openTransactions} disabled={processingPayment}>F7 · Current Station Transactions</button><button type="button" onClick={chooseQuantity} disabled={processingPayment}>F9 · Qty</button><button type="button" onClick={startNewOrder} disabled={processingPayment}>F10 · New Order</button><button type="button" onClick={() => setStationInventoryOpen(true)} disabled={processingPayment}>F12 · Station Inventory</button></div><button type="button" className="pos-action-strip__exit" onClick={exitPos} disabled={processingPayment}>Esc · Exit POS</button></footer>
     <Modal open={editing !== null} title="Change Quantity" onClose={() => setEditing(null)} actions={<Button onClick={updateQuantity} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>Update Quantity</Button>}><div className="pos-quantity-dialog">
       <div className="modal-summary__grid">
         <div className="modal-summary__field"><span>Item</span><strong>{editing?.name}</strong></div>
@@ -235,7 +259,9 @@ export function OrdersPage() {
     <Modal open={newOrderOpen} title="Start New Order?" onClose={() => setNewOrderOpen(false)} actions={<Button onClick={clearCart} icon={<AppIcons.newOrder size={iconSize} strokeWidth={iconStroke} />}>Start New Order</Button>}><div className="pos-new-order-warning"><AppIcons.warning size={24} /><p>The current order contains items that have not been paid. Starting a new order will clear the current cart.</p></div></Modal>
     <Modal open={exitOpen} title="Exit POS?" onClose={() => setExitOpen(false)} actions={<Button onClick={() => navigate('/dashboard')}>Exit POS</Button>}><p>The current cart has not been submitted. Exiting POS will discard it.</p></Modal>
     <CashReceivedDialog open={cashDialogOpen} totalCents={total} currentAmount={cashReceived} onClose={closeCashDialog} onConfirm={(amount) => { setCashReceived(amount); setPaymentMethod('cash'); setSelectedCustomer(null); setPaymentError(null); setCashDialogOpen(false) }} />
+    <SeniorDiscountDialog open={discountDialogOpen} subtotalCents={subtotal} value={seniorDiscount} onClose={() => setDiscountDialogOpen(false)} onApply={(value) => { setSeniorDiscount(value); setDiscountDialogOpen(false); setPaymentError(null) }} onRemove={() => { setSeniorDiscount(null); setDiscountDialogOpen(false); setPaymentError(null) }} />
     <CustomerSelector open={customerSelectorOpen} selected={selectedCustomer} onClose={closeCustomerSelector} onSelect={(customer) => { setSelectedCustomer(customer); setPaymentMethod('credit'); setCashReceived(''); setPaymentError(customer ? null : 'Select a Customer before submitting Credit / Utang.'); setCustomerSelectorOpen(false) }} />
+    <PosTransactionsDialog open={orTransactionsOpen} stationId={stationId} mode="or" onClose={() => setOrTransactionsOpen(false)} />
     <PosTransactionsDialog open={transactionsOpen} stationId={stationId} onClose={() => setTransactionsOpen(false)} />
     <PosStationInventoryDialog open={stationInventoryOpen} onClose={() => setStationInventoryOpen(false)} />
     <Modal open={completedOrder !== null} title="Order Successful" onClose={() => setCompletedOrder(null)} actions={<Button onClick={() => setCompletedOrder(null)}>Done</Button>}>{completedOrder ? <PaymentReceipt order={completedOrder} /> : null}</Modal>

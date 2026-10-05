@@ -70,6 +70,12 @@ export function cartTotalCents(items: Array<{ unitPrice: string; quantity: strin
   return items.reduce((total, item) => total + lineSubtotalCents(item.unitPrice, item.quantity), 0n)
 }
 
+export function seniorDiscountCents(subtotalCents: bigint, customerCount: number, seniorCount: number): bigint {
+  if (!Number.isInteger(customerCount) || !Number.isInteger(seniorCount) || customerCount < 1 || seniorCount < 1 || seniorCount > customerCount) return 0n
+  const denominator = BigInt(customerCount) * 5n
+  return (subtotalCents * BigInt(seniorCount) + denominator / 2n) / denominator
+}
+
 export function formatPesoCents(cents: bigint): string {
   const whole = cents / 100n
   const fraction = (cents % 100n).toString().padStart(2, '0')

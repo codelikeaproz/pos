@@ -5,7 +5,7 @@ import { formatManilaDateTime } from '../../lib/dateTime'
 import { formatPrice } from '../../lib/posCalculations'
 import type { OrderHistoryRow } from '../../types/order'
 
-export function TransactionTable({ orders, emptyMessage, onView }: { orders: OrderHistoryRow[]; emptyMessage: string; onView: (order: OrderHistoryRow) => void }) {
+export function TransactionTable({ orders, emptyMessage, showDateRemitted = false, onView }: { orders: OrderHistoryRow[]; emptyMessage: string; showDateRemitted?: boolean; onView: (order: OrderHistoryRow) => void }) {
   const columns: TableColumn<OrderHistoryRow>[] = [
     { key: 'number', header: 'Order No.', render: (order) => order.orderNumber },
     { key: 'date', header: 'Date / Time', render: (order) => formatManilaDateTime(order.orderedAt) },
@@ -13,6 +13,7 @@ export function TransactionTable({ orders, emptyMessage, onView }: { orders: Ord
     { key: 'cashier', header: 'Cashier', render: (order) => order.cashier.name },
     { key: 'payment', header: 'MOP', render: (order) => order.paymentMethod === 'cash' ? 'Cash' : order.paymentMethod === 'credit' ? 'Credit / Utang' : order.paymentMethod },
     { key: 'total', header: 'Total', align: 'right', render: (order) => formatPrice(order.totalAmount) },
+    ...(showDateRemitted ? [{ key: 'remitted', header: 'Date Remitted', render: (order: OrderHistoryRow) => order.remittedAt ? formatManilaDateTime(order.remittedAt) : 'Not Remitted' } satisfies TableColumn<OrderHistoryRow>] : []),
     { key: 'actions', header: 'Action', align: 'center', render: (order) => <Button className="table-icon-action" variant="outline" aria-label={`View details for ${order.orderNumber}`} title={`View details for ${order.orderNumber}`} onClick={() => onView(order)} icon={<AppIcons.view size={iconSize} strokeWidth={iconStroke} />} /> }
   ]
   return <Table columns={columns} rows={orders} rowKey={(order) => String(order.id)} emptyMessage={emptyMessage} />

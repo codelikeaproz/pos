@@ -4,3 +4,6 @@
 .pos-dialog-content__filters > div:not(:first-child) { display: flex; flex-direction: column; }
 .pos-dialog-content .ui-table-wrap { max-height: 480px; overflow: auto; }
 @media (max-width: 750px) { .pos-dialog-content__filters { grid-template-columns: 1fr; } }
+.senior-discount-dialog { display: grid; gap: var(--space-3); }
+.senior-discount-dialog > div:not(.modal-summary__grid) { display: grid; gap: var(--space-1); }
+.senior-discount-dialog .page__field-error { margin: 0; }

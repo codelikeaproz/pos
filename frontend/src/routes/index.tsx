@@ -12,6 +12,7 @@ import { EmployeesPage } from '../pages/EmployeesPage'
 import { ItemsPage } from '../pages/ItemsPage'
 import { ItemDeliveriesPage } from '../pages/ItemDeliveriesPage'
 import { OrdersPage } from '../pages/OrdersPage'
+import { OrTransactionsPage } from '../pages/OrTransactionsPage'
 import { PricesPage } from '../pages/PricesPage'
 import { SaleRemittancesPage } from '../pages/SaleRemittancesPage'
 import { PrivilegesPage } from '../pages/PrivilegesPage'
@@ -45,6 +46,7 @@ export const appRoutes: RouteObject[] = [
               { path: 'privilege', element: <PrivilegesPage /> },
               { path: 'privilege-assignment', element: <PrivilegeAssignmentsPage /> },
               { path: 'sale-remittance', element: <SaleRemittancesPage /> },
+              { path: 'or-transactions', element: <OrTransactionsPage /> },
               { path: 'stations', element: <StationsPage /> },
               { path: 'station-inventory', element: <StationInventoryPage /> },
               { path: 'item-deliveries', element: <ItemDeliveriesPage /> },

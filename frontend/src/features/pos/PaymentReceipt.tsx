@@ -25,8 +25,9 @@ export function PaymentReceipt({ order }: { order: CheckoutOrder }) {
     </div>
 
     <div className="pos-receipt__total">
-      <span>Total Price</span>
-      <strong>{formatPrice(order.totalAmount)}</strong>
+      <span>Subtotal</span><strong>{formatPrice(order.subtotalAmount)}</strong>
+      {Number(order.discountAmount) > 0 ? <><span>Senior Discount</span><strong>-{formatPrice(order.discountAmount)}</strong><span>Customers / Seniors</span><strong>{order.customerCount} / {order.seniorCount}</strong></> : null}
+      <span>Total</span><strong>{formatPrice(order.totalAmount)}</strong>
     </div>
 
     {order.paymentMethod === 'credit' && order.customer ? <div className="pos-receipt__customer">

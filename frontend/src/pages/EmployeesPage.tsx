@@ -49,7 +49,7 @@ function fieldErrorsFrom(error: unknown): EmployeeFieldErrors {
 }
 
 export function EmployeesPage() {
-  const { currentUser } = useAuth()
+  const { currentUser, refreshCurrentUser } = useAuth()
   const { showToast } = useToast()
   const [employeeList, setEmployeeList] = useState<EmployeeList>(EMPTY_LIST)
   const [searchInput, setSearchInput] = useState('')
@@ -138,6 +138,13 @@ export function EmployeesPage() {
         formDialog.mode === 'create'
           ? await createEmployee(input)
           : await updateEmployee(formDialog.employee.id, input)
+
+      if (
+        formDialog.mode === 'edit' &&
+        formDialog.employee.id === currentUser?.id
+      ) {
+        await refreshCurrentUser()
+      }
 
       setFormDialog(null)
       showToast(response.message)

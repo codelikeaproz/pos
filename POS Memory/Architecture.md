@@ -1,5 +1,21 @@
-	# University HomeStay POS
+# University HomeStay POS
 ## Architecture
+
+### Phase 10.19.1 Senior Citizen discount (2026-10-05)
+
+Senior Citizen discount is an Order-level adjustment inside the existing protected checkout. The authoritative formula is `(Order Subtotal / Number of Customers) × 20% × Number of Senior Citizens`. Laravel calculates the rational discount in integer cents and rounds half-up once to the nearest cent; for example, ₱100 / 3 customers / 1 Senior produces ₱6.67.
+
+`orders.subtotal_amount` preserves the authoritative pre-discount total, `discount_amount` preserves the calculated discount, `total_amount` remains the final payable amount, and nullable `customer_count` / `senior_count` preserve the inputs. Order Item Price and subtotal snapshots remain pre-discount values. Cash validation and Change use the final total; Credit Monitoring, Sale Remittance, and O.R Transactions continue reading the persisted final `total_amount`.
+
+The React calculation is preview-only and uses integer cents. Cart or Price changes recalculate the preview from the current subtotal and saved counts. Inventory deduction and SALE movement quantities remain based only on sold quantities.
+
+### Phase 10.19 O.R Transactions (2026-10-05)
+
+O.R Transactions are a read-only representation of completed POS Orders. They do not use a separate business table: `orders` remains the transaction header and `order_items` preserves historical Item snapshots. The UI displays `orders.order_number` as Order Number and reserves a separate O.R Number field for the future Accounting Office integration; no O.R value is fabricated or persisted locally.
+
+The standalone Admin page and POS F6 dialog share the same Order resources and query rules. Both include Cash and Credit / Utang Orders, support Customer, Station, Cashier, and Order-number search, use inclusive Asia/Manila calendar-date boundaries, and paginate at 10 records. The Admin page may view all Stations or filter one Station. POS F6 always derives its Station scope from the authenticated User and rejects cross-Station detail access, including for an Admin operating POS.
+
+O.R Transactions never create or alter Orders, inventory, Inventory Movements, payment data, Customer assignments, remittance state, or Credit settlement. Credit Monitoring remains the Credit / Utang monitoring view; Sale Remittance remains the Cash-only remittance workflow. Physical receipt printing remains deferred.
 
 ### Phase 10.18.1 Product and inventory boundary cleanup (2026-10-05)
 

@@ -57,3 +57,8 @@
   color: var(--color-text-muted);
   padding: var(--space-6) !important;
 }
+
+.ui-table-sort { display: inline-flex; align-items: center; gap: 3px; }
+.ui-table-sort button { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--color-text-secondary); background: transparent; cursor: pointer; }
+.ui-table-sort button:hover, .ui-table-sort button:focus-visible { border-color: var(--color-brand-green); color: var(--color-brand-green); }
+.ui-table-sort button.is-active { color: white; background: var(--color-brand-green); }

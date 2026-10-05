@@ -56,8 +56,14 @@ export type CheckoutOrder = {
   cashier: { id: number; name: string }
   paymentMethod: 'cash' | 'credit'
   customer: { id: number; name: string; address: string } | null
+  customerCount: number | null
+  seniorCount: number | null
+  subtotalAmount: string
+  discountAmount: string
   totalAmount: string
   cashReceived: string | null
   changeAmount: string | null
   items: Array<{ itemId: number; itemCode: string; itemName: string; unit: string; quantity: string; unitPrice: string; subtotal: string }>
 }
+
+export type SeniorDiscount = { customerCount: number; seniorCount: number }

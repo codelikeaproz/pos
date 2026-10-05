@@ -22,6 +22,8 @@ class CheckoutOrderRequest extends FormRequest
             'paymentMethod' => ['required', Rule::in(['cash', 'credit'])],
             'cashReceived' => ['required_if:paymentMethod,cash', 'nullable', 'string', 'regex:/^\d{1,10}(\.\d{1,2})?$/'],
             'customerId' => ['required_if:paymentMethod,credit', 'nullable', 'integer', 'exists:customers,id'],
+            'customerCount' => ['nullable', 'required_with:seniorCount', 'integer', 'min:1'],
+            'seniorCount' => ['nullable', 'required_with:customerCount', 'integer', 'min:1', 'lte:customerCount'],
         ];
     }
 
@@ -34,6 +36,7 @@ class CheckoutOrderRequest extends FormRequest
             'items.*.expectedUnitPrice.regex' => 'Expected price must have no more than two decimal places.',
             'paymentMethod.in' => 'Select Cash or Credit / Utang.',
             'cashReceived.regex' => 'Cash received must be a valid amount with no more than two decimal places.',
+            'seniorCount.lte' => 'Number of Senior Citizens cannot exceed Number of Customers.',
         ];
     }
 }

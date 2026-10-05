@@ -49,6 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pos/checkout', [PosCheckoutController::class, 'store']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::get('/pos/or-transactions', [OrderController::class, 'posOrTransactions']);
+    Route::get('/pos/or-transactions/{order}', [OrderController::class, 'posOrTransaction']);
+    Route::get('/or-transactions', [OrderController::class, 'orTransactions'])->middleware('admin');
+    Route::get('/or-transactions/{order}', [OrderController::class, 'orTransaction'])->middleware('admin');
 
     Route::get('/employee-options', [UserController::class, 'options'])->middleware('admin');
 

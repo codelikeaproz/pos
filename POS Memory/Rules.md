@@ -2,6 +2,22 @@
 
 ## Development Rules
 
+### Phase 10.19.1 Senior Citizen discount rules
+
+Use the exact Order-level formula `Senior Discount = (Order Subtotal / Number of Customers) × 20% × Number of Senior Citizens`. Require positive whole-number counts and reject Senior count above Customer count. Calculate authoritatively during Laravel checkout using integer cents, with one half-up rounding to the nearest cent on the final discount.
+
+Accept only Customer and Senior counts from the client. Never trust submitted subtotal, discount, or final-total values. Preserve authoritative subtotal, discount, final total, and counts on the Order. Keep Order Item snapshots, Station stock deductions, and SALE movement quantities unchanged by monetary discounting.
+
+Keep shortcuts fixed: Ctrl+D = Apply Senior Citizen Discount, F6 = O.R Transactions, F7 = Current Station Transactions, F9 = Quantity, F10 = New Order, and F12 = Station Inventory.
+
+### Phase 10.19 O.R Transaction rules
+
+Treat O.R Transactions as read-only completed Order history. Display `orders.order_number` as Order Number and reserve O.R Number for the future Accounting Office integration. Until that contract exists, display O.R Number as unavailable and do not introduce O.R or receipt tables, generate a local O.R identifier, or add create, edit, delete, settlement, remittance, or inventory actions.
+
+The standalone O.R Transactions page is Admin-only. POS F6 is available to authenticated POS users and must scope both list and detail requests to the authenticated User's assigned Station. Include both Cash and Credit / Utang Orders. Use Manila calendar boundaries for From/To filters and paginate 10 records per page.
+
+Keep shortcut meanings fixed: F6 = O.R Transactions, F7 = Current Station Transactions, and F12 = Station Inventory. Opening or closing F6 must preserve the cart, Customer, payment method, Cash Received, quantities, and all unfinished Order state. Receipt printing remains deferred.
+
 ### Phase 10.18.1 product and inventory boundary rules
 
 Keep Product Management limited to product definition. An Item has no global quantity, and Item create/update requests must reject a submitted `quantity`. Product writes must not create or mutate `station_items` or `inventory_movements`.

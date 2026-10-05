@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CreditMonitoringResource;
+use App\Models\Customer;
 use App\Models\Order;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +18,7 @@ class CreditMonitoringController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from_date'],
+            'customer_sort' => ['nullable', 'in:asc,desc'],
         ]);
         $search = trim($validated['search'] ?? '');
         $orders = Order::query()->where('payment_method', 'credit')
@@ -38,6 +40,10 @@ class CreditMonitoringController extends Controller
         }
         $totalAmount = intdiv($totalCents, 100).'.'.str_pad((string) ($totalCents % 100), 2, '0', STR_PAD_LEFT);
         $page = $orders->with(['customer', 'station', 'cashier'])
+            ->when(isset($validated['customer_sort']), fn ($query) => $query->orderBy(
+                Customer::query()->select('name')->whereColumn('customers.id', 'orders.customer_id'),
+                $validated['customer_sort']
+            ))
             ->orderByDesc('ordered_at')->orderByDesc('id')->paginate(10)->withQueryString();
 
         return CreditMonitoringResource::collection($page)->additional(['totalAmount' => $totalAmount])->response();

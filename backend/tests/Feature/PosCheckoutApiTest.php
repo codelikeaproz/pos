@@ -190,7 +190,7 @@ class PosCheckoutApiTest extends TestCase
         [$user, , $item, $stock] = $this->context();
         $customer = Customer::query()->create(['name' => 'Maria Cruz', 'address' => 'Maramag']);
         Sanctum::actingAs($user);
-        $base = ['items' => [['itemId' => $item->id, 'quantity' => '6.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit', 'customerId' => $customer->id];
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '6.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit', 'customerId' => $customer->id, 'customerCount' => 2, 'seniorCount' => 1];
         $this->postJson('/api/pos/checkout', $base)->assertUnprocessable()->assertJsonValidationErrors('items');
         $base['items'][0]['quantity'] = '1.000';
         $item->prices()->update(['is_active' => false]);
@@ -213,6 +213,90 @@ class PosCheckoutApiTest extends TestCase
             'items' => [['itemId' => $item->id, 'quantity' => '0.500', 'expectedUnitPrice' => '0.01'], ['itemId' => $second->id, 'quantity' => '0.500', 'expectedUnitPrice' => '0.01']],
             'paymentMethod' => 'cash', 'cashReceived' => '0.02',
         ])->assertCreated()->assertJsonPath('order.totalAmount', '0.02');
+    }
+
+    public function test_senior_discount_is_authoritative_and_cash_uses_the_discounted_total(): void
+    {
+        [$user, , $item, $stock] = $this->context();
+        $item->prices()->update(['amount' => '400.00']);
+        Sanctum::actingAs($user);
+
+        $discountedPayload = [
+            'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '400.00']],
+            'paymentMethod' => 'cash', 'customerCount' => 5, 'seniorCount' => 1,
+        ];
+        $this->postJson('/api/pos/checkout', $discountedPayload + ['cashReceived' => '383.99'])
+            ->assertUnprocessable()->assertJsonValidationErrors('cashReceived');
+
+        $this->postJson('/api/pos/checkout', [
+            'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '400.00']],
+            'paymentMethod' => 'cash', 'cashReceived' => '400.00', 'customerCount' => 5, 'seniorCount' => 1,
+            'subtotalAmount' => '400.00', 'discountAmount' => '300.00', 'totalAmount' => '100.00',
+        ])->assertCreated()
+            ->assertJsonPath('order.customerCount', 5)->assertJsonPath('order.seniorCount', 1)
+            ->assertJsonPath('order.subtotalAmount', '400.00')->assertJsonPath('order.discountAmount', '16.00')
+            ->assertJsonPath('order.totalAmount', '384.00')->assertJsonPath('order.changeAmount', '16.00')
+            ->assertJsonPath('order.items.0.unitPrice', '400.00')->assertJsonPath('order.items.0.subtotal', '400.00');
+
+        $this->assertSame('4.000', $stock->fresh()->quantity);
+        $this->assertDatabaseHas('inventory_movements', ['type' => 'SALE', 'quantity_change' => '-1.000']);
+        Sanctum::actingAs(User::factory()->admin()->create());
+        $this->getJson('/api/sale-remittances')->assertOk()->assertJsonPath('data.0.totalAmount', '384.00');
+    }
+
+    public function test_multiple_and_all_senior_discounts_and_rounding_are_deterministic(): void
+    {
+        [$user, , $item] = $this->context();
+        Sanctum::actingAs($user);
+
+        foreach ([
+            ['price' => '1000.00', 'customers' => 5, 'seniors' => 2, 'discount' => '80.00', 'total' => '920.00'],
+            ['price' => '100.00', 'customers' => 5, 'seniors' => 5, 'discount' => '20.00', 'total' => '80.00'],
+            ['price' => '100.00', 'customers' => 3, 'seniors' => 1, 'discount' => '6.67', 'total' => '93.33'],
+        ] as $case) {
+            $item->prices()->update(['amount' => $case['price']]);
+            $this->postJson('/api/pos/checkout', [
+                'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => $case['price']]],
+                'paymentMethod' => 'cash', 'cashReceived' => $case['price'],
+                'customerCount' => $case['customers'], 'seniorCount' => $case['seniors'],
+            ])->assertCreated()->assertJsonPath('order.discountAmount', $case['discount'])->assertJsonPath('order.totalAmount', $case['total']);
+        }
+    }
+
+    public function test_discount_counts_are_validated_as_positive_whole_numbers(): void
+    {
+        [$user, , $item] = $this->context();
+        Sanctum::actingAs($user);
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash', 'cashReceived' => '25.00'];
+
+        foreach ([[0, 1], [-1, 1], [3.5, 1], [3, 0], [3, -1], [3, 1.5], [3, 4]] as [$customers, $seniors]) {
+            $this->postJson('/api/pos/checkout', $base + ['customerCount' => $customers, 'seniorCount' => $seniors])->assertUnprocessable();
+        }
+        $this->postJson('/api/pos/checkout', $base + ['customerCount' => 3])->assertUnprocessable()->assertJsonValidationErrors('seniorCount');
+        $this->postJson('/api/pos/checkout', $base + ['seniorCount' => 1])->assertUnprocessable()->assertJsonValidationErrors('customerCount');
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_credit_discount_flows_to_monitoring_remittance_and_or_history(): void
+    {
+        [$user, , $item, $stock] = $this->context();
+        $item->prices()->update(['amount' => '1000.00']);
+        $customer = Customer::query()->create(['name' => 'Senior Customer', 'address' => 'CMU']);
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/pos/checkout', [
+            'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '1000.00']],
+            'paymentMethod' => 'credit', 'customerId' => $customer->id, 'customerCount' => 5, 'seniorCount' => 2,
+        ])->assertCreated()->assertJsonPath('order.subtotalAmount', '1000.00')->assertJsonPath('order.discountAmount', '80.00')
+            ->assertJsonPath('order.totalAmount', '920.00')->assertJsonPath('order.cashReceived', null);
+
+        $this->assertSame('4.000', $stock->fresh()->quantity);
+        Sanctum::actingAs(User::factory()->admin()->create());
+        $this->getJson('/api/credit-monitoring')->assertOk()->assertJsonPath('data.0.totalAmount', '920.00');
+        $this->getJson('/api/or-transactions')->assertOk()->assertJsonPath('data.0.totalAmount', '920.00');
+        $this->getJson('/api/or-transactions/'.$response->json('order.id'))->assertOk()
+            ->assertJsonPath('order.subtotalAmount', '1000.00')->assertJsonPath('order.discountAmount', '80.00')
+            ->assertJsonPath('order.customerCount', 5)->assertJsonPath('order.seniorCount', 2);
     }
 
     public function test_order_item_failure_rolls_back_order_and_inventory(): void

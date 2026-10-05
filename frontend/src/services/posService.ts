@@ -1,5 +1,5 @@
 import { apiRequest } from './apiClient'
-import type { CartItem, CheckoutOrder, PosItem, PosItemList, PosStation, PosStationInventoryList, PosStationInventoryRow } from '../types/pos'
+import type { CartItem, CheckoutOrder, PosItem, PosItemList, PosStation, PosStationInventoryList, PosStationInventoryRow, SeniorDiscount } from '../types/pos'
 
 type PosItemsResponse = {
   data: PosItem[]
@@ -7,12 +7,13 @@ type PosItemsResponse = {
   meta: { current_page: number; last_page: number; total: number }
 }
 
-export async function checkoutOrder(items: CartItem[], paymentMethod: 'cash' | 'credit', cashReceived: string, customerId: number | null): Promise<CheckoutOrder> {
+export async function checkoutOrder(items: CartItem[], paymentMethod: 'cash' | 'credit', cashReceived: string, customerId: number | null, discount: SeniorDiscount | null): Promise<CheckoutOrder> {
   const response = await apiRequest<{ message: string; order: CheckoutOrder }>('/api/pos/checkout', {
     method: 'POST',
     body: {
       items: items.map((item) => ({ itemId: item.itemId, quantity: item.quantity, expectedUnitPrice: item.unitPrice })),
       paymentMethod,
+      ...(discount ? discount : {}),
       ...(paymentMethod === 'cash' ? { cashReceived } : { customerId })
     },
     timeoutMs: 20_000

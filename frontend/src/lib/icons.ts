@@ -1,6 +1,8 @@
 import {
   Archive,
   ArrowLeft,
+  ArrowDown,
+  ArrowUp,
   Banknote,
   BadgeDollarSign,
   Boxes,
@@ -76,6 +78,8 @@ export const AppIcons = {
   info: Info,
   close: X,
   back: ArrowLeft,
+  sortAscending: ArrowUp,
+  sortDescending: ArrowDown,
   print: Printer,
   payment: Banknote,
   cashDrawer: Archive,

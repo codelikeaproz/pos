@@ -6,6 +6,7 @@ import { Label } from '../components/ui/Label'
 import { Pagination } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
+import { CustomerSortHeader, type CustomerSort } from '../components/ui/CustomerSortHeader'
 import { formatManilaDateTime } from '../lib/dateTime'
 import { getUserFacingApiMessage } from '../services/apiClient'
 import { loadCreditMonitoring } from '../services/creditMonitoringService'
@@ -22,22 +23,23 @@ export function CreditMonitoringPage() {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [page, setPage] = useState(1)
+  const [customerSort, setCustomerSort] = useState<CustomerSort>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => { const timer = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350); return () => window.clearTimeout(timer) }, [searchInput])
   const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setError(null)
-    try { setList(await loadCreditMonitoring(search, fromDate, toDate, page, signal)) }
+    try { setList(await loadCreditMonitoring(search, fromDate, toDate, customerSort, page, signal)) }
     catch (failure) { if (!signal?.aborted) { setList(EMPTY); setError(getUserFacingApiMessage(failure)) } }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [search, fromDate, toDate, page])
+  }, [customerSort, search, fromDate, toDate, page])
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
 
   const columns: TableColumn<CreditOrder>[] = [
     { key: 'order', header: 'Order No.', render: (row) => row.orderNumber },
     { key: 'date', header: 'Date', render: (row) => formatManilaDateTime(row.orderedAt) },
-    { key: 'customer', header: 'Customer', render: (row) => row.customer?.name ?? '—' },
+    { key: 'customer', header: <CustomerSortHeader value={customerSort} onChange={(value) => { setCustomerSort(value); setPage(1) }} />, render: (row) => row.customer?.name ?? '—' },
     { key: 'mop', header: 'MOP', render: () => 'Utang' },
     { key: 'station', header: 'Station', render: (row) => row.station.name },
     { key: 'cashier', header: 'Cashier', render: (row) => row.cashier.name },

@@ -33,6 +33,8 @@
 .pos-receipt__item-line { color: var(--color-text-secondary); }
 .pos-receipt__item-line span:last-child { color: var(--color-text); white-space: nowrap; }
 .pos-receipt__total { padding: var(--space-4) 0 var(--space-2); font-size: var(--font-size-section); }
+.pos-receipt__total { display: grid; grid-template-columns: 1fr auto; }
+.pos-receipt__total strong { text-align: right; white-space: nowrap; }
 .pos-receipt__customer { padding: var(--space-2) 0; }
 .pos-receipt__customer span { color: var(--color-text-secondary); }
 .pos-receipt__thanks { margin: var(--space-5) 0 0; text-align: center; }

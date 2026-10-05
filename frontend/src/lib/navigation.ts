@@ -19,7 +19,7 @@ export const navItems: NavItem[] = [
   { path: '/items', label: 'Product Management', icon: AppIcons.items, title: 'Product Management', description: 'Manage product and food definitions.', allowedRoles: ['admin'] },
   { path: '/station-inventory', label: 'Station Inventory', icon: AppIcons.stationInventory, title: 'Station Inventory', description: 'Manage Station item quantities.', allowedRoles: ['admin'] },
   { path: '/credit-monitoring', label: 'Credit Monitoring', icon: AppIcons.creditMonitoring, title: 'Credit Monitoring', description: 'View recorded Utang transactions.', allowedRoles: ['admin'] },
-  { path: '/or-transactions', label: 'O.R Transactions', icon: AppIcons.officialReceipt, title: 'O.R Transactions', description: 'Coming Soon', allowedRoles: ['admin'], comingSoon: true },
+  { path: '/or-transactions', label: 'O.R Transactions', icon: AppIcons.officialReceipt, title: 'O.R Transactions', description: 'View completed POS Orders.', allowedRoles: ['admin'] },
   { path: '/stations', label: 'Stations', icon: AppIcons.station, title: 'Stations', description: 'Manage POS locations and Stations.', allowedRoles: ['admin'] },
   { path: '/privilege-assignment', label: 'Privilege Assignment', icon: AppIcons.privilegeAssignment, title: 'Privilege Assignment', description: 'Assign business classifications to Users.', allowedRoles: ['admin'] },
   { path: '/customer-management', label: 'Customer Management', icon: AppIcons.customerManagement, title: 'Customer Management', description: 'Browse and add Customers.', allowedRoles: ['admin'] },

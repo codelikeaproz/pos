@@ -130,6 +130,22 @@ class CustomerCreditMonitoringApiTest extends TestCase
         $this->getJson('/api/credit-monitoring?page=2')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('totalAmount', '1.10');
     }
 
+    public function test_monitoring_sorts_customers_in_both_directions(): void
+    {
+        [$station, $cashier] = $this->context();
+        $alpha = Customer::query()->create(['name' => 'Alpha Customer', 'address' => 'A']);
+        $zulu = Customer::query()->create(['name' => 'Zulu Customer', 'address' => 'Z']);
+        $this->order($station, $cashier, $zulu->id, 'credit', '10.00');
+        $this->order($station, $cashier, $alpha->id, 'credit', '10.00');
+        Sanctum::actingAs(User::factory()->admin()->create());
+
+        $this->getJson('/api/credit-monitoring?customer_sort=asc')->assertOk()
+            ->assertJsonPath('data.0.customer.name', 'Alpha Customer')->assertJsonPath('data.1.customer.name', 'Zulu Customer');
+        $this->getJson('/api/credit-monitoring?customer_sort=desc')->assertOk()
+            ->assertJsonPath('data.0.customer.name', 'Zulu Customer')->assertJsonPath('data.1.customer.name', 'Alpha Customer');
+        $this->getJson('/api/credit-monitoring?customer_sort=invalid')->assertUnprocessable()->assertJsonValidationErrors('customer_sort');
+    }
+
     private function context(): array
     {
         $station = Station::query()->create(['name' => 'Main', 'location' => 'Main']);

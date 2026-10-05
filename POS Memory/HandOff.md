@@ -4,6 +4,31 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.19.1 status — Complete (2026-10-05)
+
+POS Ctrl+D opens a compact Senior Citizen discount dialog with Customer and Senior counts, live Initial Price / Discount / Final Total preview, Apply Discount, and Remove Discount. Empty carts are rejected with POS feedback. The saved count configuration remains in the unfinished Order and automatically recalculates after Item, quantity, or Price changes.
+
+Checkout validates positive whole-number counts with Seniors not exceeding Customers, recalculates the authoritative subtotal from locked active Prices, calculates the discount in integer cents, validates Cash and computes Change from the final total, and stores `customer_count`, `senior_count`, `subtotal_amount`, `discount_amount`, and final `total_amount`. Credit checkout supports the same discount. Order Item snapshots and inventory quantities remain unchanged.
+
+Receipt preview and read-only F7/F6/standalone transaction details show persisted Subtotal, Senior Discount, Customer/Senior counts, and Total when discounted. Sale Remittance, Credit Monitoring, and O.R Transactions continue using final `orders.total_amount`. Physical printing and Accounting Office O.R Number integration remain deferred.
+
+### Phase 10.19 status — Complete (2026-10-05)
+
+The O.R Transactions sidebar module is active and Admin-only. It reads completed Cash and Credit / Utang Orders directly, displays `orders.order_number` as Order Number, reserves a separate unavailable O.R Number field for Accounting Office integration, supports debounced search across Order number, Customer, Station, and Cashier, filters inclusive Manila calendar dates, optionally filters Station, and paginates 10 rows.
+
+The compact read-only detail dialog reuses Order and Order Item historical snapshots and shows OR Number, Manila date/time, Customer or Walk-in, Station, Cashier, Mode of Payment, Item lines, Total, and Cash Received / Change for Cash Orders. No new table or migration was added.
+
+POS F6 opens the O.R Transactions dialog without leaving POS or changing the unfinished Order. Its list and detail endpoints derive Station scope from the authenticated User and return 404 for another Station's Order. F7 remains Current Station Transactions and F12 remains Station Inventory. Physical receipt printing remains deferred.
+
+Focused backend coverage verifies Admin authorization, read-only routes, Cash and Credit inclusion, Walk-in and Customer display, authoritative totals, all supported search fields, Manila date boundaries, invalid date ranges, pagination, snapshot details, inventory immutability, and POS Station isolation.
+
+#### Phase 10.19 UI follow-up
+
+- POS F7 Current Station Transactions now includes **Date Remitted**, formatted in Manila time when `orders.remitted_at` exists and displayed as **Not Remitted** when it is null.
+- O.R Transactions now show separate **Order Number** and **O.R Number** columns and fields. Order Number uses `orders.order_number`; O.R Number displays an unavailable placeholder because its authoritative value belongs to the future Accounting Office integration.
+- O.R Transactions and Credit Monitoring provide accessible A–Z and Z–A controls beside the Customer header. Sorting is applied by the backend before pagination so it covers the full filtered result set.
+- Do not add an `or_number` column or generate values until the Accounting Office contract confirms the O.R Number source, lifecycle, format, uniqueness, and treatment of Cash versus Credit Orders.
+
 ### Phase 10.18.1 status — Complete (2026-10-05)
 
 UI cleanup: modal forms and confirmations that already provide a header X no longer repeat a Cancel button in the footer. Their Save, Submit, Confirm, or destructive primary action remains. Unsaved-change prompts retain their distinct Keep Editing and Discard Changes choices.

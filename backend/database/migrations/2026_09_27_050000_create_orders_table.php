@@ -16,6 +16,10 @@ return new class extends Migration
             $table->foreignId('cashier_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('payment_method', 32);
+            $table->unsignedInteger('customer_count')->nullable();
+            $table->unsignedInteger('senior_count')->nullable();
+            $table->decimal('subtotal_amount', 12, 2);
+            $table->decimal('discount_amount', 12, 2)->default(0);
             $table->decimal('total_amount', 12, 2);
             $table->decimal('cash_received', 12, 2)->nullable();
             $table->decimal('change_amount', 12, 2)->nullable();

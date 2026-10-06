@@ -18,7 +18,6 @@ use App\Http\Controllers\Api\SaleRemittanceController;
 use App\Http\Controllers\Api\SpoilageController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationItemController;
-use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,9 +59,6 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('admin');
 
     Route::apiResource('stations', StationController::class)
-        ->middleware('admin');
-
-    Route::apiResource('suppliers', SupplierController::class)
         ->middleware('admin');
 
     Route::apiResource('items', ItemController::class)

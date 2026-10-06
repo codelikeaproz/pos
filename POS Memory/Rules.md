@@ -2,6 +2,17 @@
 
 ## Development Rules
 
+### POS viewport behavior
+
+At desktop widths, keep the POS masthead and action footer visible within the application viewport. Long Available Items and Current Order lists must scroll inside their own panels. At responsive widths where the POS columns stack, retain normal page scrolling.
+
+### Quantity precision transition (2026-10-06)
+
+- Fresh-schema quantity and reorder-point columns now use `DECIMAL(12,2)` through commit `d60b26d`.
+- Do not describe two-decimal standardization as complete while Laravel casts and validators, the frontend quantity parser, tests, or the active database still use three-decimal behavior.
+- Before closing the transition, align every quantity boundary and reconcile the active database deliberately. Preserve transactional inventory arithmetic and historical snapshots during that work.
+- Historical phase notes describing `DECIMAL(12,3)` document the behavior at those earlier milestones and are superseded for fresh schema by this transition note.
+
 ### Semantic table statuses (Phase 10.19.4)
 
 - Status meaning must remain visible in text; color is supporting information only.
@@ -100,7 +111,7 @@ Customer has only name and address; trim and require both, and allow duplicate n
 
 ### Phase 10.14.1 sidebar rules
 
-Keep the confirmed Admin sidebar module names and order: Dashboard, POS, Product Management, Station Inventory, Credit Monitoring, O.R Transactions, Stations, Privilege Assignment, Customer Management, Privilege, Price, Sale Remittance, Item Delivery, User Management. Do not add Spoilage, Transaction History, Supplier, Consignee, or Consignment Account to that confirmed list. Preserve their routes and functionality. Show unimplemented modules as disabled Coming Soon entries; never route them to fake pages. Keep Laravel authorization authoritative. Use authenticated User data for Username and User Privilege, and the existing brand palette. UI labels do not rename backend domains or role values.
+Keep the confirmed Admin sidebar module names and order: Dashboard, POS, Product Management, Station Inventory, Credit Monitoring, O.R Transactions, Stations, Privilege Assignment, Customer Management, Privilege, Price, Sale Remittance, Item Delivery, User Management. Do not add Spoilage, Transaction History, Consignee, or Consignment Account to that confirmed list. Preserve their routes and functionality. Show unimplemented modules as disabled Coming Soon entries; never route them to fake pages. Keep Laravel authorization authoritative. Use authenticated User data for Username and User Privilege, and the existing brand palette. UI labels do not rename backend domains or role values.
 
 ### Phase 10.14 Spoilage rules
 
@@ -182,7 +193,6 @@ Important POS icon: 22px–24px
 | Orders / POS | `ShoppingCart` |
 | Consignee | `Contact` |
 | Consignment | `ClipboardList` |
-| Supplier | `Truck` |
 | Search | `Search` |
 | Add | `Plus` |
 | Edit | `Pencil` |
@@ -432,7 +442,6 @@ Avoid putting normal business logic into Electron's main process when it belongs
 users
 stations
 items
-suppliers
 consignees
 orders
 order_items
@@ -474,7 +483,6 @@ Foreign keys should follow:
 Examples:
 
 station_id
-supplier_id
 consignee_id
 order_id
 item_id
@@ -490,7 +498,6 @@ Examples:
 User
 Station
 Item
-Supplier
 Consignee
 Order
 OrderItem
@@ -561,7 +568,6 @@ EmployeePage.tsx
 ItemPage.tsx
 StationPage.tsx
 OrderPage.tsx
-SupplierPage.tsx
 ConsigneePage.tsx
 ConsignmentPage.tsx
 
@@ -685,7 +691,6 @@ Searchable Master Data pages use live asynchronous search: wait 350 ms after typ
 
 Use 10 records per page for the current simple Master Data modules unless a later requirement establishes a different convention. An empty search returns the normal unfiltered list; a successful search with no matches is a valid empty state, not an error.
 
-Supplier contact numbers are stored as strings so leading zeroes, spaces, plus signs, and hyphens are preserved. Optional Supplier fields normalize blank input to `null`; Supplier names and emails are not assumed unique without a confirmed business requirement.
 
 ## 14.2 Success response conventions
 
@@ -759,7 +764,6 @@ EmployeePage
 ItemPage
 StationPage
 OrderPage
-SupplierPage
 
 Route paths should be lowercase.
 
@@ -769,7 +773,6 @@ Example:
 /items
 /stations
 /orders
-/suppliers
 
 # 16. Eloquent Rules
 
@@ -808,7 +811,7 @@ Money values should use appropriate database precision.
 
 For Item prices, use fixed-precision `DECIMAL` storage and preserve the decimal value as a two-decimal string across the API. Never store a formatted currency symbol in a database value; peso formatting belongs to the UI.
 
-Item master data includes the original system's initial quantity and unit. This does not authorize automatic deduction, stock-in/out, movement history, low-stock notifications, or order-based inventory updates; those behaviors belong to later Inventory and Order phases. Do not add Supplier, Consignee, Consignment, or other Item relationships until confirmed requirements establish them.
+Item master data includes the original system's initial quantity and unit. This does not authorize automatic deduction, stock-in/out, movement history, low-stock notifications, or order-based inventory updates; those behaviors belong to later Inventory and Order phases. Do not add Consignee, Consignment, or other Item relationships until confirmed requirements establish them.
 
 Item Unit Name entry (`units_backup`) uses a free-text field with common suggestions rather than a closed dropdown. New readable labels may be entered directly without a units table. The required `unit` string preserves the legacy unit code separately.
 

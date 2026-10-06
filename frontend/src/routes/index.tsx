@@ -20,7 +20,6 @@ import { PrivilegeAssignmentsPage } from '../pages/PrivilegeAssignmentsPage'
 import { StationsPage } from '../pages/StationsPage'
 import { StationInventoryPage } from '../pages/StationInventoryPage'
 import { SpoilagesPage } from '../pages/SpoilagesPage'
-import { SuppliersPage } from '../pages/SuppliersPage'
 import { TransactionsPage } from '../pages/TransactionsPage'
 
 export const appRoutes: RouteObject[] = [
@@ -54,8 +53,7 @@ export const appRoutes: RouteObject[] = [
               { path: 'credit-monitoring', element: <CreditMonitoringPage /> },
               { path: 'customer-management', element: <CustomerManagementPage /> },
               { path: 'consignees', element: <ConsigneesPage /> },
-              { path: 'consignments', element: <ConsignmentsPage /> },
-              { path: 'suppliers', element: <SuppliersPage /> }
+              { path: 'consignments', element: <ConsignmentsPage /> }
             ]
           },
           { path: 'orders', element: <OrdersPage /> },

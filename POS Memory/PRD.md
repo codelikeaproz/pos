@@ -46,7 +46,7 @@ The first release will focus on reproducing the existing system.
 5. Use MySQL as the database.
 6. Support receipt printing.
 7. Support cash drawer opening.
-8. Maintain employee, item, station, supplier, consignee, and order management.
+8. Maintain employee, item, station, consignee, and order management.
 9. Keep the system simple during the first development phase.
 
 ---
@@ -85,7 +85,6 @@ Potential responsibilities:
 - Manage employees
 - Manage stations
 - Manage items
-- Manage suppliers
 - Manage consignees
 - Manage consignments
 - View orders
@@ -122,7 +121,6 @@ Station
 Orders
 Consignee
 Consignment
-Supplier
 
 
 The dashboard serves as the main navigation area.
@@ -194,26 +192,6 @@ The Station module must support:
 Users may be assigned to a station.
 
 ---
-
-# 9. Supplier Requirements
-
-The Supplier module currently contains:
-
-### Fields
-
-- Supplier Name
-
-### Operations
-
-- Search
-- Add
-- Update
-- Delete
-
-Example existing records include:
-Coca Cola
-Royal
-
 
 # 10. Consignee Requirements
 

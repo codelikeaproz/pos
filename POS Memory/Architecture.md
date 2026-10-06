@@ -1,6 +1,18 @@
 # University HomeStay POS
 ## Architecture
 
+### Repository and POS viewport cleanup (2026-10-06)
+
+The unused vendor master-data module has been removed completely. No table, migration, Eloquent model, request, resource, controller, API route, React type, service, feature component, page, route, navigation entry, icon mapping, test, or documentation contract remains. The empty development table and its migration ledger entry were removed after confirming it contained no records.
+
+On desktop widths above 1150px, the POS page is constrained to the application viewport. The masthead and action footer remain fixed within the POS flex layout, while Available Items and Current Order use bounded internal scrolling. At responsive widths, the columns stack and the application returns to normal document scrolling.
+
+### Quantity precision schema update (2026-10-06)
+
+Commit `d60b26d` changes the fresh-schema definitions for Item reorder points, Station balances, Order Item quantities, Inventory Movement quantity changes, Delivery Item quantities, and Spoilage Item quantities from `DECIMAL(12,3)` to `DECIMAL(12,2)`. This establishes two decimal places as the intended database precision for newly created development databases.
+
+This commit changes creation migrations only. The current Laravel decimal casts, quantity request validators, checkout messages, frontend fixed-point parser, and historical precision tests still support three fractional digits. Existing databases are also unchanged until their schema is refreshed or reconciled. Treat two-decimal standardization as incomplete until those runtime contracts and the active database agree with the two-decimal schema.
+
 ### Phase 10.19.4 semantic table status colors (2026-10-06)
 
 Table statuses use the shared compact Badge tones and always retain visible text. Product and Price show Active in green and Inactive in red; inactive Price history records also use a subtle red full-row background. Sale Remittance shows Remitted in green and Not Remitted in amber; remitted records also use a subtle green row background while pending records retain the normal row background. Admin and POS inventory tables highlight the full row with a subtle red background when stock is low or out.
@@ -111,7 +123,7 @@ The confirmed sidebar order remains unchanged; Customer Management and Credit Mo
 
 Admin navigation follows this exact visible order: Dashboard, POS, Product Management, Station Inventory, Credit Monitoring, O.R Transactions, Stations, Privilege Assignment, Customer Management, Privilege, Price, Sale Remittance, Item Delivery, User Management. It uses the existing green/yellow brand tokens and Lucide icons. The top area reserves space for the unavailable original logo and displays authenticated Username and User Privilege. Technical `end_user` displays as Cashier; database role values are unchanged.
 
-Product Management maps to the Item domain (`/items`); Stations to Station (`/stations`); Price to Price (`/prices`); User Management to User (`/employees`). Credit Monitoring, O.R Transactions, Privilege Assignment, Customer Management, Privilege, and Sale Remittance are visible but disabled as Coming Soon. Cashier navigation contains only Dashboard and POS. Spoilage, Transaction History, Supplier Management, Consignee Management, and Consignment Account remain implemented and routable outside the confirmed sidebar. No schema or business logic changed in this UI phase.
+Product Management maps to the Item domain (`/items`); Stations to Station (`/stations`); Price to Price (`/prices`); User Management to User (`/employees`). Credit Monitoring, O.R Transactions, Privilege Assignment, Customer Management, Privilege, and Sale Remittance are visible but disabled as Coming Soon. Cashier navigation contains only Dashboard and POS. Spoilage, Transaction History, Consignee Management, and Consignment Account remain implemented and routable outside the confirmed sidebar. No schema or business logic changed in this UI phase.
 
 ### Phase 10.14 current Spoilage architecture
 
@@ -224,7 +236,6 @@ The existing system currently provides:
 - Order/POS processing
 - Consignee management
 - Consignment management
-- Supplier management
 - Transaction processing
 - Cash payment and change calculation
 
@@ -254,7 +265,6 @@ Customer-facing mobile applications and public food menus are considered future 
 │  │  ├── Orders / POS                              │  │
 │  │  ├── Consignee                                 │  │
 │  │  ├── Consignment                               │  │
-│  │  └── Supplier                                  │  │
 │  │                                                │  │
 │  │              HTTP / API                        │  │
 │  └──────────────────────┬─────────────────────────┘  │
@@ -348,7 +358,6 @@ Initial entities:
 - Users
 - Stations
 - Items
-- Suppliers
 - Consignees
 - Orders
 - Order Items
@@ -369,7 +378,6 @@ Dashboard
 │ Orders                                    │
 │ Consignee                                 │
 │ Consignment                               │
-│ Supplier                                  │
 └───────────────────────────────────────────┘
 
 # 5. POS Order Flow
@@ -435,7 +443,6 @@ Printer Service
 users
 stations
 items
-suppliers
 consignees
 orders
 order_items
@@ -456,7 +463,7 @@ Order
           │
           └── Item
 
-Potential future relationships involving suppliers, consignees, and consignments must be confirmed against the existing business workflow before implementation.
+Potential future relationships involving consignees and consignments must be confirmed against the existing business workflow before implementation.
 
 
 # 8. Laravel Eloquent Models
@@ -464,7 +471,6 @@ Potential future relationships involving suppliers, consignees, and consignments
 User
 Station
 Item
-Supplier
 Consignee
 Order
 OrderItem
@@ -475,7 +481,6 @@ Laravel table naming:
 users
 stations
 items
-suppliers
 consignees
 orders
 order_items
@@ -577,7 +582,6 @@ Role
   │     ├── Orders / POS
   │     ├── Consignee
   │     ├── Consignment
-  │     └── Supplier
   │
   └── End User
         ├── Dashboard
@@ -664,38 +668,6 @@ Station search waits 350 ms, queries name, location, and description through `GE
 
 Phase 10.2 does not add employee assignment, order/inventory relationships, hardware fields, other Master Data CRUD, POS behavior, or advanced authentication.
 
-## 9.5 Supplier Management (Phase 10.3)
-
-Supplier Management is independent Master Data with no Item, Consignment, Order, Inventory, or Station relationships yet.
-
-```
-Supplier Management UI
-        ↓
-/api/suppliers
-        ↓
-auth:sanctum
-        ↓
-EnsureUserIsAdmin middleware (`admin` alias)
-        ↓
-StoreSupplierRequest / UpdateSupplierRequest
-        ↓
-Api\SupplierController
-        ↓
-SupplierResource
-        ↓
-Supplier Eloquent Model
-        ↓
-suppliers table
-        ↓
-MySQL
-```
-
-The `suppliers` table contains `id`, required `name`, nullable `contact_person`, `contact_number`, `email`, `address`, and timestamps. Contact numbers are strings. Supplier names and emails are not unique in this phase.
-
-The API retains snake_case fields and provides `GET/POST /api/suppliers` plus `GET/PUT/PATCH/DELETE /api/suppliers/{supplier}`. Supplier search covers name, contact person, contact number, and email with the established 350 ms debounce, cancellation, name sorting, and 10-record pagination.
-
-Supplier CRUD uses Eloquent directly without a Service, Repository, Policy, Gate, raw SQL, or unnecessary transaction wrapper. Relationships and dependency-aware deletion remain deferred until a real dependent module is implemented.
-
 ## 9.6 Item Management (Phase 10.4)
 
 Item Management defines the products and food that can exist in the POS, including the original system's initial quantity and unit fields. It does not perform sales or implement inventory movement behavior.
@@ -722,7 +694,7 @@ The `items` table follows the confirmed Item fields using consistent Laravel nam
 
 The boundaries are explicit: Item stores the original system's quantity, readable unit backup, unit code, and reorder point. Station Inventory compares its station-specific quantity with the Item reorder point for display-only Low Stock status. Automatic deduction, stock-in, stock-out, movement history, alerts, replenishment, and order-based updates remain deferred.
 
-Item currently has no Supplier, Consignee, Consignment, Station, Inventory, Order, or user relationship. Management routes are Admin-only; future End User read access for ordering must be introduced deliberately with the Orders/POS requirements.
+Item currently has no Consignee, Consignment, Station, Inventory, Order, or user relationship. Management routes are Admin-only; future End User read access for ordering must be introduced deliberately with the Orders/POS requirements.
 
 The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/unit-name search, and 10-record pagination. Item Management keeps the simple visible fields Item Code, Item Name, Quantity, Unit, and Price. The visible Unit edits `units_backup`; the legacy `unit` code and Item `reorder_point` remain API/database details and are not shown in the Item form or table. No units table is introduced.
 
@@ -780,8 +752,6 @@ Station 1:N StationItem N:1 Item
 Admin Station Inventory management supports Station filtering, item-code/name/unit search, 10-record pagination, explicit assignment, quantity editing, computed Low Stock status when station quantity is less than or equal to the Item's reorder point, and safe removal of only the assignment. The reorder point remains an internal Item field and is not displayed in Item or Station Inventory interfaces. Future End User POS reads will follow User → assigned Station → Station Inventory. Automatic alerts, replenishment, stock deduction, and movement history remain deferred.
 
 Legacy Item `units` values are identifiers rather than quantities, while `unitsbackup` preserves the readable label. The clean schema retains these meanings as `items.unit` and `items.units_backup`. Legacy `expiry_notification` remains deferred until Receiving or batch inventory records an actual expiration date.
-
-The confirmed Supplier status correction is stored as `suppliers.is_active BOOLEAN DEFAULT TRUE` in the original Supplier schema; inactive Suppliers remain records rather than being deleted.
 
 ## 9.10 Orders / POS Foundation (Phase 10.8)
 

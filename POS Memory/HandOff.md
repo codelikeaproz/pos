@@ -4,6 +4,16 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Current development status (2026-10-06)
+
+The unused vendor master-data module has been removed from the database schema, Laravel API, React application, navigation, automated coverage, and project documentation. Its empty development table and migration ledger entry were also removed without refreshing or resetting the remaining database.
+
+The desktop POS now stays within the application viewport. Available Items and Current Order own their scrolling when their contents exceed the available height, while the action footer remains visible. Responsive layouts at 1150px and below retain normal page scrolling.
+
+The preceding commit `4c9d2ec` (`feat(pos): complete receipt and table usability phases`) contains the completed Phase 10.19.3 HTML thermal receipt and Phase 10.19.4 semantic table, sorting, pagination, and compact-action work documented below.
+
+The preceding commit `d60b26d` (`fix(db): standardize quantity precision to two decimals`) changes six creation-migration columns to `DECIMAL(12,2)`: Item reorder point, Station Item quantity, Order Item quantity, Inventory Movement quantity change, Delivery Item quantity, and Spoilage Item quantity. It does not reconcile an already-created database and does not yet update the Laravel `decimal:3` casts, three-decimal request validation, frontend parser/messages, or related tests. Therefore the schema change is committed, while end-to-end two-decimal precision standardization remains a follow-up.
+
 ### Phase 10.19.4 status — Complete (2026-10-06)
 
 Product and Price tables now use shared compact Active and Inactive badges with green and red semantic tones. Inactive Price history records also use a subtle red full-row background. Sale Remittance uses the same shared component for green Remitted and amber Not Remitted statuses; Remitted rows are subtly green while Not Remitted rows retain their normal background. Admin Station Inventory and both POS inventory tables use a subtle red full-row highlight for low and out-of-stock records while retaining the explicit stock label.
@@ -107,7 +117,6 @@ Price UI follow-up: the Price history table now shows only Item Code, Item Name,
 
 Reconciled the implemented application with the compact density of the legacy HomeStay UI. Shared tables now use compact 12–13px typography, narrow rows, and regular-weight body data; shared inputs, buttons, badges, pagination, and dialogs are smaller while retaining accessible focus and responsive behavior. Conventional table actions are compact Lucide icons with accessible labels and titles. Product activation/deactivation uses CircleCheck/CircleOff rather than Delete. Destructive confirmations and primary form actions retain clear text.
 
-Audited Product Management, Station Inventory, Price, Item Delivery, Spoilage, Customer Management, Credit Monitoring, Transaction History/F7 Station Transactions, transaction details, Stations, User Management, Suppliers, Consignees, Consignment, POS Available Items, POS Current Order, and F12 Station Inventory. Customer Management and Credit Monitoring remain read-only where applicable and received no invented actions. The sidebar order and business workflows are unchanged.
 
 Admin Station Inventory columns are Description, Item Code, Qty, Sold, Spoilage, and Remaining Qty. Qty is calculated with decimal database arithmetic as `Remaining + Sold + Spoilage`, so the displayed columns always reconcile while DELIVERY, signed ADJUSTMENT, and pre-ledger opening balances remain reflected through authoritative Remaining. Sold is absolute recorded SALE, Spoilage is absolute recorded SPOILAGE, and Remaining is `station_items.quantity`. F12 remains Item, Code, Unit, Sold, Spoilage, and Remaining.
 
@@ -176,7 +185,6 @@ Customer Management is now Admin-only and supports list/search/pagination and ad
 
 ### Phase 10.14.1 current-state note
 
-The Admin sidebar now reproduces the confirmed legacy names and order: Dashboard, POS, Product Management, Station Inventory, Credit Monitoring, O.R Transactions, Stations, Privilege Assignment, Customer Management, Privilege, Price, Sale Remittance, Item Delivery, User Management. Six deferred entries are visible but disabled. Cashier sees Dashboard and POS. The image area is reserved because no original logo asset exists in the repository. Authenticated Username, User Privilege (Admin/Cashier), and Logout appear in the sidebar. Spoilage, Transaction History, Supplier, Consignee, and Consignment Account stay routable outside it. No database or business logic changed. Earlier phase notes below are historical.
 
 ### Phase 10.14 current-state note
 
@@ -246,7 +254,6 @@ The following screens have been reviewed from the existing application:
 - Orders / POS
 - Consignee
 - Consignment
-- Supplier
 
 ---
 
@@ -261,7 +268,6 @@ Station
 Orders
 Consignee
 Consignment
-Supplier
 ```
 
 These modules are considered part of the initial baseline.
@@ -342,32 +348,6 @@ Example existing stations include:
 ```
 Main Station
 Sugbahan
-```
-
----
-
-# 8. Supplier Screen Observed
-
-Field:
-
-```
-Supplier Name
-```
-
-Actions:
-
-```
-Search
-Add
-Update
-Delete
-```
-
-Example existing records:
-
-```
-Coca Cola
-Royal
 ```
 
 ---
@@ -533,7 +513,6 @@ Initial Laravel Eloquent models:
 User
 Station
 Item
-Supplier
 Consignee
 Order
 OrderItem
@@ -546,7 +525,6 @@ Initial table names:
 users
 stations
 items
-suppliers
 consignees
 orders
 order_items
@@ -586,7 +564,6 @@ Example:
 
 ```
 OrderItem
-Supplier
 Consignee
 ```
 
@@ -657,7 +634,6 @@ Station
 Orders / POS
 Consignee
 Consignment
-Supplier
 Payment
 Transactions
 Receipt Printer
@@ -786,14 +762,11 @@ Status: **COMPLETE**
 - Preserved `items.quantity` as transitional global quantity without hidden synchronization
 - Assigned master Items and Stations are protected from deletion
 - Added scalable authorized Item lookup and complete Station options
-- Added confirmed `suppliers.is_active` to the existing Supplier schema, model, API, form, and table without another Supplier migration
 - Added no Orders, Order Items, payments, stock deduction, Receiving, Withdrawal, Spoilage, Price table, inventory movement table, Service, or Repository
 
-Verification: **74 tests, 431 assertions passed**; Item-level reorder-point validation and station Low Stock coverage below/equal/above the Item threshold passed; PHP 8.2 Pint, TypeScript, the Electron production build, and `git diff --check` passed. The applied development schema and original create migrations now match: `items` contains required `name`, `units_backup`, `unit`, and `reorder_point`, while `station_items` retains station-specific quantity only. Supplier `is_active` was added directly to the live schema and its original create-table migration.
 
 Resolved: Station-to-Item inventory relationship, station-specific quantity, Item-level reorder point, and the legacy unit fields. Legacy numeric unit values are identifiers stored in `items.unit`; readable unit labels are stored in `items.units_backup`.
 
-Still deferred: removal/redefinition of `items.quantity`; expiry dates and `expiry_notification`; automatic low-stock alerts or replenishment; legacy Price table verification; Supplier-to-Item; Receiving and details; Withdrawal and details; Spoilage; inventory movement history; Item Delivery; Monthly End Report; Customer Management; traditional Consignment transactions/items/payments; Orders, Order Items, cart finalization, cash/change, automatic Station inventory deduction, transaction history, Customer/Remit/settlement meanings; printer/cash drawer; advanced auth; customer web/mobile menu.
 
 ## Phase 10.6 — Consignment Account Management
 
@@ -815,7 +788,6 @@ Verification: **69 tests, 364 assertions passed**; TypeScript and Electron produ
 
 Resolved: Employee/User-to-Station, Consignment Account-to-Station, and Consignment Account-to-Consignee associations.
 
-Still deferred: traditional Consignment transaction workflow and Consignment-to-Item relationship (requires additional confirmed business requirements/screens); Supplier-to-Item; quantity deduction; stock-in/out; inventory history; low-stock behavior; availability; Station-to-Order; End User Item read access; Orders, Order Items, Checkout, Payments; printing/cash drawer; advanced auth; customer menu.
 
 ## Phase 10.5 — Consignee Management
 
@@ -857,7 +829,6 @@ COMPLETE
 ### Deferred feature register carried forward
 
 - Employee-to-Station assignment
-- Supplier-to-Item relationship
 - Consignee-to-Consignment relationship
 - Consignment-to-Item relationship
 - Automatic Item quantity deduction, stock-in/out, movement history, reorder levels, and low-stock notifications
@@ -891,7 +862,6 @@ COMPLETE
 - Allowed duplicate Item names because no uniqueness requirement has been established
 - Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
 - Added initial Item quantity, unit label/code, and reorder point as required by the confirmed legacy format, while deferring automatic deduction, stock-in/out, inventory history, low-stock notifications, and order-based quantity updates
-- Added no availability/status, Supplier, Consignee, Consignment, Station, Order, Inventory, or user relationship
 - Hardware and advanced authentication remain deferred
 
 ### Phase 10.4 verification — 2026-09-27
@@ -913,46 +883,6 @@ COMPLETE
 | Public `/api/health` | PASS — running API returned `status: ok` |
 | `git diff --check` | PASS |
 
-## Phase 10.3 — Supplier Management
-
-Status:
-
-```
-COMPLETE
-```
-
-### Phase 10.3 deliverables
-
-- Introduced the `suppliers` table with required `name`; nullable `contact_person`, `contact_number`, `email`, and `address`; and timestamps
-- Added the `Supplier` Eloquent model without premature relationships
-- Added `Api\SupplierController`, Supplier Form Requests, and a safe snake_case `SupplierResource`
-- Added `GET/POST /api/suppliers` and `GET/PUT/PATCH/DELETE /api/suppliers/{supplier}`
-- Reused `auth:sanctum`, the `admin` alias, and `EnsureUserIsAdmin`
-- Added Supplier list, create, edit, and centered delete confirmation UI
-- Added 350 ms live name/contact-person/contact-number/email search, request cancellation, inline X clearing, and 10-record pagination
-- Normalized blank optional fields to `null`; retained contact numbers as strings
-- Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
-- Added no Item, Consignment, Order, Inventory, Station, or hardware relationship
-- Items and all later phases remain deferred
-
-### Phase 10.3 verification — 2026-09-27
-
-| Check | Result |
-|---|---|
-| Complete Laravel test suite | PASS — 48 tests, 203 assertions |
-| Supplier API authorization | PASS — unauthenticated 401; End User 403; Admin allowed |
-| Supplier create/show/PUT/PATCH/delete | PASS |
-| Required name, nullable fields, valid/invalid email, string contact number | PASS |
-| Four-field search, zero results, empty search, and 10-record pagination | PASS |
-| Route middleware order | PASS — `auth:sanctum`, then `EnsureUserIsAdmin` |
-| MySQL/MariaDB migration | PASS — `2026_09_27_010000_create_suppliers_table` applied |
-| Live MySQL supplier create/search/delete | PASS — string contact number preserved; disposable record cleaned up |
-| PHP 8.2 `vendor/bin/pint --test` | PASS |
-| `npm run typecheck` | PASS |
-| `npm run build` (Electron main, preload, renderer) | PASS |
-| Live Admin Supplier page and centered Add Supplier dialog | PASS |
-| `git diff --check` | PASS |
-
 ## Phase 10.2 — Station Management
 
 Status:
@@ -972,7 +902,6 @@ COMPLETE
 - Added 350 ms live name/location/description search, request cancellation, inline X clearing, and 10-record pagination
 - Used Controller-to-Eloquent CRUD without a Service, Repository, raw SQL, or unnecessary transaction
 - Added no employee assignment, business relationship, hardware field, or package
-- Supplier, Items, Consignee, Consignment, Orders, Inventory, Hardware, and advanced authentication remain deferred
 
 ### Phase 10.2 verification — 2026-09-27
 
@@ -1018,7 +947,6 @@ COMPLETE
 - Signed-in Admin cannot delete their own account
 - Last remaining Admin cannot be deleted or demoted
 - Human-readable validation, authorization, conflict, server, and network feedback
-- Supplier, Items, Consignee, and Consignment remain unimplemented
 - Hardware and advanced authentication remain postponed
 
 ### Phase 10.1 verification — 2026-09-26
@@ -1065,7 +993,6 @@ COMPLETE
 
 - Simple Dashboard using authenticated `currentUser` name, email, and human-readable role
 - Canonical authenticated landing route: `/dashboard`
-- Admin navigation: Dashboard, Employee, Items, Station, Orders / POS, Consignee, Consignment, Supplier
 - End User navigation: Dashboard and Orders / POS only
 - Admin-only frontend routes redirect End Users to `/dashboard`
 - Unauthenticated application routes remain protected by the Phase 8 auth guard

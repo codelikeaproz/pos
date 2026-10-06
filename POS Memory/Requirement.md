@@ -116,7 +116,6 @@ Laravel must provide:
 - User management
 - Station management
 - Item management
-- Supplier management
 - Consignee management
 - Consignment management
 - Order management
@@ -139,7 +138,6 @@ React must provide:
 - Order/POS page
 - Consignee page
 - Consignment page
-- Supplier page
 - Transaction interface
 
 ---
@@ -187,7 +185,6 @@ Initial tables:
 users
 stations
 items
-suppliers
 consignees
 orders
 order_items
@@ -235,7 +232,6 @@ Examples:
 ```
 Order
 OrderItem
-Supplier
 ```
 
 PHP methods:
@@ -385,7 +381,6 @@ Login
 Employee CRUD
 Item CRUD
 Station CRUD
-Supplier CRUD
 Consignee CRUD
 Consignment workflow
 Order creation

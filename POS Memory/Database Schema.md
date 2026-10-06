@@ -24,16 +24,6 @@ unit_id ->int
 unit_desc ->varchar(30)
 
 
-<!-- suppliers table -->
-
-supplier_id  ->int
-name  ->varchar
-address  ->varchar
-contact_person  ->varchar
-contact   ->varchar
-created_at  ->datetime
-
-
 <!-- station_items table -->
 
 id ->int
@@ -67,7 +57,6 @@ created_at ->timestamp
 
 receiving_no ->int
 receive_by -> int
-supplier_id ->int
 date_received ->timestamp
 
 <!-- receiving_list table -->

@@ -35,8 +35,7 @@ const otherPages: NavItem[] = [
   { path: '/spoilages', label: 'Spoilage', icon: AppIcons.warning, title: 'Spoilage Management', description: 'Record Station spoilage.', allowedRoles: ['admin'] },
   { path: '/transactions', label: 'Transactions', icon: AppIcons.consignment, title: 'Transaction History', description: 'View completed sales.', allowedRoles: ['admin', 'end_user'] },
   { path: '/consignees', label: 'Consignee', icon: AppIcons.consignee, title: 'Consignee Management', description: 'Manage consignees.', allowedRoles: ['admin'] },
-  { path: '/consignments', label: 'Consignment', icon: AppIcons.consignment, title: 'Consignment Account Management', description: 'Manage consignment accounts.', allowedRoles: ['admin'] },
-  { path: '/suppliers', label: 'Supplier', icon: AppIcons.supplier, title: 'Supplier Management', description: 'Manage suppliers.', allowedRoles: ['admin'] }
+  { path: '/consignments', label: 'Consignment', icon: AppIcons.consignment, title: 'Consignment Account Management', description: 'Manage consignment accounts.', allowedRoles: ['admin'] }
 ]
 
 export function getNavItemsForRole(role: UserRole): NavItem[] {

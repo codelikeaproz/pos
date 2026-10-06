@@ -17,7 +17,7 @@ class PrivilegeController extends Controller
         $validated = $request->validate(['search' => ['nullable', 'string', 'max:100']]);
         $search = trim($validated['search'] ?? '');
         $rows = Privilege::query()->when($search !== '', fn ($query) => $query->where('description', 'like', "%{$search}%"))
-            ->orderBy('description')->paginate(10)->withQueryString();
+            ->orderBy('description')->paginate($this->pageSize($request))->withQueryString();
 
         return PrivilegeResource::collection($rows)->response();
     }

@@ -26,7 +26,7 @@ export function CustomerSelector({ open, selected, onClose, onSelect }: { open: 
     if (!open) return
     const controller = new AbortController()
     setLoading(true); setError(null)
-    void loadCustomers(search, page, controller.signal).then(setList).catch((failure) => { if (!controller.signal.aborted) setError(getUserFacingApiMessage(failure)) }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    void loadCustomers(search, page, 15, controller.signal).then(setList).catch((failure) => { if (!controller.signal.aborted) setError(getUserFacingApiMessage(failure)) }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [open, search, page])
   useEffect(() => { if (open) setChoice(selected) }, [open, selected])

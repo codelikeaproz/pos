@@ -1,10 +1,10 @@
 import { apiRequest } from './apiClient'
 import type { OrderDetail, OrderHistoryList, OrderHistoryRow } from '../types/order'
 
-export type OrderFilters = { search: string; fromDate: string; toDate: string; stationId: string; customerSort?: 'asc' | 'desc' | ''; page: number }
+export type OrderFilters = { search: string; fromDate: string; toDate: string; stationId: string; customerSort?: 'asc' | 'desc' | ''; page: number; perPage: number }
 
 function query(filters: OrderFilters): URLSearchParams {
-  const params = new URLSearchParams({ page: String(filters.page) })
+  const params = new URLSearchParams({ page: String(filters.page), per_page: String(filters.perPage) })
   if (filters.search) params.set('search', filters.search)
   if (filters.fromDate) params.set('from_date', filters.fromDate)
   if (filters.toDate) params.set('to_date', filters.toDate)

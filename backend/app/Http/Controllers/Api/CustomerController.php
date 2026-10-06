@@ -19,7 +19,7 @@ class CustomerController extends Controller
             ->when($search !== '', fn ($query) => $query->where(fn ($matches) => $matches
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('address', 'like', "%{$search}%")))
-            ->orderBy('name')->orderBy('id')->paginate(10)->withQueryString();
+            ->orderBy('name')->orderBy('id')->paginate($this->pageSize($request))->withQueryString();
 
         return CustomerResource::collection($customers)->response();
     }

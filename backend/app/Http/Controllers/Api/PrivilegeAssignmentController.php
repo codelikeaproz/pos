@@ -18,7 +18,7 @@ class PrivilegeAssignmentController extends Controller
         $search = trim($validated['search'] ?? '');
         $users = User::query()->with('privileges:id,description')
             ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")))
-            ->orderBy('name')->paginate(10)->withQueryString();
+            ->orderBy('name')->paginate($this->pageSize($request))->withQueryString();
 
         return response()->json([
             'data' => $users->getCollection()->map(fn (User $user) => [

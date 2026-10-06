@@ -28,7 +28,7 @@ class ItemController extends Controller
                 });
             })
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($this->pageSize($request))
             ->withQueryString();
 
         return ItemResource::collection($items)->response();

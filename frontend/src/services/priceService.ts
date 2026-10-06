@@ -6,8 +6,8 @@ type PaginatedPrices = {
   meta: { current_page: number; last_page: number; total: number }
 }
 
-export async function loadPrices(search: string, page: number, signal?: AbortSignal): Promise<PriceList> {
-  const params = new URLSearchParams({ page: String(page) })
+export async function loadPrices(search: string, page: number, perPage: number, signal?: AbortSignal): Promise<PriceList> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search) params.set('search', search)
   const result = await apiRequest<PaginatedPrices>(`/api/prices?${params}`, { signal })
   return { prices: result.data, currentPage: result.meta.current_page, lastPage: result.meta.last_page, total: result.meta.total }

@@ -45,9 +45,10 @@ function toDto(input: SupplierInput): Omit<SupplierDto, 'id'> {
 export async function loadSuppliers(
   search: string,
   page: number,
+  perPage: number,
   signal?: AbortSignal
 ): Promise<SupplierList> {
-  const params = new URLSearchParams({ page: String(page) })
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search.trim()) params.set('search', search.trim())
   const response = await apiRequest<PaginatedSuppliersResponse>(
     `/api/suppliers?${params.toString()}`,

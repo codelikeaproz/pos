@@ -53,6 +53,23 @@ class SaleRemittanceApiTest extends TestCase
         $this->postJson('/api/sale-remittances', ['order_ids' => []])->assertForbidden();
     }
 
+    public function test_status_sort_applies_before_pagination(): void
+    {
+        Sanctum::actingAs(User::factory()->admin()->create());
+        $remitted = $this->order(['ordered_at' => now()->subDay(), 'remitted_at' => now()]);
+        foreach (range(1, 11) as $number) {
+            $this->order(['ordered_at' => now()->addMinutes($number)]);
+        }
+
+        $this->getJson('/api/sale-remittances?status_sort=desc')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $remitted->id)
+            ->assertJsonPath('data.0.status', 'remitted');
+        $this->getJson('/api/sale-remittances?status_sort=invalid')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('status_sort');
+    }
+
     public function test_admin_atomically_remits_multiple_cash_orders_with_authoritative_total(): void
     {
         $admin = User::factory()->admin()->create();

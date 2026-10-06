@@ -27,7 +27,7 @@ class StationController extends Controller
                 });
             })
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($this->pageSize($request))
             ->withQueryString();
 
         return StationResource::collection($stations)->response();

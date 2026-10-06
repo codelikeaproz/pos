@@ -6,7 +6,7 @@ import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -23,6 +23,7 @@ export function PrivilegesPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [editing, setEditing] = useState<Privilege | null | undefined>(undefined)
@@ -33,10 +34,10 @@ export function PrivilegesPage() {
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setPageError(null)
-    try { setList(await loadPrivileges(search, page, signal)) }
+    try { setList(await loadPrivileges(search, page, pageSize, signal)) }
     catch (error) { if (!signal?.aborted) setPageError(getUserFacingApiMessage(error)) }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [search, page])
+  }, [search, page, pageSize])
 
   useEffect(() => { const id = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350); return () => window.clearTimeout(id) }, [searchInput])
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
@@ -62,7 +63,7 @@ export function PrivilegesPage() {
     <header className="page__header"><div><h1 className="page__title">Privilege</h1><p className="page__description">Manage business classifications assigned to Users.</p></div><Button onClick={() => openForm(null)} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />}>Add Privilege</Button></header>
     <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search Privileges..." label="Search Privileges" />
     {pageError ? <Alert tone="error" title="Privileges could not be loaded">{pageError}</Alert> : null}
-    {loading ? <LoadingState label="Loading Privileges…" /> : <><p className="page__description">{list.total} Privilege{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.privileges} rowKey={row => String(row.id)} emptyMessage="No Privileges found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Privilege" onPageChange={setPage} /></>}
+    {loading ? <LoadingState label="Loading Privileges…" /> : <><p className="page__description">{list.total} Privilege{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.privileges} rowKey={row => String(row.id)} emptyMessage="No Privileges found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Privilege" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} /></>}
     <Modal open={editing !== undefined} title={editing ? 'Edit Privilege' : 'Add Privilege'} onClose={closeForm} initialFocusRef={inputRef} actions={<Button type="submit" form="privilege-form" disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : 'Save'}</Button>}>
       <form id="privilege-form" className="privilege-form" onSubmit={event => void save(event)}><Label htmlFor="privilege-description" required>Description</Label><Input ref={inputRef} id="privilege-description" value={description} onChange={event => setDescription(event.target.value)} maxLength={100} required disabled={submitting} error={Boolean(formError)} />{formError ? <span className="page__field-error">{formError}</span> : null}</form>
     </Modal>

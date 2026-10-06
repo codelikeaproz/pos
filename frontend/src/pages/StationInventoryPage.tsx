@@ -3,7 +3,7 @@ import { Alert } from '../components/feedback/Alert'
 import { LoadingState } from '../components/feedback/LoadingState'
 import { Button } from '../components/ui/Button'
 import { SearchField } from '../components/ui/SearchField'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { Label } from '../components/ui/Label'
 import { Select } from '../components/ui/Select'
 import { useNavigate } from 'react-router-dom'
@@ -23,9 +23,10 @@ export function StationInventoryPage() {
   const [list, setList] = useState(EMPTY_LIST)
   const [stationId, setStationId] = useState(0)
   const [searchInput, setSearchInput] = useState(''); const [search, setSearch] = useState(''); const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true); const [pageError, setPageError] = useState<string | null>(null)
 
-  const refresh = useCallback(async (signal?: AbortSignal) => { if (!stationId) { setList(EMPTY_LIST); setLoading(false); return } setLoading(true); setPageError(null); try { setList(await loadStationInventory(stationId, search, page, signal)) } catch (error) { if (!signal?.aborted) setPageError(getUserFacingApiMessage(error)) } finally { if (!signal?.aborted) setLoading(false) } }, [stationId, search, page])
+  const refresh = useCallback(async (signal?: AbortSignal) => { if (!stationId) { setList(EMPTY_LIST); setLoading(false); return } setLoading(true); setPageError(null); try { setList(await loadStationInventory(stationId, search, page, pageSize, signal)) } catch (error) { if (!signal?.aborted) setPageError(getUserFacingApiMessage(error)) } finally { if (!signal?.aborted) setLoading(false) } }, [stationId, search, page, pageSize])
   useEffect(() => { const controller = new AbortController(); loadStationItemOptions('', controller.signal).then((value) => { setOptions(value); setStationId((current) => current || value.stations[0]?.id || 0) }).catch((error) => { if (!controller.signal.aborted) setPageError(getUserFacingApiMessage(error)) }); return () => controller.abort() }, [])
   useEffect(() => { const timeout = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350); return () => window.clearTimeout(timeout) }, [searchInput])
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
@@ -40,6 +41,6 @@ export function StationInventoryPage() {
       <div className="station-inventory-page__station"><Label htmlFor="inventory-station" required>Station</Label><Select id="inventory-station" value={stationId || ''} onChange={(event) => selectStation(Number(event.target.value))} options={[{ value: '', label: 'Select Station' }, ...options.stations.map((station) => ({ value: String(station.id), label: station.name }))]} /></div>
     </div>
     {pageError ? <Alert tone="error" title="Station inventory could not be loaded">{pageError}</Alert> : null}
-    {loading ? <LoadingState label="Loading station inventory…" /> : <><div className="station-inventory-page__summary">{list.total} inventory item{list.total === 1 ? '' : 's'}</div><StationInventoryTable rows={list.stationItems} emptyMessage={emptyMessage} /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Station inventory" onPageChange={setPage} /></>}
+    {loading ? <LoadingState label="Loading station inventory…" /> : <><div className="station-inventory-page__summary">{list.total} inventory item{list.total === 1 ? '' : 's'}</div><StationInventoryTable rows={list.stationItems} emptyMessage={emptyMessage} /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Station inventory" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} /></>}
   </section>
 }

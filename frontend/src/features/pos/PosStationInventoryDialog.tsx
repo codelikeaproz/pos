@@ -5,6 +5,7 @@ import { Modal } from '../../components/feedback/Modal'
 import { Pagination } from '../../components/ui/Pagination'
 import { SearchField } from '../../components/ui/SearchField'
 import { Table, type TableColumn } from '../../components/ui/Table'
+import { StockQuantity } from '../../components/ui/StockQuantity'
 import { formatQuantity } from '../../lib/posCalculations'
 import { getUserFacingApiMessage } from '../../services/apiClient'
 import { loadPosStationInventory } from '../../services/posService'
@@ -38,7 +39,7 @@ export function PosStationInventoryDialog({ open, onClose }: { open: boolean; on
     { key: 'unit', header: 'Unit', render: (row) => row.unit },
     { key: 'sold', header: 'Sold', align: 'right', render: (row) => formatQuantity(row.recordedSoldQuantity) },
     { key: 'spoilage', header: 'Spoilage', align: 'right', render: (row) => formatQuantity(row.recordedSpoilageQuantity) },
-    { key: 'remaining', header: 'Remaining', align: 'right', render: (row) => formatQuantity(row.currentQuantity) }
+    { key: 'remaining', header: 'Remaining', align: 'right', render: (row) => <StockQuantity quantity={row.currentQuantity} unit={row.unit} isLowStock={row.isLowStock} /> }
   ]
 
   return <Modal open={open} title="Station Inventory" size="large" onClose={onClose}>
@@ -46,7 +47,7 @@ export function PosStationInventoryDialog({ open, onClose }: { open: boolean; on
       <p className="pos-dialog-content__note">{list.station.name || 'Your Station'} · Read-only stock balances, including inactive and unpriced Items.</p>
       <SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search item name or code..." label="Search Station inventory" />
       {error ? <Alert tone="warning">{error}</Alert> : null}
-      {loading ? <LoadingState label="Loading Station inventory…" /> : <><p className="pos-dialog-content__note">{list.total} assigned item{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.items} rowKey={(row) => String(row.itemId)} emptyMessage="No Station inventory items found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Station inventory" onPageChange={setPage} /></>}
+      {loading ? <LoadingState label="Loading Station inventory…" /> : <><p className="pos-dialog-content__note">{list.total} assigned item{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.items} rowKey={(row) => String(row.itemId)} rowClassName={(row) => row.isLowStock ? 'ui-table__row--danger' : undefined} emptyMessage="No Station inventory items found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Station inventory" onPageChange={setPage} /></>}
     </div>
   </Modal>
 }

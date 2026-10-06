@@ -28,7 +28,7 @@ class StationItemController extends Controller
                 ->orWhere('units_backup', 'like', "%{$searchTerm}%")
                 ->orWhere('unit', 'like', "%{$searchTerm}%")))
             ->join('items', 'items.id', '=', 'station_items.item_id')
-            ->select('station_items.*')->withMovementSummary()->orderBy('items.name')->paginate(10)->withQueryString();
+            ->select('station_items.*')->withMovementSummary()->orderBy('items.name')->paginate($this->pageSize($request))->withQueryString();
 
         return StationItemResource::collection($stationItems)->response();
     }

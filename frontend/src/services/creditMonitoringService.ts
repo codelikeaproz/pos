@@ -1,8 +1,8 @@
 import { apiRequest } from './apiClient'
 import type { CreditMonitoringList, CreditOrder } from '../types/creditMonitoring'
 
-export async function loadCreditMonitoring(search: string, fromDate: string, toDate: string, customerSort: 'asc' | 'desc' | '', page: number, signal?: AbortSignal): Promise<CreditMonitoringList> {
-  const params = new URLSearchParams({ page: String(page) })
+export async function loadCreditMonitoring(search: string, fromDate: string, toDate: string, customerSort: 'asc' | 'desc' | '', page: number, perPage: number, signal?: AbortSignal): Promise<CreditMonitoringList> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search) params.set('search', search)
   if (fromDate) params.set('from_date', fromDate)
   if (toDate) params.set('to_date', toDate)

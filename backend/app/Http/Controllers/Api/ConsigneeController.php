@@ -23,7 +23,7 @@ class ConsigneeController extends Controller
                         ->orWhere('email', 'like', "%{$searchTerm}%");
                 });
             })
-            ->orderBy('name')->paginate(10)->withQueryString();
+            ->orderBy('name')->paginate($this->pageSize($request))->withQueryString();
 
         return ConsigneeResource::collection($consignees)->response();
     }

@@ -5,7 +5,7 @@ import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
 import { SearchField } from '../components/ui/SearchField'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { SupplierForm, type SupplierFieldErrors } from '../features/suppliers/SupplierForm'
 import { SupplierTable } from '../features/suppliers/SupplierTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -35,6 +35,7 @@ export function SuppliersPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [formDialog, setFormDialog] = useState<FormDialog | null>(null)
@@ -47,7 +48,7 @@ export function SuppliersPage() {
     setLoading(true)
     setPageError(null)
     try {
-      setSupplierList(await loadSuppliers(search, page, signal))
+      setSupplierList(await loadSuppliers(search, page, pageSize, signal))
     } catch (error) {
       if (!signal?.aborted) setPageError(getUserFacingApiMessage(error))
     } finally {
@@ -113,7 +114,7 @@ export function SuppliersPage() {
       {loading ? <LoadingState label="Loading suppliers…" /> : <>
         <div className="supplier-page__summary">{supplierList.total} supplier{supplierList.total === 1 ? '' : 's'}</div>
         <SupplierTable suppliers={supplierList.suppliers} onEdit={(supplier) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', supplier }) }} onDelete={(supplier) => { setFormError(null); setDeleteTarget(supplier) }} />
-        <Pagination currentPage={supplierList.currentPage} lastPage={supplierList.lastPage} label="Supplier" onPageChange={setPage} />
+        <Pagination currentPage={supplierList.currentPage} lastPage={supplierList.lastPage} label="Supplier" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} />
       </>}
 
       <Modal open={formDialog !== null} title={editingSupplier ? 'Edit Supplier' : 'Add Supplier'} onClose={closeForm} actions={<Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingSupplier ? 'Save Changes' : 'Save Supplier'}</Button>}>

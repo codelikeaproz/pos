@@ -168,6 +168,9 @@ class ItemManagementApiTest extends TestCase
         $this->getJson('/api/items?search=&page=1')->assertOk()
             ->assertJsonCount(10, 'data')->assertJsonPath('data.0.name', 'Item 01')
             ->assertJsonPath('meta.per_page', 10)->assertJsonPath('meta.total', 11)->assertJsonPath('meta.last_page', 2);
+        $this->getJson('/api/items?per_page=20')->assertOk()
+            ->assertJsonCount(11, 'data')->assertJsonPath('meta.per_page', 20)->assertJsonPath('meta.last_page', 1);
+        $this->getJson('/api/items?per_page=500')->assertUnprocessable()->assertJsonValidationErrors('per_page');
     }
 
     /** @param array<string, mixed> $overrides */

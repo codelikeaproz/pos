@@ -20,7 +20,7 @@ class ConsignmentAccountController extends Controller
         $searchTerm = $request->string('search')->trim()->toString();
         $accounts = User::query()->whereNotNull('consignee_id')->with(['station', 'consignee'])
             ->when($searchTerm !== '', fn ($query) => $query->where(fn ($search) => $search->where('name', 'like', "%{$searchTerm}%")->orWhere('email', 'like', "%{$searchTerm}%")))
-            ->orderBy('name')->paginate(10)->withQueryString();
+            ->orderBy('name')->paginate($this->pageSize($request))->withQueryString();
 
         return ConsignmentAccountResource::collection($accounts)->response();
     }

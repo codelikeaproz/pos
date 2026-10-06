@@ -1,8 +1,8 @@
 import { apiRequest } from './apiClient'
 import type { DeliveryList, DeliveryOptions, ItemDelivery } from '../types/itemDelivery'
 
-export async function loadDeliveries(search: string, stationId: string, page: number, signal?: AbortSignal): Promise<DeliveryList> {
-  const params = new URLSearchParams({ page: String(page) })
+export async function loadDeliveries(search: string, stationId: string, page: number, perPage: number, signal?: AbortSignal): Promise<DeliveryList> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search) params.set('search', search)
   if (stationId) params.set('station_id', stationId)
   const result = await apiRequest<{ data: ItemDelivery[]; meta: { current_page: number; last_page: number; total: number } }>(`/api/item-deliveries?${params}`, { signal })

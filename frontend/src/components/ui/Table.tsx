@@ -12,6 +12,7 @@ export type TableProps<T> = {
   columns: TableColumn<T>[]
   rows: T[]
   rowKey: (row: T) => string
+  rowClassName?: (row: T) => string | undefined
   emptyMessage?: string
 }
 
@@ -19,6 +20,7 @@ export function Table<T>({
   columns,
   rows,
   rowKey,
+  rowClassName,
   emptyMessage = 'No records'
 }: TableProps<T>) {
   return (
@@ -45,7 +47,7 @@ export function Table<T>({
             </tr>
           ) : (
             rows.map((row) => (
-              <tr key={rowKey(row)}>
+              <tr key={rowKey(row)} className={rowClassName?.(row)}>
                 {columns.map((column) => (
                   <td
                     key={column.key}

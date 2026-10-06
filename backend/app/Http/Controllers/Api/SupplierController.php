@@ -27,7 +27,7 @@ class SupplierController extends Controller
                 });
             })
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($this->pageSize($request))
             ->withQueryString();
 
         return SupplierResource::collection($suppliers)->response();

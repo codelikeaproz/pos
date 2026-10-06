@@ -5,7 +5,7 @@ import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
 import { SearchField } from '../components/ui/SearchField'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { StationForm, type StationFieldErrors } from '../features/stations/StationForm'
 import { StationTable } from '../features/stations/StationTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -32,6 +32,7 @@ export function StationsPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [formDialog, setFormDialog] = useState<FormDialog | null>(null)
@@ -44,7 +45,7 @@ export function StationsPage() {
     setLoading(true)
     setPageError(null)
     try {
-      setStationList(await loadStations(search, page, signal))
+      setStationList(await loadStations(search, page, pageSize, signal))
     } catch (error) {
       if (!signal?.aborted) setPageError(getUserFacingApiMessage(error))
     } finally {
@@ -161,7 +162,7 @@ export function StationsPage() {
             }}
             onDelete={(station) => { setFormError(null); setDeleteTarget(station) }}
           />
-          <Pagination currentPage={stationList.currentPage} lastPage={stationList.lastPage} label="Station" onPageChange={setPage} />
+          <Pagination currentPage={stationList.currentPage} lastPage={stationList.lastPage} label="Station" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} />
         </>
       )}
 

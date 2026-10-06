@@ -5,7 +5,7 @@ import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
 import { SearchField } from '../components/ui/SearchField'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { ItemForm, type ItemFieldErrors } from '../features/items/ItemForm'
 import { ItemTable } from '../features/items/ItemTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
@@ -28,6 +28,7 @@ export function ItemsPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [formDialog, setFormDialog] = useState<FormDialog | null>(null)
@@ -38,7 +39,7 @@ export function ItemsPage() {
 
   const refreshItems = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setPageError(null)
-    try { setItemList(await loadItems(search, page, signal)) }
+    try { setItemList(await loadItems(search, page, pageSize, signal)) }
     catch (error) { if (!signal?.aborted) setPageError(getUserFacingApiMessage(error)) }
     finally { if (!signal?.aborted) setLoading(false) }
   }, [page, search])
@@ -93,7 +94,7 @@ export function ItemsPage() {
       {loading ? <LoadingState label="Loading items…" /> : <>
         <div className="item-page__summary">{itemList.total} item{itemList.total === 1 ? '' : 's'}</div>
         <ItemTable items={itemList.items} onEdit={(item) => { setFieldErrors({}); setFormError(null); setFormDialog({ mode: 'edit', item }) }} onDeactivate={(item) => { setFormError(null); setDeactivateTarget(item) }} onActivate={(item) => void changeStatus(item, true)} />
-        <Pagination currentPage={itemList.currentPage} lastPage={itemList.lastPage} label="Item" onPageChange={setPage} />
+        <Pagination currentPage={itemList.currentPage} lastPage={itemList.lastPage} label="Item" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} />
       </>}
 
       <Modal open={formDialog !== null} title={editingItem ? 'Edit Item' : 'Add Item'} onClose={closeForm} actions={<Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingItem ? 'Save Changes' : 'Save Item'}</Button>}>

@@ -34,7 +34,7 @@ class ItemDeliveryController extends Controller
                 ->orWhereHas('station', fn ($station) => $station->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('deliveredBy', fn ($user) => $user->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('receivedBy', fn ($user) => $user->where('name', 'like', "%{$search}%"))))
-            ->orderByDesc('delivered_at')->orderByDesc('id')->paginate(10)->withQueryString();
+            ->orderByDesc('delivered_at')->orderByDesc('id')->paginate($this->pageSize($request))->withQueryString();
 
         return ItemDeliveryResource::collection($deliveries)->response();
     }

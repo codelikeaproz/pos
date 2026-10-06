@@ -5,7 +5,7 @@ import { Modal } from '../components/feedback/Modal'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
 import { formatManilaDateTime } from '../lib/dateTime'
@@ -27,6 +27,7 @@ export function ItemDeliveriesPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [filterStation, setFilterStation] = useState('')
   const [stationId, setStationId] = useState('')
   const [receiverId, setReceiverId] = useState('')
@@ -43,10 +44,10 @@ export function ItemDeliveriesPage() {
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setError(null)
-    try { setList(await loadDeliveries(search, filterStation, page, signal)) }
+    try { setList(await loadDeliveries(search, filterStation, page, pageSize, signal)) }
     catch (failure) { if (!signal?.aborted) setError(getUserFacingApiMessage(failure)) }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [search, filterStation, page])
+  }, [search, filterStation, page, pageSize])
 
   useEffect(() => { const timer = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350); return () => window.clearTimeout(timer) }, [searchInput])
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
@@ -123,7 +124,7 @@ export function ItemDeliveriesPage() {
     <header className="page__header"><div><h1 className="page__title">Item Delivery</h1><p className="page__description">Deliver items to Stations and review completed deliveries.</p></div><Button onClick={openForm} icon={<AppIcons.add size={iconSize} />}>Deliver Items</Button></header>
     <div className="delivery-filters"><SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search delivery number, Station, or employee..." label="Search deliveries" /><div><Label htmlFor="delivery-filter-station">Station</Label><select id="delivery-filter-station" className="ui-input" value={filterStation} onChange={(event) => { setFilterStation(event.target.value); setPage(1) }}><option value="">All Stations</option>{options.stations.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></div></div>
     {!creating && error ? <Alert tone="error">{error}</Alert> : null}
-    {loading ? <LoadingState label="Loading deliveries…" /> : <><p className="page__description">{list.total} deliver{list.total === 1 ? 'y' : 'ies'}</p><Table columns={columns} rows={list.deliveries} rowKey={(row) => String(row.id)} emptyMessage="No deliveries found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Delivery" onPageChange={setPage} /></>}
+    {loading ? <LoadingState label="Loading deliveries…" /> : <><p className="page__description">{list.total} deliver{list.total === 1 ? 'y' : 'ies'}</p><Table columns={columns} rows={list.deliveries} rowKey={(row) => String(row.id)} emptyMessage="No deliveries found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Delivery" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} /></>}
 
     <Modal open={creating} size="large" title="Deliver Items" onClose={() => { if (!submitting) setCreating(false) }} actions={<Button disabled={submitting} onClick={submitForm} icon={<AppIcons.save size={iconSize} />}>Submit Delivery</Button>}>
       <div className="delivery-form"><div><Label htmlFor="delivery-station" required>Destination Station</Label><select id="delivery-station" className="ui-input" value={stationId} onChange={(event) => { setStationId(event.target.value); setReceiverId('') }}><option value="">Select Station</option>{options.stations.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></div><div><Label htmlFor="delivery-receiver" required>Receiver</Label><select id="delivery-receiver" className="ui-input" value={receiverId} disabled={!stationId} onChange={(event) => setReceiverId(event.target.value)}><option value="">Select Receiver</option>{options.receivers.map((user) => <option key={user.id} value={user.id}>{user.name} — {user.email}</option>)}</select></div></div>

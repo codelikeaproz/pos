@@ -35,6 +35,16 @@
   background: var(--color-bg-subtle);
 }
 
+.ui-table tbody tr.ui-table__row--danger,
+.ui-table tbody tr.ui-table__row--danger:hover {
+  background: var(--color-danger-bg);
+}
+
+.ui-table tbody tr.ui-table__row--success,
+.ui-table tbody tr.ui-table__row--success:hover {
+  background: var(--color-success-bg);
+}
+
 .ui-table tbody tr:last-child td {
   border-bottom: none;
 }
@@ -42,7 +52,7 @@
 .ui-table td { overflow-wrap: anywhere; }
 .ui-table tbody td, .ui-table tbody strong { font-weight: 400; }
 .ui-table td:has(.ui-btn) { overflow-wrap: normal; }
-.ui-table td .ui-btn { min-height: 30px; }
+.ui-table td .table-icon-action { min-height: 26px; }
 
 .ui-table__cell--right {
   text-align: right;

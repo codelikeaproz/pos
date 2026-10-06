@@ -1,8 +1,8 @@
 import { apiRequest } from './apiClient'
 import type { Spoilage, SpoilageList, SpoilageOptions } from '../types/spoilage'
 
-export async function loadSpoilages(search: string, stationId: string, page: number, signal?: AbortSignal): Promise<SpoilageList> {
-  const params = new URLSearchParams({ page: String(page) })
+export async function loadSpoilages(search: string, stationId: string, page: number, perPage: number, signal?: AbortSignal): Promise<SpoilageList> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search) params.set('search', search)
   if (stationId) params.set('station_id', stationId)
   const result = await apiRequest<{ data: Spoilage[]; meta: { current_page: number; last_page: number; total: number } }>(`/api/spoilages?${params}`, { signal })

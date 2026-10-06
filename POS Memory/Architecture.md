@@ -1,6 +1,22 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.19.4 semantic table status colors (2026-10-06)
+
+Table statuses use the shared compact Badge tones and always retain visible text. Product and Price show Active in green and Inactive in red; inactive Price history records also use a subtle red full-row background. Sale Remittance shows Remitted in green and Not Remitted in amber; remitted records also use a subtle green row background while pending records retain the normal row background. Admin and POS inventory tables highlight the full row with a subtle red background when stock is low or out.
+
+Station Inventory, the POS Available Items table, and the POS F12 inventory dialog share one stock presentation component. Zero or negative balances display Out of Stock in red; positive balances at or below the Product's existing `items.reorder_point` display Low Stock in amber; balances above the threshold remain plain. The POS resources expose the existing rule as status metadata, while stock authority, availability, and checkout validation remain unchanged.
+
+Paginated administration modules share a Rows per page selector with 10, 20, 50, and 100 choices and default to 10 in the UI. The backend validates page sizes centrally and caps selectable administrative requests at 100. POS Available Items, Customer selection, F6, F7, and F12 request a fixed 15 rows without showing a size selector so the operational layout stays compact.
+
+### Phase 10.19.3 58 mm HTML receipt preview (2026-10-06)
+
+The completed checkout response feeds a repository-owned HTML `PaymentReceipt`; checkout and receipt presentation remain separate. The receipt uses the persisted Order and Order Item snapshots returned after commit, so later Product names and active Prices cannot rewrite historical display.
+
+The receipt targets a 58 mm-class thermal roll with a fixed 52 mm content width and compact 2.5 mm padding. Its height is content-driven: Item names wrap, Item rows remain two-line thermal layouts, and long Orders extend vertically inside a keyboard-focusable preview limited to 70vh. The modal title is Receipt Preview, its header X closes the dialog, and its only footer action is Print Receipt.
+
+Print Receipt uses the renderer's standard `window.print()` dialog and receipt-specific print CSS. Print mode hides application chrome, keeps the receipt at 52 mm within a 58 mm print region, removes preview scrolling, and allows the full content to flow. `@page` uses automatic sizing because exact continuous-paper behavior remains dependent on the selected printer driver and roll configuration. No Node access, Electron printer IPC, Cash Drawer integration, or automatic printing is introduced.
+
 ### Phase 10.19.1 Senior Citizen discount (2026-10-05)
 
 Senior Citizen discount is an Order-level adjustment inside the existing protected checkout. The authoritative formula is `(Order Subtotal / Number of Customers) × 20% × Number of Senior Citizens`. Laravel calculates the rational discount in integer cents and rounds half-up once to the nearest cent; for example, ₱100 / 3 customers / 1 Senior produces ₱6.67.

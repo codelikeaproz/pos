@@ -7,6 +7,7 @@ export type PosItem = {
   unit: string
   price: string
   available_quantity: string
+  is_low_stock: boolean
 }
 
 export type PosItemList = {
@@ -28,6 +29,7 @@ export type PosStationInventoryRow = {
   recordedSoldQuantity: string
   recordedSpoilageQuantity: string
   isActive: boolean
+  isLowStock: boolean
 }
 
 export type PosStationInventoryList = {

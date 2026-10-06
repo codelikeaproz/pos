@@ -39,7 +39,7 @@ export function PosTransactionsDialog({ open, stationId, mode = 'station', onClo
     const controller = new AbortController()
     setLoading(true); setError(null)
     const loader = mode === 'or' ? loadPosOrTransactions : loadOrderHistory
-    void loader({ search, fromDate, toDate, stationId: String(stationId), customerSort: isOr ? customerSort : '', page }, controller.signal)
+    void loader({ search, fromDate, toDate, stationId: String(stationId), customerSort: isOr ? customerSort : '', page, perPage: 15 }, controller.signal)
       .then(setList).catch((failure) => { if (!controller.signal.aborted) setError(getUserFacingApiMessage(failure)) })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()

@@ -12,9 +12,10 @@ type DeleteStationResponse = { message: string }
 export async function loadStations(
   search: string,
   page: number,
+  perPage: number,
   signal?: AbortSignal
 ): Promise<StationList> {
-  const params = new URLSearchParams({ page: String(page) })
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search.trim()) params.set('search', search.trim())
 
   const response = await apiRequest<PaginatedStationsResponse>(

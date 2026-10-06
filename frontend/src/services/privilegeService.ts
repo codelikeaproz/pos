@@ -3,8 +3,8 @@ import type { Privilege, PrivilegeAssignmentList, PrivilegeList, AssignmentUser 
 
 type PaginatedPrivileges = { data: Privilege[]; meta: { current_page: number; last_page: number; total: number } }
 
-export async function loadPrivileges(search: string, page: number, signal?: AbortSignal): Promise<PrivilegeList> {
-  const params = new URLSearchParams({ page: String(page) })
+export async function loadPrivileges(search: string, page: number, perPage: number, signal?: AbortSignal): Promise<PrivilegeList> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search) params.set('search', search)
   const result = await apiRequest<PaginatedPrivileges>(`/api/privileges?${params}`, { signal })
   return { privileges: result.data, currentPage: result.meta.current_page, lastPage: result.meta.last_page, total: result.meta.total }
@@ -18,8 +18,8 @@ export function updatePrivilege(id: number, description: string): Promise<{ mess
   return apiRequest(`/api/privileges/${id}`, { method: 'PUT', body: { description } })
 }
 
-export async function loadPrivilegeAssignments(search: string, page: number, signal?: AbortSignal): Promise<PrivilegeAssignmentList> {
-  const params = new URLSearchParams({ page: String(page) })
+export async function loadPrivilegeAssignments(search: string, page: number, perPage: number, signal?: AbortSignal): Promise<PrivilegeAssignmentList> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search) params.set('search', search)
   const result = await apiRequest<{ data: AssignmentUser[]; privileges: Privilege[]; meta: { current_page: number; last_page: number; total: number } }>(`/api/privilege-assignments?${params}`, { signal })
   return { users: result.data, privileges: result.privileges, currentPage: result.meta.current_page, lastPage: result.meta.last_page, total: result.meta.total }

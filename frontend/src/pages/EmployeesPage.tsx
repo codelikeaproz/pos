@@ -5,7 +5,7 @@ import { Modal } from '../components/feedback/Modal'
 import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
 import { SearchField } from '../components/ui/SearchField'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import {
   EmployeeForm,
   type EmployeeFieldErrors
@@ -55,6 +55,7 @@ export function EmployeesPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [formDialog, setFormDialog] = useState<FormDialog | null>(null)
@@ -74,7 +75,7 @@ export function EmployeesPage() {
       setPageError(null)
 
       try {
-        const result = await loadEmployees(search, page, signal)
+        const result = await loadEmployees(search, page, pageSize, signal)
         setEmployeeList(result)
       } catch (error) {
         if (!signal?.aborted) {
@@ -231,7 +232,7 @@ export function EmployeesPage() {
               setDeleteTarget(employee)
             }}
           />
-          <Pagination currentPage={employeeList.currentPage} lastPage={employeeList.lastPage} label="Employee" onPageChange={setPage} />
+          <Pagination currentPage={employeeList.currentPage} lastPage={employeeList.lastPage} label="Employee" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} />
         </>
       )}
 

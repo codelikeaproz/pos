@@ -34,7 +34,7 @@ class SpoilageController extends Controller
                 ->orWhere('reason', 'like', "%{$search}%")
                 ->orWhereHas('station', fn ($station) => $station->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('recordedBy', fn ($user) => $user->where('name', 'like', "%{$search}%"))))
-            ->orderByDesc('spoiled_at')->orderByDesc('id')->paginate(10)->withQueryString();
+            ->orderByDesc('spoiled_at')->orderByDesc('id')->paginate($this->pageSize($request))->withQueryString();
 
         return SpoilageResource::collection($spoilages)->response();
     }

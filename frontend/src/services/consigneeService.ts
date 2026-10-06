@@ -8,8 +8,8 @@ type ResponseDto = { message: string; consignee: ConsigneeDto }
 const fromDto = (value: ConsigneeDto): Consignee => ({ id: value.id, name: value.name, contactNumber: value.contact_number, email: value.email, address: value.address })
 const toDto = (value: ConsigneeInput) => ({ name: value.name, contact_number: value.contactNumber, email: value.email, address: value.address })
 
-export async function loadConsignees(search: string, page: number, signal?: AbortSignal): Promise<ConsigneeList> {
-  const params = new URLSearchParams({ page: String(page) }); if (search.trim()) params.set('search', search.trim())
+export async function loadConsignees(search: string, page: number, perPage: number, signal?: AbortSignal): Promise<ConsigneeList> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) }); if (search.trim()) params.set('search', search.trim())
   const response = await apiRequest<PaginatedResponse>(`/api/consignees?${params.toString()}`, { signal })
   return { consignees: response.data.map(fromDto), currentPage: response.meta.current_page, lastPage: response.meta.last_page, total: response.meta.total }
 }

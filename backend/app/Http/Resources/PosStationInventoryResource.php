@@ -20,6 +20,7 @@ class PosStationInventoryResource extends JsonResource
             'recordedSoldQuantity' => $this->recorded_sold_quantity ?? '0.000',
             'recordedSpoilageQuantity' => $this->recorded_spoilage_quantity ?? '0.000',
             'isActive' => $this->item->is_active,
+            'isLowStock' => (float) $this->quantity <= (float) $this->item->reorder_point,
         ];
     }
 }

@@ -19,6 +19,7 @@ class SaleRemittanceController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from_date'],
+            'status_sort' => ['nullable', 'in:asc,desc'],
         ]);
         $search = trim($validated['search'] ?? '');
         $orders = Order::query()->where('payment_method', 'cash')
@@ -30,7 +31,10 @@ class SaleRemittanceController extends Controller
                 ->orWhereHas('cashier', fn ($cashier) => $cashier->where('name', 'like', "%{$search}%"))))
             ->when(isset($validated['from_date']), fn ($query) => $query->where('ordered_at', '>=', CarbonImmutable::parse($validated['from_date'], 'Asia/Manila')->startOfDay()->utc()))
             ->when(isset($validated['to_date']), fn ($query) => $query->where('ordered_at', '<', CarbonImmutable::parse($validated['to_date'], 'Asia/Manila')->addDay()->startOfDay()->utc()))
-            ->orderByDesc('ordered_at')->orderByDesc('id')->paginate(10)->withQueryString();
+            ->when(isset($validated['status_sort']), fn ($query) => $query->orderByRaw(
+                'CASE WHEN remitted_at IS NULL THEN 0 ELSE 1 END '.($validated['status_sort'] === 'asc' ? 'ASC' : 'DESC')
+            ))
+            ->orderByDesc('ordered_at')->orderByDesc('id')->paginate($this->pageSize($request))->withQueryString();
 
         return SaleRemittanceResource::collection($orders)->response();
     }

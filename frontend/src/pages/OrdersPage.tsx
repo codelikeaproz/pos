@@ -264,6 +264,6 @@ export function OrdersPage() {
     <PosTransactionsDialog open={orTransactionsOpen} stationId={stationId} mode="or" onClose={() => setOrTransactionsOpen(false)} />
     <PosTransactionsDialog open={transactionsOpen} stationId={stationId} onClose={() => setTransactionsOpen(false)} />
     <PosStationInventoryDialog open={stationInventoryOpen} onClose={() => setStationInventoryOpen(false)} />
-    <Modal open={completedOrder !== null} title="Order Successful" onClose={() => setCompletedOrder(null)} actions={<Button onClick={() => setCompletedOrder(null)}>Done</Button>}>{completedOrder ? <PaymentReceipt order={completedOrder} /> : null}</Modal>
+    <Modal open={completedOrder !== null} title="Receipt Preview" onClose={() => setCompletedOrder(null)} actions={<Button onClick={() => window.print()} icon={<AppIcons.print size={iconSize} strokeWidth={iconStroke} />}>Print Receipt</Button>}>{completedOrder ? <PaymentReceipt order={completedOrder} /> : null}</Modal>
   </section>
 }

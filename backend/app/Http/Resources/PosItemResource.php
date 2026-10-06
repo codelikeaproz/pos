@@ -16,6 +16,7 @@ class PosItemResource extends JsonResource
             'unit' => $this->item->units_backup,
             'price' => $this->item->activePrice->amount,
             'available_quantity' => $this->quantity,
+            'is_low_stock' => (float) $this->quantity <= (float) $this->item->reorder_point,
         ];
     }
 }

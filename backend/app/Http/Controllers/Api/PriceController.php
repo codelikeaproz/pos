@@ -26,7 +26,7 @@ class PriceController extends Controller
             ->when($search !== '', fn ($query) => $query->whereHas('item', fn ($items) => $items
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('item_code', 'like', "%{$search}%")))
-            ->orderByDesc('created_at')->orderByDesc('id')->paginate(10)->withQueryString();
+            ->orderByDesc('created_at')->orderByDesc('id')->paginate($this->pageSize($request))->withQueryString();
 
         return PriceResource::collection($prices)->response();
     }

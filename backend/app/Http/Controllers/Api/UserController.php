@@ -28,7 +28,7 @@ class UserController extends Controller
                 });
             })
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($this->pageSize($request))
             ->withQueryString();
 
         return UserResource::collection($users)->response();

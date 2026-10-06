@@ -5,7 +5,7 @@ import { Modal } from '../components/feedback/Modal'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
 import { SearchField } from '../components/ui/SearchField'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { useAuth } from '../features/auth/AuthContext'
 import { OrderDetailView } from '../features/orders/OrderDetailView'
 import { TransactionTable } from '../features/orders/TransactionTable'
@@ -28,6 +28,7 @@ export function TransactionsPage() {
   const [stationId, setStationId] = useState('')
   const [stations, setStations] = useState<InventoryOption[]>([])
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [detail, setDetail] = useState<OrderDetail | null>(null)
@@ -47,7 +48,7 @@ export function TransactionsPage() {
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setError(null)
-    try { setList(await loadOrderHistory({ search, fromDate, toDate, stationId, page }, signal)) }
+    try { setList(await loadOrderHistory({ search, fromDate, toDate, stationId, page, perPage: pageSize }, signal)) }
     catch (loadError) { if (!signal?.aborted) { setList(EMPTY); setError(getUserFacingApiMessage(loadError)) } }
     finally { if (!signal?.aborted) setLoading(false) }
   }, [fromDate, page, search, stationId, toDate])
@@ -74,7 +75,7 @@ export function TransactionsPage() {
     {error ? <Alert tone="warning">{error}</Alert> : null}
     <div className="transaction-summary">{list.total} transaction{list.total === 1 ? '' : 's'}</div>
     {loading ? <LoadingState label="Loading transactions…" /> : <TransactionTable orders={list.orders} emptyMessage={filtered ? 'No transactions found.' : 'No transactions yet.'} onView={(order) => void view(order)} />}
-    {!loading && <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Transaction" onPageChange={setPage} />}
+    {!loading && <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Transaction" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} />}
     <Modal open={detail !== null || detailLoading} title="Order Details" size="large" onClose={() => { if (!detailLoading) setDetail(null) }}>{detailLoading ? <LoadingState label="Loading order details…" /> : detail ? <OrderDetailView order={detail} /> : null}</Modal>
   </section>
 }

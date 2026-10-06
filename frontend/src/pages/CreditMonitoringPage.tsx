@@ -3,7 +3,7 @@ import { Alert } from '../components/feedback/Alert'
 import { LoadingState } from '../components/feedback/LoadingState'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
 import { CustomerSortHeader, type CustomerSort } from '../components/ui/CustomerSortHeader'
@@ -23,6 +23,7 @@ export function CreditMonitoringPage() {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [customerSort, setCustomerSort] = useState<CustomerSort>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -30,10 +31,10 @@ export function CreditMonitoringPage() {
   useEffect(() => { const timer = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350); return () => window.clearTimeout(timer) }, [searchInput])
   const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setError(null)
-    try { setList(await loadCreditMonitoring(search, fromDate, toDate, customerSort, page, signal)) }
+    try { setList(await loadCreditMonitoring(search, fromDate, toDate, customerSort, page, pageSize, signal)) }
     catch (failure) { if (!signal?.aborted) { setList(EMPTY); setError(getUserFacingApiMessage(failure)) } }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [customerSort, search, fromDate, toDate, page])
+  }, [customerSort, search, fromDate, toDate, page, pageSize])
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
 
   const columns: TableColumn<CreditOrder>[] = [
@@ -51,6 +52,6 @@ export function CreditMonitoringPage() {
     <header className="page__header"><div><h1 className="page__title">Credit Monitoring</h1><p className="page__description">Read-only record of Utang sales. The Accounting Office handles settlement.</p></div></header>
     <div className="credit-monitoring-page__filters"><SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search order, Customer, Station, or Cashier..." label="Search Credit transactions" /><div><Label htmlFor="credit-from">From</Label><Input id="credit-from" type="date" value={fromDate} onChange={(event) => { setFromDate(event.target.value); setPage(1) }} /></div><div><Label htmlFor="credit-to">To</Label><Input id="credit-to" type="date" min={fromDate || undefined} value={toDate} onChange={(event) => { setToDate(event.target.value); setPage(1) }} /></div></div>
     {error ? <Alert tone="error">{error}</Alert> : null}
-    {loading ? <LoadingState label="Loading Credit transactions…" /> : <><Table columns={columns} rows={list.orders} rowKey={(row) => String(row.id)} emptyMessage="No Credit transactions found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Credit transaction" onPageChange={setPage} /><div className="credit-monitoring-page__total"><span>Total Amount:</span><strong>{money.format(Number(list.totalAmount))}</strong></div><p className="credit-monitoring-page__note">Total Amount covers all matching recorded Credit sales, not an outstanding balance.</p></>}
+    {loading ? <LoadingState label="Loading Credit transactions…" /> : <><Table columns={columns} rows={list.orders} rowKey={(row) => String(row.id)} emptyMessage="No Credit transactions found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Credit transaction" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} /><div className="credit-monitoring-page__total"><span>Total Amount:</span><strong>{money.format(Number(list.totalAmount))}</strong></div><p className="credit-monitoring-page__note">Total Amount covers all matching recorded Credit sales, not an outstanding balance.</p></>}
   </section>
 }

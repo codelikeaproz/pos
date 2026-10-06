@@ -31,7 +31,7 @@ class PosItemController extends Controller
             ->select('station_items.*')
             ->withMovementSummary()
             ->orderBy('items.name')->orderBy('station_items.id')
-            ->paginate(10)->withQueryString();
+            ->paginate($this->pageSize($request, 15))->withQueryString();
 
         return PosStationInventoryResource::collection($stationItems)
             ->additional(['station' => ['id' => $user->station->id, 'name' => $user->station->name]])
@@ -66,7 +66,7 @@ class PosItemController extends Controller
             ->select('station_items.*')
             ->when($searchTerm !== '', fn ($query) => $query->orderByRaw('CASE WHEN LOWER(items.item_code) = LOWER(?) THEN 0 ELSE 1 END', [$searchTerm]))
             ->orderBy('items.name')
-            ->paginate(10)
+            ->paginate($this->pageSize($request, 15))
             ->withQueryString();
 
         return PosItemResource::collection($stationItems)

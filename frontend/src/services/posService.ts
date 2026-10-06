@@ -22,7 +22,7 @@ export async function checkoutOrder(items: CartItem[], paymentMethod: 'cash' | '
 }
 
 export async function loadPosItems(search: string, page: number, signal?: AbortSignal): Promise<PosItemList> {
-  const params = new URLSearchParams({ page: String(page) })
+  const params = new URLSearchParams({ page: String(page), per_page: '15' })
   if (search) params.set('search', search)
   const response = await apiRequest<PosItemsResponse>(`/api/pos/items?${params}`, { signal })
 
@@ -36,7 +36,7 @@ export async function loadPosItems(search: string, page: number, signal?: AbortS
 }
 
 export async function loadPosStationInventory(search: string, page: number, signal?: AbortSignal): Promise<PosStationInventoryList> {
-  const params = new URLSearchParams({ page: String(page) })
+  const params = new URLSearchParams({ page: String(page), per_page: '15' })
   if (search) params.set('search', search)
   const response = await apiRequest<{ data: PosStationInventoryRow[]; station: PosStation; meta: { current_page: number; last_page: number; total: number } }>(`/api/pos/station-inventory?${params}`, { signal })
   return { items: response.data, station: response.station, currentPage: response.meta.current_page, lastPage: response.meta.last_page, total: response.meta.total }

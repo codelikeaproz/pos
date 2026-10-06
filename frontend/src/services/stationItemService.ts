@@ -3,8 +3,8 @@ import { apiRequest } from './apiClient'
 
 type PageResponse = { data: StationItem[]; meta: { current_page: number; last_page: number; total: number } }
 
-export async function loadStationInventory(stationId: number, search: string, page: number, signal?: AbortSignal): Promise<StationInventoryList> {
-  const params = new URLSearchParams({ station_id: String(stationId), page: String(page) })
+export async function loadStationInventory(stationId: number, search: string, page: number, perPage: number, signal?: AbortSignal): Promise<StationInventoryList> {
+  const params = new URLSearchParams({ station_id: String(stationId), page: String(page), per_page: String(perPage) })
   if (search) params.set('search', search)
   const response = await apiRequest<PageResponse>(`/api/station-items?${params}`, { signal })
   return { stationItems: response.data, currentPage: response.meta.current_page, lastPage: response.meta.last_page, total: response.meta.total }

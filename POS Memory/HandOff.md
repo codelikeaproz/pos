@@ -4,6 +4,28 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.19.4 status — Complete (2026-10-06)
+
+Product and Price tables now use shared compact Active and Inactive badges with green and red semantic tones. Inactive Price history records also use a subtle red full-row background. Sale Remittance uses the same shared component for green Remitted and amber Not Remitted statuses; Remitted rows are subtly green while Not Remitted rows retain their normal background. Admin Station Inventory and both POS inventory tables use a subtle red full-row highlight for low and out-of-stock records while retaining the explicit stock label.
+
+Admin Station Inventory, POS Available Items, and POS F12 now share the same stock-state presentation. Out of Stock is red and takes precedence at zero; Low Stock is amber for a positive balance at or below the Product's configured reorder point; normal stock remains calm plain text. POS Add remains disabled only at zero stock, so low-stock Items remain sellable. Credit status, Delivery history, and Spoilage history were not reinterpreted.
+
+POS F7 Station Transactions presents the Date Remitted cell as a green badge when a remittance timestamp exists and an amber Not Remitted badge otherwise. Remitted records also use the shared subtle green full-row background; Not Remitted records retain the normal row background. The stored timestamp and Manila date formatting remain unchanged.
+
+Sale Remittance Status has accessible up/down controls matching the existing Customer sort controls. Up places Not Remitted first, down places Remitted first, and selecting the active direction again restores the default newest-first order. Status sorting runs in the API before pagination.
+
+All paginated administration modules now expose a shared Rows per page selector for 10, 20, 50, or 100 records, defaulting to 10. Changing size returns to page 1 and retains each module's search, date, station, and sort filters. Sale Remittance clears page-scoped selections, and Privilege Assignment blocks size changes while assignments are unsaved. POS Available Items, Customer selection, F6, F7, and F12 use a fixed 15 rows per page with no selector.
+
+Table icon actions now use a compact 26px square control. This removes the extra row height previously visible in O.R Transactions while preserving the Eye action and accessible label.
+
+### Phase 10.19.3 status — Complete (2026-10-06)
+
+The successful Order dialog is now **Receipt Preview**. Its HTML receipt is fixed at 52 mm content width for a 58 mm-class thermal roll, uses compact 9–13px mostly regular typography, and grows vertically with its content. The centered receipt sits on an off-white preview surface capped at 70vh; long Orders scroll in the preview without cropping or changing receipt width.
+
+Metadata shows Station, compact Manila Date, wrapping transaction number, Cashier, Customer or Walk-in, and Cash or Credit / Utang payment method. Each Item uses a wrapping name line followed by quantity × persisted Unit Price and a right-aligned persisted subtotal. Discount rows appear only for a discounted Order. Cash shows persisted Cash Received and Change; Credit omits both. The footer is a compact thank-you message.
+
+The redundant Done action was removed. The header X remains the close action, and the footer now provides a Printer icon plus **Print Receipt**. Printing invokes the standard renderer print dialog; receipt-only CSS hides application chrome, removes the preview height limit, and preserves the narrow dynamic receipt. Exact continuous-roll output still depends on the future thermal printer and driver configuration. No PDFx, direct printer API, Electron print IPC, silent printing, Cash Drawer work, checkout changes, or O.R Number generation was added.
+
 ### Phase 10.19.1 status — Complete (2026-10-05)
 
 POS Ctrl+D opens a compact Senior Citizen discount dialog with Customer and Senior counts, live Initial Price / Discount / Final Total preview, Apply Discount, and Remove Discount. Empty carts are rejected with POS feedback. The saved count configuration remains in the unfinished Order and automatically recalculates after Item, quantity, or Price changes.

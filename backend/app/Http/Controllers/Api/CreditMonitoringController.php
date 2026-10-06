@@ -44,7 +44,7 @@ class CreditMonitoringController extends Controller
                 Customer::query()->select('name')->whereColumn('customers.id', 'orders.customer_id'),
                 $validated['customer_sort']
             ))
-            ->orderByDesc('ordered_at')->orderByDesc('id')->paginate(10)->withQueryString();
+            ->orderByDesc('ordered_at')->orderByDesc('id')->paginate($this->pageSize($request))->withQueryString();
 
         return CreditMonitoringResource::collection($page)->additional(['totalAmount' => $totalAmount])->response();
     }

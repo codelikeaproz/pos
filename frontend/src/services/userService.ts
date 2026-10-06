@@ -22,9 +22,10 @@ type DeleteUserResponse = {
 export async function loadEmployees(
   search: string,
   page: number,
+  perPage: number,
   signal?: AbortSignal
 ): Promise<EmployeeList> {
-  const params = new URLSearchParams({ page: String(page) })
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search.trim()) {
     params.set('search', search.trim())
   }

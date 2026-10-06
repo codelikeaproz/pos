@@ -6,7 +6,7 @@ import { Modal } from '../components/feedback/Modal'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
 import { formatManilaDate, formatManilaDateTime } from '../lib/dateTime'
@@ -30,6 +30,7 @@ export function SpoilagesPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [filterStation, setFilterStation] = useState(() => searchParams.get('stationId') ?? '')
   const [stationId, setStationId] = useState('')
   const [reason, setReason] = useState('')
@@ -48,10 +49,10 @@ export function SpoilagesPage() {
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setError(null)
-    try { setList(await loadSpoilages(search, filterStation, page, signal)) }
+    try { setList(await loadSpoilages(search, filterStation, page, pageSize, signal)) }
     catch (failure) { if (!signal?.aborted) setError(getUserFacingApiMessage(failure)) }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [search, filterStation, page])
+  }, [search, filterStation, page, pageSize])
   useEffect(() => { const timer = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350); return () => window.clearTimeout(timer) }, [searchInput])
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
   useEffect(() => { const timer = window.setTimeout(() => setItemSearch(itemSearchInput.trim()), 350); return () => window.clearTimeout(timer) }, [itemSearchInput])
@@ -137,7 +138,7 @@ export function SpoilagesPage() {
     <header className="page__header"><div><h1 className="page__title">Spoilage Management</h1><p className="page__description">Record unusable Station stock and review completed Spoilage.</p></div><Button onClick={openForm} icon={<AppIcons.add size={iconSize} />}>Record Spoilage</Button></header>
     <div className="spoilage-filters"><SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search Spoilage number, Station, or employee..." label="Search Spoilage" /><div><Label htmlFor="spoilage-filter-station">Station</Label><select id="spoilage-filter-station" className="ui-input" value={filterStation} onChange={(event) => { setFilterStation(event.target.value); setPage(1) }}><option value="">All Stations</option>{options.stations.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></div></div>
     {!creating && error ? <Alert tone="error">{error}</Alert> : null}
-    {loading ? <LoadingState label="Loading Spoilage…" /> : <><p className="page__description">{list.total} Spoilage record{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.spoilages} rowKey={(row) => String(row.id)} emptyMessage="No Spoilage found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Spoilage" onPageChange={setPage} /></>}
+    {loading ? <LoadingState label="Loading Spoilage…" /> : <><p className="page__description">{list.total} Spoilage record{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.spoilages} rowKey={(row) => String(row.id)} emptyMessage="No Spoilage found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Spoilage" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} /></>}
 
     <Modal open={creating} size="large" title="Report Spoilage" onClose={() => { if (!submitting) setCreating(false) }} actions={<Button disabled={submitting} onClick={submitForm} icon={<AppIcons.save size={iconSize} />}>Submit Spoilage</Button>}>
       <div className="spoilage-report-header">

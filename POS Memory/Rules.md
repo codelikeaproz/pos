@@ -2,6 +2,26 @@
 
 ## Development Rules
 
+### Semantic table statuses (Phase 10.19.4)
+
+- Status meaning must remain visible in text; color is supporting information only.
+- Use the shared Badge tones for Product and Price Active/Inactive and Sale Remittance Remitted/Not Remitted states. Inactive Price history records use a subtle red full-row background. Admin and POS inventory tables use a subtle red full-row highlight for low and out-of-stock records while retaining explicit text. Sale Remittance uses a subtle green row for Remitted records and keeps the normal row background for Not Remitted records.
+- Stock status uses the Product's configured `items.reorder_point`: a balance at or below zero is Out of Stock, a positive balance at or below the reorder point is Low Stock, and a balance above it is normal.
+- Low Stock remains sellable. Only Out of Stock disables the POS Add action. These labels do not change inventory calculations or checkout validation.
+- Do not infer Paid or Unpaid Credit states, and do not add semantic status colors to Delivery or Spoilage without a confirmed business rule.
+- In POS F7 Station Transactions, a remitted record uses a subtle green full-row background and a green Date Remitted badge. The existing Not Remitted value uses an amber badge on the normal row background.
+- Sale Remittance status sorting must run before pagination: ascending places Not Remitted first, descending places Remitted first, and no status sort preserves newest-first ordering.
+- Administration list page sizes are 10, 20, 50, or 100, with 10 as the UI default. A size change returns to page 1 while preserving filters and sorting. Clear page-scoped selections when their source page changes.
+- POS list surfaces use 15 rows per page without a page-size selector. Backend list endpoints validate supported sizes and reject arbitrary or excessive values.
+
+### Phase 10.19.3 receipt preview rules
+
+Keep the receipt as HTML and source it only from the completed Order and Order Item snapshots returned after checkout commits. Its printable content width is 52 mm for a 58 mm-class roll; height must grow with content. Never truncate long Item names, compress the width, shrink text based on Item count, or impose a fixed receipt height.
+
+Use compact, primarily regular-weight monochrome typography. Place each Item name on its own wrapping line and quantity × historical Unit Price beside the historical line subtotal on the following line. Show persisted Cash Received and Change only for Cash. Show Senior Discount and Customer/Senior counts only when a persisted discount exists. Credit / Utang shows its Customer in receipt metadata and never invents Cash values or an O.R Number.
+
+Print Receipt may call the standard browser print dialog with receipt-only print CSS. Keep printing user-initiated and retain `contextIsolation`, disabled `nodeIntegration`, and renderer sandboxing. Physical printer selection, silent printing, printer commands, Cash Drawer control, and driver-specific continuous-paper guarantees remain deferred to Electron IPC and the hardware phase.
+
 ### Phase 10.19.1 Senior Citizen discount rules
 
 Use the exact Order-level formula `Senior Discount = (Order Subtotal / Number of Customers) × 20% × Number of Senior Citizens`. Require positive whole-number counts and reject Senior count above Customer count. Calculate authoritatively during Laravel checkout using integer cents, with one half-up rounding to the nearest cent on the final discount.

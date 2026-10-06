@@ -6,7 +6,7 @@ import { useToast } from '../components/feedback/Toast'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import { Table, type TableColumn } from '../components/ui/Table'
 import { AppIcons, iconSize } from '../lib/icons'
@@ -24,6 +24,7 @@ export function CustomerManagementPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
@@ -35,10 +36,10 @@ export function CustomerManagementPage() {
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setPageError(null)
-    try { setList(await loadCustomers(search, page, signal)) }
+    try { setList(await loadCustomers(search, page, pageSize, signal)) }
     catch (failure) { if (!signal?.aborted) setPageError(getUserFacingApiMessage(failure)) }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [search, page])
+  }, [search, page, pageSize])
   useEffect(() => { const timer = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350); return () => window.clearTimeout(timer) }, [searchInput])
   useEffect(() => { const controller = new AbortController(); void refresh(controller.signal); return () => controller.abort() }, [refresh])
 
@@ -68,7 +69,7 @@ export function CustomerManagementPage() {
     <SearchField value={searchInput} onChange={setSearchInput} onClear={() => { setSearchInput(''); setSearch(''); setPage(1) }} placeholder="Search name or address..." label="Search Customers" />
     <p className="customer-management-page__balance-note">Balance is unavailable here because credit settlement is handled by the Accounting Office.</p>
     {pageError ? <Alert tone="error">{pageError}</Alert> : null}
-    {loading ? <LoadingState label="Loading Customers…" /> : <><p className="page__description">{list.total} Customer{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.customers} rowKey={(row) => String(row.id)} emptyMessage="No Customers found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Customer" onPageChange={setPage} /></>}
+    {loading ? <LoadingState label="Loading Customers…" /> : <><p className="page__description">{list.total} Customer{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.customers} rowKey={(row) => String(row.id)} emptyMessage="No Customers found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Customer" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} /></>}
     <Modal open={addOpen} title="Add Customer" onClose={() => { if (!submitting) setAddOpen(false) }} actions={<Button disabled={submitting} onClick={() => void save()} icon={<AppIcons.add size={iconSize} />}>Add Customer</Button>}>
       <div className="customer-management-page__form"><Label htmlFor="customer-name" required>Customer Name</Label><Input id="customer-name" maxLength={255} value={name} onChange={(event) => setName(event.target.value)} error={Boolean(fieldErrors.name)} disabled={submitting} />{fieldErrors.name?.[0] ? <span className="page__field-error">{fieldErrors.name[0]}</span> : null}<Label htmlFor="customer-address" required>Address</Label><textarea id="customer-address" className="ui-input" maxLength={500} value={address} onChange={(event) => setAddress(event.target.value)} disabled={submitting} aria-invalid={Boolean(fieldErrors.address)} />{fieldErrors.address?.[0] ? <span className="page__field-error">{fieldErrors.address[0]}</span> : null}{formError ? <Alert tone="error">{formError}</Alert> : null}</div>
     </Modal>

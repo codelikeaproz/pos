@@ -4,7 +4,7 @@ import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
 import { Input } from '../components/ui/Input'
 import { Label } from '../components/ui/Label'
-import { Pagination } from '../components/ui/Pagination'
+import { Pagination, type AdminPageSize } from '../components/ui/Pagination'
 import { SearchField } from '../components/ui/SearchField'
 import type { CustomerSort } from '../components/ui/CustomerSortHeader'
 import { OrderDetailView } from '../features/orders/OrderDetailView'
@@ -28,6 +28,7 @@ export function OrTransactionsPage() {
   const [customerSort, setCustomerSort] = useState<CustomerSort>('')
   const [stations, setStations] = useState<InventoryOption[]>([])
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<AdminPageSize>(10)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [detail, setDetail] = useState<OrderDetail | null>(null)
@@ -47,10 +48,10 @@ export function OrTransactionsPage() {
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setError(null)
-    try { setList(await loadOrTransactions({ search, fromDate, toDate, stationId, customerSort, page }, signal)) }
+    try { setList(await loadOrTransactions({ search, fromDate, toDate, stationId, customerSort, page, perPage: pageSize }, signal)) }
     catch (failure) { if (!signal?.aborted) { setList(EMPTY); setError(getUserFacingApiMessage(failure)) } }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [customerSort, fromDate, page, search, stationId, toDate])
+  }, [customerSort, fromDate, page, pageSize, search, stationId, toDate])
 
   useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort() }, [load])
 
@@ -77,7 +78,7 @@ export function OrTransactionsPage() {
     {error ? <Alert tone="warning">{error}</Alert> : null}
     <div className="transaction-summary">{list.total} O.R transaction{list.total === 1 ? '' : 's'}</div>
     {loading ? <LoadingState label="Loading O.R transactions…" /> : <OrTransactionTable orders={list.orders} emptyMessage={filtered ? 'No O.R transactions found.' : 'No completed transactions yet.'} customerSort={customerSort} onCustomerSort={(value) => { setCustomerSort(value); setPage(1) }} onView={(order) => void view(order)} />}
-    {!loading ? <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="O.R Transaction" onPageChange={setPage} /> : null}
+    {!loading ? <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="O.R Transaction" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} /> : null}
     <Modal open={detail !== null || detailLoading} title="O.R Transaction Details" size="large" onClose={() => { detailAbort.current?.abort(); setDetailLoading(false); setDetail(null) }}>{detailLoading ? <LoadingState label="Loading transaction details…" /> : detail ? <OrderDetailView order={detail} showOrNumber /> : null}</Modal>
   </section>
 }

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('station_item_id')->constrained()->restrictOnDelete();
             $table->foreignId('item_id')->constrained()->restrictOnDelete();
             $table->foreignId('order_item_id')->nullable()->constrained()->restrictOnDelete();
-            $table->decimal('quantity_change', 12, 3);
+            $table->decimal('quantity_change', 12, 2);
             $table->string('type', 32);
             $table->string('reference_type', 32)->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('item_code');
             $table->string('item_name');
             $table->string('unit');
-            $table->decimal('quantity', 12, 3);
+            $table->decimal('quantity', 12, 2);
             $table->timestamps();
             $table->unique(['item_delivery_id', 'item_id']);
         });

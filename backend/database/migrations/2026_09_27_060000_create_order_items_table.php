@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('item_code');
             $table->string('item_name');
             $table->string('unit', 50);
-            $table->decimal('quantity', 12, 3);
+            $table->decimal('quantity', 12, 2);
             $table->decimal('unit_price', 12, 2);
             $table->decimal('subtotal', 12, 2);
             $table->timestamps();

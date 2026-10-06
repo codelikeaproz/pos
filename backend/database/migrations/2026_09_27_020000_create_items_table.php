@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('units_backup', 50);
             $table->string('unit', 20);
-            $table->decimal('reorder_point', 12, 3)->default(0);
+            $table->decimal('reorder_point', 12, 2)->default(0);
             $table->decimal('price', 10, 2);
             $table->timestamps();
         });

@@ -1,6 +1,20 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.20P.1 — Windows Printer Compatibility POC (2026-10-07)
+
+The 58 mm HTML receipt remains the screen preview. Physical receipts use a separate black-only, monospaced, 48-column (centrally configurable) document generated from completed Order and Order Item snapshots. React sends structured data through a narrow preload bridge; Electron Main validates it, enumerates Windows printers, creates a sandboxed hidden BrowserWindow, and opens the native print dialog for explicit printer confirmation.
+
+Printing starts only after checkout commits and cannot mutate or roll back the Order, payment, discount, stock, or Inventory Movements. Cash and Credit / Utang use persisted values; Credit omits Cash Received and Change; Senior Discount is not recalculated; O.R Number is omitted.
+
+The POC uses Electron 44 `getPrintersAsync()` and `webContents.print()` with any printer exposed by Windows. EPSON LX-310 is the first intended physical test device, not a system requirement. Raw ESC/P, native printer packages, silent printing, database print state, Cash Drawer integration, and O.R generation remain deferred. Actual output depends on the selected Windows driver, paper, printable columns, margins, font metrics, feed behavior, printer capabilities, and peso-symbol support; until physical testing, output uses `PHP`.
+
+### API-only backend cleanup (2026-10-07)
+
+Laravel serves the API routes and the framework `/up` probe only. The Electron React application in `frontend/` is the sole UI and asset build, so the backend has no Blade welcome page, web route, Vite/Tailwind pipeline, or Node package manifest. The default queue connection is `sync`; no worker or queue persistence schema is part of a fresh database. `composer dev` starts only `php artisan serve`.
+
+Consignee create and update intentionally share `StoreConsigneeRequest` while their input contract remains identical. Dead React placeholders, an unused Station assignment form, and the unused frontend health client/type are absent rather than retained for speculative reuse.
+
 ### Repository and POS viewport cleanup (2026-10-06)
 
 The unused vendor master-data module has been removed completely. No table, migration, Eloquent model, request, resource, controller, API route, React type, service, feature component, page, route, navigation entry, icon mapping, test, or documentation contract remains. The empty development table and its migration ledger entry were removed after confirming it contained no records.
@@ -217,7 +231,7 @@ Frontend API base URL (Vite, non-secret):
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-Configured in `frontend/.env` / `frontend/.env.example`. Centralized client: `frontend/src/services/apiClient.ts`. Health check: `frontend/src/services/healthService.ts` → `GET /api/health`.
+Configured in `frontend/.env` / `frontend/.env.example`. Centralized client: `frontend/src/services/apiClient.ts`. The application health endpoint is `GET /api/health`.
 
 Renderer origins are intentionally explicit:
 

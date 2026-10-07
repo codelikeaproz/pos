@@ -4,7 +4,19 @@
 # University HomeStay POS
 ## Development Handoff
 
-### Current development status (2026-10-06)
+### Phase 10.20P.1 Windows Printer Compatibility status — Code-complete, physical verification required (2026-10-07)
+
+Print Receipt discovers installed Windows printers and passes the completed Order snapshot through preload IPC to Electron Main. Main validates it and prints a dedicated monospaced document through a hidden sandboxed BrowserWindow and the normal Windows print dialog. Rapid clicks are disabled during a job. A development-only Test Print action prints an alignment sheet and is absent from packaged production UI.
+
+Any printer exposed by Windows can be selected; EPSON LX-310 is the first intended physical test device rather than a required model. No physical job has been attempted and no hardware result is claimed. Record for each tested device: printer and driver name; capabilities; paper and width; continuous/cut-sheet mode; font metrics and characters per line; peso glyph; wrapping; top/side margins; bottom feed/form-feed/tear-off; alignment; and a 30+ item receipt. Current calibration defaults are 48 columns, driver printable-area margins, two trailing feeds, and `PHP` money text.
+
+Raw ESC/P, silent printing, saved printer configuration, print logs/state, expanded reprint UI, Cash Drawer integration, and O.R generation are absent. Add raw ESC/P only if hardware tests show the Windows driver cannot provide stable density, feed, or form handling.
+
+### Current development status (2026-10-07)
+
+The API-only backend no longer carries Laravel's unused welcome page, web route, frontend asset pipeline, sample console command, generated example tests, database queue migration, or Sail/Pail development packages. Queue execution defaults to synchronous operation, and `composer dev` starts only the Laravel API server. The Electron React application remains the sole frontend build.
+
+Unreferenced React placeholders, the unused health client/type, and the unused Station assignment form were removed. Consignee create and update now reuse the same request because their validation contracts are identical. The development database queue tables were confirmed empty, then `jobs`, `job_batches`, `failed_jobs`, and their migration ledger row were removed without refreshing or resetting other data.
 
 The unused vendor master-data module has been removed from the database schema, Laravel API, React application, navigation, automated coverage, and project documentation. Its empty development table and migration ledger entry were also removed without refreshing or resetting the remaining database.
 
@@ -801,7 +813,7 @@ COMPLETE
 
 - Introduced the `consignees` table with required `name`; nullable string `contact_number`, nullable `email`, nullable text `address`; and timestamps
 - Added the `Consignee` Eloquent model without speculative relationships
-- Added `Api\ConsigneeController`, `StoreConsigneeRequest`, `UpdateConsigneeRequest`, and `ConsigneeResource`
+- Added `Api\ConsigneeController`, one shared `StoreConsigneeRequest` for create/update, and `ConsigneeResource`
 - Added `GET/POST /api/consignees` and `GET/PUT/PATCH/DELETE /api/consignees/{consignee}`
 - Reused `auth:sanctum`, the `admin` alias, and `EnsureUserIsAdmin`
 - Added list, create, edit, and centered delete-confirmation UI

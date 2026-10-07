@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConsigneeRequest;
-use App\Http\Requests\UpdateConsigneeRequest;
 use App\Http\Resources\ConsigneeResource;
 use App\Models\Consignee;
 use Illuminate\Http\JsonResponse;
@@ -40,7 +39,7 @@ class ConsigneeController extends Controller
         return response()->json(['consignee' => (new ConsigneeResource($consignee))->resolve()]);
     }
 
-    public function update(UpdateConsigneeRequest $request, Consignee $consignee): JsonResponse
+    public function update(StoreConsigneeRequest $request, Consignee $consignee): JsonResponse
     {
         $consignee->update($request->validated());
 

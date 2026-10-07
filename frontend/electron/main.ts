@@ -2,6 +2,7 @@ import { app, BrowserWindow, net, protocol, shell } from 'electron'
 import { join, relative, resolve } from 'path'
 import { pathToFileURL } from 'url'
 import { registerAppIpc } from './ipc/app'
+import { registerPrintingIpc } from './ipc/printing'
 
 const isDev = !app.isPackaged
 const rendererScheme = 'pos'
@@ -86,6 +87,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   registerRendererProtocol()
   registerAppIpc()
+  registerPrintingIpc()
   createWindow()
 
   app.on('activate', () => {

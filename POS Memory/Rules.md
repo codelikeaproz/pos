@@ -2,6 +2,19 @@
 
 ## Development Rules
 
+### Windows Printer Compatibility POC
+
+- Use any printer exposed by Windows through its installed driver. EPSON LX-310 is the first intended physical test device, not a required model. Never stretch or replace the 58 mm screen preview for physical printing.
+- React has no Node or printer access. Use only narrow preload methods; keep `contextIsolation: true`, `nodeIntegration: false`, and renderer sandboxing enabled.
+- Print only completed historical snapshots after checkout commits. Failure or cancellation never changes checkout, payment, discount, inventory, movements, remittance, Credit Monitoring, or O.R Transactions.
+- Use explicit OS printer confirmation. Do not hard-code silent printing, add print-state columns, or install native/raw dependencies without physical evidence.
+- Keep the 48-column initial profile centralized. Use `PHP` until hardware proves the peso glyph; record the selected driver, printer capabilities, paper, margins, font metrics, printable columns, feed, alignment, wrapping, and long-receipt results.
+- Cash Drawer integration and Accounting Office O.R Number generation remain deferred.
+
+### API-only backend
+
+Keep Laravel API-only. Do not restore a Blade welcome page, backend Vite/Tailwind pipeline, database queue tables, queue worker, Sail, or Pail without a confirmed requirement. The Electron React project owns frontend assets. Queue execution remains synchronous until a real background job requires durable processing.
+
 ### POS viewport behavior
 
 At desktop widths, keep the POS masthead and action footer visible within the application viewport. Long Available Items and Current Order lists must scroll inside their own panels. At responsive widths where the POS columns stack, retain normal page scrolling.

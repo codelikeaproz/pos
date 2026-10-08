@@ -8,7 +8,7 @@
 
 Print Receipt discovers installed Windows printers and passes the completed Order snapshot through preload IPC to Electron Main. Main validates it and prints a dedicated monospaced document through a hidden sandboxed BrowserWindow and the normal Windows print dialog. Rapid clicks are disabled during a job. A development-only Test Print action prints an alignment sheet and is absent from packaged production UI.
 
-Any printer exposed by Windows can be selected; EPSON LX-310 is the first intended physical test device rather than a required model. No physical job has been attempted and no hardware result is claimed. Record for each tested device: printer and driver name; capabilities; paper and width; continuous/cut-sheet mode; font metrics and characters per line; peso glyph; wrapping; top/side margins; bottom feed/form-feed/tear-off; alignment; and a 30+ item receipt. Current calibration defaults are 48 columns, driver printable-area margins, two trailing feeds, and `PHP` money text.
+Any printer exposed by Windows can be selected; EPSON LX-310 is the first physical test device rather than a required model. Its first successful receipt exposed left-edge clipping with the 48-column profile. Current calibration defaults are 32 columns, a 58 mm print canvas with 5 mm left and 3 mm right insets, driver printable-area margins, two trailing feeds, and `PHP` money text. Verify the revised alignment and record the selected driver, paper, feed behavior, wrapping, and a 30+ item receipt.
 
 Raw ESC/P, silent printing, saved printer configuration, print logs/state, expanded reprint UI, Cash Drawer integration, and O.R generation are absent. Add raw ESC/P only if hardware tests show the Windows driver cannot provide stable density, feed, or form handling.
 

@@ -3,7 +3,7 @@
 
 ### Phase 10.20P.1 — Windows Printer Compatibility POC (2026-10-07)
 
-The 58 mm HTML receipt remains the screen preview. Physical receipts use a separate black-only, monospaced, 48-column (centrally configurable) document generated from completed Order and Order Item snapshots. React sends structured data through a narrow preload bridge; Electron Main validates it, enumerates Windows printers, creates a sandboxed hidden BrowserWindow, and opens the native print dialog for explicit printer confirmation.
+The 58 mm HTML receipt remains the screen preview. Physical receipts use a separate black-only, monospaced, 32-column document with a 58 mm print canvas and calibrated side insets, generated from completed Order and Order Item snapshots. React sends structured data through a narrow preload bridge; Electron Main validates it, enumerates Windows printers, creates a sandboxed hidden BrowserWindow, and opens the native print dialog for explicit printer confirmation.
 
 Printing starts only after checkout commits and cannot mutate or roll back the Order, payment, discount, stock, or Inventory Movements. Cash and Credit / Utang use persisted values; Credit omits Cash Received and Change; Senior Discount is not recalculated; O.R Number is omitted.
 

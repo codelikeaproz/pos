@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { PRINTERS_GET, RECEIPT_PRINT, TEST_PRINT } from './channels'
 
-export const RECEIPT_COLUMNS = 48
+export const RECEIPT_COLUMNS = 32
 
 type ReceiptItem = {
   itemCode: string
@@ -101,7 +101,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>]/g, (character
 async function printText(content: string): Promise<PrintResult> {
   const printWindow = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } })
   try {
-    const html = `<!doctype html><meta charset="utf-8"><title>Receipt</title><style>@page{margin:0}body{margin:0;color:#000;background:#fff;font:10pt/1.25 "Courier New",monospace;white-space:pre-wrap}pre{margin:0}</style><pre>${escapeHtml(content)}</pre>`
+    const html = `<!doctype html><meta charset="utf-8"><title>Receipt</title><style>@page{margin:0}body{box-sizing:border-box;width:58mm;margin:0;padding:2mm 3mm 0 5mm;color:#000;background:#fff;font:9pt/1.25 "Courier New",monospace;white-space:pre-wrap}pre{margin:0}</style><pre>${escapeHtml(content)}</pre>`
     await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
     return await new Promise((resolve) => printWindow.webContents.print({ silent: false, printBackground: false, margins: { marginType: 'printableArea' } }, (success, failureReason) => {
       if (success) resolve({ status: 'success', message: 'Receipt was sent to the selected printer.' })

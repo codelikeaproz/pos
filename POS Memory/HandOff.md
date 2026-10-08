@@ -4,9 +4,11 @@
 # University HomeStay POS
 ## Development Handoff
 
-### Phase 10.20P.2 Variable Receipt Feed Calibration — Physical verification required (2026-10-08)
+### Phase 10.20P.2 Variable Receipt Feed Calibration — Code complete, hardware feed follow-up remains (2026-10-08)
 
-Consecutive LX-310 tests showed that calculated Electron page heights did not change the blank interval and could produce blank jobs. Electron now uses the selected printer driver's default paper form while retaining the working 32-column, 9 pt layout, side insets, native print dialog, and printable-area margins. Set `POS Receipt 58x120` as the LX-310 default form, restart the POS, and verify two consecutive short receipts. If the driver still advances through a longer form, evaluate raw ESC/P as a separate explicitly approved phase.
+Commits `8f966da` (`fix(printing): calibrate receipts for narrow paper`) and `344b5ec` (`fix(printing): refine LX-310 receipt output`) contain the work completed on 2026-10-08. Physical LX-310 tests confirmed readable receipt content with the 32-column, 9 pt layout, 58 mm canvas, calibrated side insets, uppercase headings, and `PHP` money text. The receipt preview subtitle now reads `Sale Receipt`, and the temporary Test Print button plus its IPC surface are removed.
+
+Calculated Electron page heights did not change the blank interval and could produce blank jobs. Printing therefore uses the selected printer driver's default paper form and printable-area margins. The leading calibration lines before `CMU HOMESTAY` are retained because the LX-310 clips the first physical line. The remaining large interval between jobs is a driver or printer form-feed limitation; test the driver's short custom form and hardware page-length settings before approving a separate raw ESC/P phase.
 
 ### Phase 10.20P.1 Windows Printer Compatibility status — Code-complete, physical verification required (2026-10-07)
 

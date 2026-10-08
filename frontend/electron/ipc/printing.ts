@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
-import { PRINTERS_GET, RECEIPT_PRINT, TEST_PRINT } from './channels'
+import { BrowserWindow, ipcMain } from 'electron'
+import { PRINTERS_GET, RECEIPT_PRINT } from './channels'
 
 export const RECEIPT_COLUMNS = 32
 
@@ -76,8 +76,10 @@ function parseReceipt(value: unknown): ReceiptPrintData | null {
 export function formatPrintReceipt(order: ReceiptPrintData): string {
   const rule = '-'.repeat(RECEIPT_COLUMNS)
   const output = [
+    '',
+    'HEADER'.padStart((RECEIPT_COLUMNS + 12) / 2),
     'CMU HOMESTAY'.padStart((RECEIPT_COLUMNS + 12) / 2),
-    'SALES RECEIPT'.padStart((RECEIPT_COLUMNS + 13) / 2), '',
+    'SALE RECEIPT'.padStart((RECEIPT_COLUMNS + 12) / 2), '',
     ...wrap(`Station : ${order.station.name}`), ...wrap(`Txn No. : ${order.orderNumber}`),
     ...wrap(`Date    : ${new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.orderedAt))}`),
     ...wrap(`Cashier : ${order.cashier.name}`), ...wrap(`Customer: ${order.customer?.name ?? 'Walk-in'}`),
@@ -103,7 +105,7 @@ async function printText(content: string): Promise<PrintResult> {
   try {
     const html = `<!doctype html><meta charset="utf-8"><title>Receipt</title><style>@page{margin:0}body{box-sizing:border-box;width:58mm;margin:0;padding:2mm 3mm 0 5mm;color:#000;background:#fff;font:9pt/1.25 "Courier New",monospace;white-space:pre-wrap}pre{margin:0}</style><pre>${escapeHtml(content)}</pre>`
     await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
-    return await new Promise((resolve) => printWindow.webContents.print({ silent: false, printBackground: false, margins: { marginType: 'printableArea' } }, (success, failureReason) => {
+    return await new Promise((resolve) => printWindow.webContents.print({ silent: false, printBackground: false, usePrinterDefaultPageSize: true, margins: { marginType: 'printableArea' } }, (success, failureReason) => {
       if (success) resolve({ status: 'success', message: 'Receipt was sent to the selected printer.' })
       else if (/cancel/i.test(failureReason)) resolve({ status: 'cancelled', message: 'Printing was cancelled. The completed Order remains saved.' })
       else resolve({ status: 'error', message: `Printing failed${failureReason ? `: ${failureReason}` : '.'} The completed Order remains saved.` })
@@ -121,7 +123,4 @@ export function registerPrintingIpc(): void {
     const order = parseReceipt(value)
     return order ? printText(formatPrintReceipt(order)) : { status: 'error', message: 'Printing failed: invalid receipt data. The completed Order remains saved.' }
   })
-  ipcMain.handle(TEST_PRINT, async (): Promise<PrintResult> => app.isPackaged
-    ? { status: 'error', message: 'The test page is available only in development.' }
-    : printText(['CMU HOMESTAY', 'PRINTER TEST', '', `Date: ${new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}`, '-'.repeat(RECEIPT_COLUMNS), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', '0123456789', '-'.repeat(RECEIPT_COLUMNS), '', ''].join('\n')))
 }

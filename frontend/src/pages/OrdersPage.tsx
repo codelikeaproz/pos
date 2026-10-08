@@ -246,14 +246,6 @@ export function OrdersPage() {
     } finally { setPrinting(false) }
   }
 
-  async function printTestPage(): Promise<void> {
-    if (printing) return
-    setPrinting(true)
-    try { const result = await window.electronAPI.printTestPage(); showToast(result.message, result.status === 'success' ? 'success' : 'info') }
-    catch { showToast('Test printing failed. No Order was changed.', 'info') }
-    finally { setPrinting(false) }
-  }
-
   const stationName = list.station.name || currentUser?.station?.name || 'Not assigned'
   const currentTime = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'full', timeStyle: 'medium' }).format(now)
 
@@ -286,6 +278,6 @@ export function OrdersPage() {
     <PosTransactionsDialog open={orTransactionsOpen} stationId={stationId} mode="or" onClose={() => setOrTransactionsOpen(false)} />
     <PosTransactionsDialog open={transactionsOpen} stationId={stationId} onClose={() => setTransactionsOpen(false)} />
     <PosStationInventoryDialog open={stationInventoryOpen} onClose={() => setStationInventoryOpen(false)} />
-    <Modal open={completedOrder !== null} title="Receipt Preview" onClose={() => { if (!printing) setCompletedOrder(null) }} actions={<>{import.meta.env.DEV ? <Button variant="outline" onClick={() => void printTestPage()} disabled={printing}>Test Print</Button> : null}<Button onClick={() => void printReceipt()} disabled={printing} icon={<AppIcons.print size={iconSize} strokeWidth={iconStroke} />}>{printing ? 'Printing...' : 'Print Receipt'}</Button></>}>{completedOrder ? <PaymentReceipt order={completedOrder} /> : null}</Modal>
+    <Modal open={completedOrder !== null} title="Receipt Preview" onClose={() => { if (!printing) setCompletedOrder(null) }} actions={<Button onClick={() => void printReceipt()} disabled={printing} icon={<AppIcons.print size={iconSize} strokeWidth={iconStroke} />}>{printing ? 'Printing...' : 'Print Receipt'}</Button>}>{completedOrder ? <PaymentReceipt order={completedOrder} /> : null}</Modal>
   </section>
 }

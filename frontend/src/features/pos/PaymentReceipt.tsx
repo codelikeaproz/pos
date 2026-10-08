@@ -10,7 +10,7 @@ export function PaymentReceipt({ order }: { order: CheckoutOrder }) {
     <article className="pos-receipt" aria-label={`Receipt for transaction ${order.orderNumber}`}>
       <header className="pos-receipt__header">
         <h3>CMU HomeStay</h3>
-        <p>Point of Sale Receipt</p>
+        <p>Sale Receipt</p>
       </header>
 
       <dl className="pos-receipt__metadata">

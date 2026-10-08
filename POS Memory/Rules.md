@@ -9,6 +9,7 @@
 - Print only completed historical snapshots after checkout commits. Failure or cancellation never changes checkout, payment, discount, inventory, movements, remittance, Credit Monitoring, or O.R Transactions.
 - Use explicit OS printer confirmation. Do not hard-code silent printing, add print-state columns, or install native/raw dependencies without physical evidence.
 - Keep the hardware-tested 32-column profile centralized. Use `PHP` until hardware proves the peso glyph; record the selected driver, printer capabilities, paper, margins, font metrics, printable columns, feed, alignment, wrapping, and long-receipt results.
+- Use the printer driver's selected default paper form; Electron custom page heights proved ineffective with the LX-310 driver.
 - Cash Drawer integration and Accounting Office O.R Number generation remain deferred.
 
 ### API-only backend

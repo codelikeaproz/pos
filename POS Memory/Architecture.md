@@ -1,6 +1,10 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.20P.2 — Variable Receipt Feed Calibration (2026-10-08)
+
+Physical print jobs retain the tested 58 mm, 32-column layout and use the selected printer driver's default paper form. Electron no longer overrides the driver with a calculated custom page size because the LX-310 ignored those dimensions. The Windows print dialog and driver printable-area margins remain authoritative.
+
 ### Phase 10.20P.1 — Windows Printer Compatibility POC (2026-10-07)
 
 The 58 mm HTML receipt remains the screen preview. Physical receipts use a separate black-only, monospaced, 32-column document with a 58 mm print canvas and calibrated side insets, generated from completed Order and Order Item snapshots. React sends structured data through a narrow preload bridge; Electron Main validates it, enumerates Windows printers, creates a sandboxed hidden BrowserWindow, and opens the native print dialog for explicit printer confirmation.

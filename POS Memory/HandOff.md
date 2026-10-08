@@ -4,9 +4,13 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.20P.2 Variable Receipt Feed Calibration — Physical verification required (2026-10-08)
+
+Consecutive LX-310 tests showed that calculated Electron page heights did not change the blank interval and could produce blank jobs. Electron now uses the selected printer driver's default paper form while retaining the working 32-column, 9 pt layout, side insets, native print dialog, and printable-area margins. Set `POS Receipt 58x120` as the LX-310 default form, restart the POS, and verify two consecutive short receipts. If the driver still advances through a longer form, evaluate raw ESC/P as a separate explicitly approved phase.
+
 ### Phase 10.20P.1 Windows Printer Compatibility status — Code-complete, physical verification required (2026-10-07)
 
-Print Receipt discovers installed Windows printers and passes the completed Order snapshot through preload IPC to Electron Main. Main validates it and prints a dedicated monospaced document through a hidden sandboxed BrowserWindow and the normal Windows print dialog. Rapid clicks are disabled during a job. A development-only Test Print action prints an alignment sheet and is absent from packaged production UI.
+Print Receipt discovers installed Windows printers and passes the completed Order snapshot through preload IPC to Electron Main. Main validates it and prints a dedicated monospaced document through a hidden sandboxed BrowserWindow and the normal Windows print dialog. Rapid clicks are disabled during a job. The temporary development Test Print action and its IPC surface have been removed.
 
 Any printer exposed by Windows can be selected; EPSON LX-310 is the first physical test device rather than a required model. Its first successful receipt exposed left-edge clipping with the 48-column profile. Current calibration defaults are 32 columns, a 58 mm print canvas with 5 mm left and 3 mm right insets, driver printable-area margins, two trailing feeds, and `PHP` money text. Verify the revised alignment and record the selected driver, paper, feed behavior, wrapping, and a 30+ item receipt.
 

@@ -58,6 +58,7 @@ export function OrdersPage() {
   const [processingPayment, setProcessingPayment] = useState(false)
   const [completedOrder, setCompletedOrder] = useState<CheckoutOrder | null>(null)
   const [printing, setPrinting] = useState(false)
+  const drawerRequestedOrders = useRef(new Set<string>())
   const [now, setNow] = useState(() => new Date())
 
   useEffect(() => {
@@ -222,6 +223,13 @@ export function OrdersPage() {
     try {
       const order = await checkoutOrder(cart, paymentMethod, cashReceived, selectedCustomer?.id ?? null, seniorDiscount)
       setCompletedOrder(order); setCart([]); setCashReceived(''); setPaymentMethod('cash'); setSelectedCustomer(null); setSeniorDiscount(null)
+      if (order.paymentMethod === 'cash' && !drawerRequestedOrders.current.has(order.orderNumber)) {
+        drawerRequestedOrders.current.add(order.orderNumber)
+        void window.electronAPI.openCashDrawer().then((result) => {
+          if (result.status === 'not_configured') showToast('AQ405A cash drawer controller is not configured. The sale was completed successfully.', 'info')
+          else if (result.status !== 'success') showToast('Cash drawer did not open. The sale was completed successfully.', 'info')
+        }).catch(() => showToast('Cash drawer did not open. The sale was completed successfully.', 'info'))
+      }
       await loadItems()
     } catch (checkoutError) {
       setPaymentError(getUserFacingApiMessage(checkoutError))

@@ -1,9 +1,17 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.20D — AQ405A Cash Drawer Integration (2026-10-08)
+
+The drawer is an AQ405A passive 12V RJ11 unit. It requires a compatible active USB-to-drawer trigger/controller between the Windows PC and its RJ11 cable; it must never be connected directly to a PC network port or driven through the EPSON LX-310. Normal closing is mechanical when the cashier pushes the drawer shut, and the physical key is outside the application workflow.
+
+Cash drawer access is an Electron Main hardware concern exposed through a no-argument preload intent, `openCashDrawer()`. The renderer requests that intent once per authoritative completed Cash Order number. Credit / Utang, failed checkout, transaction viewing, receipt printing and reprinting, remittance, delivery, and spoilage never request drawer access. Drawer results are independent of the committed Order and receipt printing.
+
+The USB trigger model, Windows representation, driver, and documented open command remain unknown. Electron therefore returns `not_configured` without touching USB, serial ports, shell commands, printers, or other devices. Controller-specific execution and an Admin-only manual Open Drawer action remain deferred until the controller is identified.
+
 ### Phase 10.20P.2 — Variable Receipt Feed Calibration (2026-10-08)
 
-Physical print jobs retain the tested 58 mm, 32-column layout and use the selected printer driver's default paper form. Electron no longer overrides the driver with a calculated custom page size because the LX-310 ignored those dimensions. The Windows print dialog and driver printable-area margins remain authoritative.
+Physical print jobs retain the tested 58 mm, 32-column layout and use the selected printer driver's default paper form. The accepted LX-310 calibration uses regular 11 pt Courier New, 1.25 line height, and 2 mm left/right print-document insets. Electron no longer overrides the driver with a calculated custom page size because the LX-310 ignored those dimensions. The Windows print dialog and driver printable-area margins remain authoritative.
 
 Physical testing established that the LX-310 clips its first rendered line and advances to its configured form boundary after a Windows print job. The print document retains leading calibration content so `CMU HOMESTAY` remains visible. Feed length is owned by the driver or printer configuration; raw ESC/P remains a separate follow-up if those settings cannot reduce the interval.
 

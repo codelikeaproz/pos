@@ -4,9 +4,17 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.20D AQ405A Cash Drawer Integration — Architecture complete, controller execution deferred (2026-10-08)
+
+The cash drawer is confirmed as an AQ405A passive 12V RJ11 unit. It requires a compatible active USB drawer-trigger/controller; the controller model, Windows device type, driver, and documented command remain unknown. The drawer must not connect directly to a PC or the EPSON LX-310, and no pinout, voltage application, command bytes, or protocol may be guessed.
+
+A narrow `openCashDrawer()` preload IPC intent routes to Electron Main and currently returns `not_configured` without hardware access. The successful checkout handler invokes it only when the returned Order says `paymentMethod === 'cash'`, and an Order-number set prevents repeated requests for the same completed sale. Credit / Utang and every failure path invoke it zero times.
+
+Drawer opening runs independently after the Order commit and does not gate receipt printing, inventory refresh, or sale validity. Missing configuration or device failure produces separate hardware feedback confirming the sale completed. Receipt printing and reprinting never open the drawer. The cashier manually pushes the drawer closed; software has no close command and the key is not part of normal POS operation. No manual action is exposed. If required later, manual opening starts Admin-only and must call this same Electron service.
+
 ### Phase 10.20P.2 Variable Receipt Feed Calibration — Code complete, hardware feed follow-up remains (2026-10-08)
 
-Commits `8f966da` (`fix(printing): calibrate receipts for narrow paper`) and `344b5ec` (`fix(printing): refine LX-310 receipt output`) contain the work completed on 2026-10-08. Physical LX-310 tests confirmed readable receipt content with the 32-column, 9 pt layout, 58 mm canvas, calibrated side insets, uppercase headings, and `PHP` money text. The receipt preview subtitle now reads `Sale Receipt`, and the temporary Test Print button plus its IPC surface are removed.
+Commits `8f966da` (`fix(printing): calibrate receipts for narrow paper`) and `344b5ec` (`fix(printing): refine LX-310 receipt output`) began the work completed on 2026-10-08. Subsequent physical tests accepted the 32-column layout with regular 11 pt Courier New, 1.25 line height, 2 mm left/right print-document insets, uppercase headings, and `PHP` money text. The receipt preview subtitle reads `Sale Receipt`, and the temporary Test Print button plus its IPC surface are removed.
 
 Calculated Electron page heights did not change the blank interval and could produce blank jobs. Printing therefore uses the selected printer driver's default paper form and printable-area margins. The leading calibration lines before `CMU HOMESTAY` are retained because the LX-310 clips the first physical line. The remaining large interval between jobs is a driver or printer form-feed limitation; test the driver's short custom form and hardware page-length settings before approving a separate raw ESC/P phase.
 
@@ -14,7 +22,7 @@ Calculated Electron page heights did not change the blank interval and could pro
 
 Print Receipt discovers installed Windows printers and passes the completed Order snapshot through preload IPC to Electron Main. Main validates it and prints a dedicated monospaced document through a hidden sandboxed BrowserWindow and the normal Windows print dialog. Rapid clicks are disabled during a job. The temporary development Test Print action and its IPC surface have been removed.
 
-Any printer exposed by Windows can be selected; EPSON LX-310 is the first physical test device rather than a required model. Its first successful receipt exposed left-edge clipping with the 48-column profile. Current calibration defaults are 32 columns, a 58 mm print canvas with 5 mm left and 3 mm right insets, driver printable-area margins, two trailing feeds, and `PHP` money text. Verify the revised alignment and record the selected driver, paper, feed behavior, wrapping, and a 30+ item receipt.
+Any printer exposed by Windows can be selected; EPSON LX-310 is the first physical test device rather than a required model. Its first successful receipt exposed left-edge clipping with the 48-column profile. Current calibration defaults are 32 columns, regular 11 pt Courier New, 1.25 line height, a 58 mm print canvas with 2 mm side insets, driver printable-area margins, two trailing feeds, and `PHP` money text. Record the selected driver, paper, feed behavior, wrapping, and a 30+ item receipt.
 
 Raw ESC/P, silent printing, saved printer configuration, print logs/state, expanded reprint UI, Cash Drawer integration, and O.R generation are absent. Add raw ESC/P only if hardware tests show the Windows driver cannot provide stable density, feed, or form handling.
 

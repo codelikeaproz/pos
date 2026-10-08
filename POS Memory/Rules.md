@@ -2,13 +2,22 @@
 
 ## Development Rules
 
+### Cash drawer integration POC
+
+- Keep drawer access behind the narrow Renderer → preload → Electron Main boundary. Renderer calls express only the intent to open; they never supply device identifiers, ports, commands, or bytes.
+- Request automatic opening once after an authoritative successful Cash checkout response. Never request it for Credit / Utang, failed checkout, history, reprints, remittance, delivery, or spoilage.
+- Drawer failure never changes or invalidates a committed Order, inventory movement, payment, discount, or receipt action. Missing configuration must not block POS operation.
+- The AQ405A is a passive 12V RJ11 drawer and requires a compatible active USB trigger/controller. Never connect it directly to the PC, infer its pinout, or route drawer commands through the LX-310.
+- Identify the USB controller and use only its documented Windows interface and open command before adding device-specific code or dependencies.
+- Manual opening is Admin-only when implemented; keep it deferred until hardware and business requirements are confirmed.
+
 ### Windows Printer Compatibility POC
 
 - Use any printer exposed by Windows through its installed driver. EPSON LX-310 is the first intended physical test device, not a required model. Never stretch or replace the 58 mm screen preview for physical printing.
 - React has no Node or printer access. Use only narrow preload methods; keep `contextIsolation: true`, `nodeIntegration: false`, and renderer sandboxing enabled.
 - Print only completed historical snapshots after checkout commits. Failure or cancellation never changes checkout, payment, discount, inventory, movements, remittance, Credit Monitoring, or O.R Transactions.
 - Use explicit OS printer confirmation. Do not hard-code silent printing, add print-state columns, or install native/raw dependencies without physical evidence.
-- Keep the hardware-tested 32-column profile centralized. Use `PHP` until hardware proves the peso glyph; record the selected driver, printer capabilities, paper, margins, font metrics, printable columns, feed, alignment, wrapping, and long-receipt results.
+- Keep the hardware-tested physical profile centralized: 32 columns, regular 11 pt Courier New, 1.25 line height, and 2 mm side insets. Use `PHP` until hardware proves the peso glyph; record the selected driver, printer capabilities, paper, feed, alignment, wrapping, and long-receipt results.
 - Use the printer driver's selected default paper form; Electron custom page heights proved ineffective with the LX-310 driver.
 - Cash Drawer integration and Accounting Office O.R Number generation remain deferred.
 

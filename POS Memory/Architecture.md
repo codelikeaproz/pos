@@ -1,6 +1,12 @@
 # University HomeStay POS
 ## Architecture
 
+### Current module boundary — Consignee removal (2026-10-09)
+
+Consignee Management and the User-backed Consignment Account workflow are no longer active modules. The current schema has no `consignees` table and no `users.consignee_id`; the Laravel API and Electron React router expose no Consignee or Consignment Account endpoints or pages. Older sections describing Phases 10.5 and 10.6 are retained only as historical records and are superseded by this section.
+
+`users` remains the single authentication and staff identity model for roles, optional Station assignment, cashier activity, deliveries, spoilage, privileges, and remittances. `customers` remains a separate business identity used by Credit / Utang Orders. A future consignment workflow requires fresh business analysis and an explicit architecture decision; it must not be inferred from the removed implementation.
+
 ### Phase 10.20D — AQ405A Cash Drawer Integration (2026-10-08)
 
 The drawer is an AQ405A passive 12V RJ11 unit. It requires a compatible active USB-to-drawer trigger/controller between the Windows PC and its RJ11 cable; it must never be connected directly to a PC network port or driven through the EPSON LX-310. Normal closing is mechanical when the cashier pushes the drawer shut, and the physical key is outside the application workflow.

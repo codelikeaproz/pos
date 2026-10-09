@@ -2,6 +2,14 @@
 
 ## Development Rules
 
+### Current module boundary — Consignee removal
+
+- Do not add Consignee or Consignment Account routes, pages, endpoints, models, relationships, or schema without newly confirmed business requirements.
+- Keep User Management. `users` remains the source of authentication, roles, optional Station assignment, operational actor identity, privileges, and remittance accountability.
+- Keep Customers distinct from Users. Customers identify Credit / Utang purchasers and must not be repurposed as Consignees.
+- If consignment is required later, document the actual workflow first and implement it as a newly scoped feature; do not restore the removed screens or duplicate credentials speculatively.
+- Older Consignee and Consignment rules below are historical phase records and are superseded by this current boundary.
+
 ### Cash drawer integration POC
 
 - Keep drawer access behind the narrow Renderer → preload → Electron Main boundary. Renderer calls express only the intent to open; they never supply device identifiers, ports, commands, or bytes.

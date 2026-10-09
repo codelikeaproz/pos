@@ -33,9 +33,7 @@ export const navItems: NavItem[] = [
 // Existing pages stay routable without adding entries to the confirmed sidebar.
 const otherPages: NavItem[] = [
   { path: '/spoilages', label: 'Spoilage', icon: AppIcons.warning, title: 'Spoilage Management', description: 'Record Station spoilage.', allowedRoles: ['admin'] },
-  { path: '/transactions', label: 'Transactions', icon: AppIcons.consignment, title: 'Transaction History', description: 'View completed sales.', allowedRoles: ['admin', 'end_user'] },
-  { path: '/consignees', label: 'Consignee', icon: AppIcons.consignee, title: 'Consignee Management', description: 'Manage consignees.', allowedRoles: ['admin'] },
-  { path: '/consignments', label: 'Consignment', icon: AppIcons.consignment, title: 'Consignment Account Management', description: 'Manage consignment accounts.', allowedRoles: ['admin'] }
+  { path: '/transactions', label: 'Transactions', icon: AppIcons.transactions, title: 'Transaction History', description: 'View completed sales.', allowedRoles: ['admin', 'end_user'] }
 ]
 
 export function getNavItemsForRole(role: UserRole): NavItem[] {

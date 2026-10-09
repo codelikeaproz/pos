@@ -1,8 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ConsigneeController;
-use App\Http\Controllers\Api\ConsignmentAccountController;
 use App\Http\Controllers\Api\CreditMonitoringController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\HealthController;
@@ -90,13 +88,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['put', 'patch'], '/privileges/{privilege}', [PrivilegeController::class, 'update'])->middleware('admin');
     Route::get('/privilege-assignments', [PrivilegeAssignmentController::class, 'index'])->middleware('admin');
     Route::put('/privilege-assignments/{user}', [PrivilegeAssignmentController::class, 'update'])->middleware('admin');
-
-    Route::apiResource('consignees', ConsigneeController::class)
-        ->middleware('admin');
-
-    Route::get('/consignment-account-options', [ConsignmentAccountController::class, 'options'])->middleware('admin');
-    Route::apiResource('consignment-accounts', ConsignmentAccountController::class)
-        ->parameters(['consignment-accounts' => 'user'])->middleware('admin');
 
     Route::get('/station-item-options', [StationItemController::class, 'options'])->middleware('admin');
     Route::apiResource('station-items', StationItemController::class)->middleware('admin');

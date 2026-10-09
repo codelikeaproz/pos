@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('password');
             $table->string('role', 32)->default('end_user');
             $table->foreignId('station_id')->nullable();
-            $table->foreignId('consignee_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

@@ -28,7 +28,6 @@ class User extends Authenticatable
         'password',
         'role',
         'station_id',
-        'consignee_id',
     ];
 
     /**
@@ -58,11 +57,6 @@ class User extends Authenticatable
     public function station(): BelongsTo
     {
         return $this->belongsTo(Station::class);
-    }
-
-    public function consignee(): BelongsTo
-    {
-        return $this->belongsTo(Consignee::class);
     }
 
     public function ordersAsCashier(): HasMany

@@ -4,6 +4,8 @@
 # University HomeStay POS
 ## Product Requirements Document
 
+> Current scope decision (2026-10-09): Consignee Management and Consignment Account Management are removed from the product after business reconciliation found no current use. User Management remains essential, and Customer Management continues to support Credit / Utang. The older Consignee and Consignment sections are historical discovery evidence, not current requirements. Any future return must begin with a newly confirmed workflow and scope.
+
 > Phase 10.16 status (2026-10-01): **Complete.** Cash and Customer-linked Credit / Utang checkout are implemented. F3 Cash opens a Cash Received text dialog; F4 Credit opens Customer selection. The payment panel shows read-only Cash Received and Change, and Pay submits the sale. Current-Station Transactions (F7), Qty (F9), New Order (F10), and read-only Station Inventory (F12) open in place; Esc exits. Station-scoped AJAX Item search, streamlined cart controls, decimal quantity editing, and the receipt-style post-payment preview are complete. Receipt printer and Cash Drawer hardware, Discount, O.R Transactions, and F8 Credit Transactions remain future work. The sections below preserve their original product-planning context; see [[HandOff]] for the dated implementation log.
 
 > Legacy-evidence clarification from Phase 10.11B: the non-goal "Delivery system" below referred to a broad delivery product scope. The narrower Item Delivery station stock workflow was implemented in Phase 10.13 with a reference distinct from POS `orders.order_number`. Consignment Account Management uses Users; traditional consignment transactions remain unconfirmed.

@@ -3,6 +3,8 @@
 # University HomeStay POS
 ## Requirements
 
+> Current scope decision (2026-10-09): Consignee Management and Consignment Account Management have been removed because reconciliation found no current operational use. User Management remains required for authentication and operational accountability; Customers remain the supported Credit / Utang identity. Earlier Consignee and Consignment requirements below are retained as historical discovery notes only and are not active product scope. Reintroduction requires newly confirmed business requirements.
+
 > Phase 10.19.1 status (2026-10-05): **Complete.** Ctrl+D applies the confirmed Senior Citizen formula `(Order Subtotal / Customers) × 20% × Seniors`. Laravel performs the authoritative integer-cent calculation and half-up discount rounding; React provides a recalculating preview. Orders preserve subtotal, discount, final total, and Customer/Senior counts. Cash, Credit, receipt preview, transaction details, remittance, monitoring, and inventory behavior are integrated without a generic discount system.
 
 > Phase 10.19 status (2026-10-05): **Complete.** O.R Transactions are a read-only representation of completed POS Orders. `orders.order_number` is displayed as Order Number, while the separate Accounting Office O.R Number remains unavailable pending integration. Cash and Credit / Utang Orders are included. The Admin sidebar page supports search, Manila date filters, Station filtering, pagination, and snapshot-based details. POS F6 opens the same Station-scoped history without changing the unfinished Order. F7 remains Current Station Transactions, F12 remains Station Inventory, and physical receipt printing remains deferred.

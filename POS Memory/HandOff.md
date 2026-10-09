@@ -4,6 +4,16 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Consignee and Consignment Account removal (2026-10-09)
+
+Consignee Management and Consignment Account Management were removed from the active application after business reconciliation found no current operational use. Their React pages, routes, services, types, Laravel endpoints, controllers, requests, resources, models, tests, and schema definitions are no longer part of the maintained product. The development database is reconciled separately without deleting ordinary User accounts.
+
+User Management remains required and unchanged in purpose: `users` supplies authentication, Admin/Cashier roles, optional Station assignment, cashier identity, delivery and spoilage actors, privileges, and remittance accountability. Customer Management also remains separate and is the supported identity for Credit / Utang sales.
+
+If confirmed business requirements later need Consignees or Consignment Accounts again, treat that as a newly scoped feature. Reconfirm the real workflow, ownership, fields, authorization, lifecycle, and reporting needs before introducing fresh schema/API/UI. Do not restore the old screens speculatively, repurpose Customers, or create duplicate credential records outside `users`.
+
+The local development database contained zero Consignees and zero Users linked through `consignee_id`. Its empty `consignees` table, `users.consignee_id` column/foreign key, and matching migration ledger row were removed in place; both existing User accounts were preserved. Verification passed: 151 backend Feature tests with 1,203 assertions, Pint, frontend TypeScript checks, Electron production build, and `git diff --check`. Live visual testing was not performed. Historical Phase 10.5 and 10.6 notes remain as implementation history and are superseded by this current-state entry.
+
 ### Phase 10.20D AQ405A Cash Drawer Integration — Architecture complete, controller execution deferred (2026-10-08)
 
 The cash drawer is confirmed as an AQ405A passive 12V RJ11 unit. It requires a compatible active USB drawer-trigger/controller; the controller model, Windows device type, driver, and documented command remain unknown. The drawer must not connect directly to a PC or the EPSON LX-310, and no pinout, voltage application, command bytes, or protocol may be guessed.

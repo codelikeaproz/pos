@@ -3,8 +3,6 @@ import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { RoleRoute } from '../features/auth/RoleRoute'
 import { LoginPage } from '../features/auth/LoginPage'
 import { AppShell } from '../layouts/AppShell'
-import { ConsigneesPage } from '../pages/ConsigneesPage'
-import { ConsignmentsPage } from '../pages/ConsignmentsPage'
 import { CreditMonitoringPage } from '../pages/CreditMonitoringPage'
 import { CustomerManagementPage } from '../pages/CustomerManagementPage'
 import { DashboardPage } from '../pages/DashboardPage'
@@ -51,9 +49,7 @@ export const appRoutes: RouteObject[] = [
               { path: 'item-deliveries', element: <ItemDeliveriesPage /> },
               { path: 'spoilages', element: <SpoilagesPage /> },
               { path: 'credit-monitoring', element: <CreditMonitoringPage /> },
-              { path: 'customer-management', element: <CustomerManagementPage /> },
-              { path: 'consignees', element: <ConsigneesPage /> },
-              { path: 'consignments', element: <ConsignmentsPage /> }
+              { path: 'customer-management', element: <CustomerManagementPage /> }
             ]
           },
           { path: 'orders', element: <OrdersPage /> },

@@ -1,5 +1,0 @@
-.account-page__header-actions, .account-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.account-summary { color: var(--color-text-secondary); }
-.account-form { display: flex; flex-direction: column; gap: var(--space-4); }
-.account-form > div { display: flex; flex-direction: column; }
-.account-delete { display: flex; gap: var(--space-3); }

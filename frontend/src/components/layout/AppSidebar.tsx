@@ -13,8 +13,7 @@ export function AppSidebar() {
 
   async function handleLogout(): Promise<void> {
     setLoggingOut(true)
-    try { await logout() }
-    finally { setLoggingOut(false) }
+    try { await logout() } finally { setLoggingOut(false) }
   }
 
   return <aside className="app-sidebar" aria-label="Main navigation">

@@ -189,7 +189,7 @@ export function OrdersPage() {
 
   function exitPos(): void {
     if (cart.length > 0) { setExitOpen(true); return }
-    navigate('/dashboard')
+    navigate(currentUser?.role === 'admin' ? '/dashboard' : '/cashier-home')
   }
 
   useEffect(() => {
@@ -279,7 +279,7 @@ export function OrdersPage() {
       <div className="pos-quantity-picker__list">{cart.map((item) => <button key={item.itemId} type="button" aria-label={`Change quantity for ${item.name}`} onClick={() => { setQuantityPickerOpen(false); openQuantityEditor(item) }}><span>{item.name}</span><span>{item.itemCode}</span><span>{formatPosQuantity(item.quantity)} {item.unit}</span></button>)}</div>
     </div></Modal>
     <Modal open={newOrderOpen} title="Start New Order?" onClose={() => setNewOrderOpen(false)} actions={<Button onClick={clearCart} icon={<AppIcons.newOrder size={iconSize} strokeWidth={iconStroke} />}>Start New Order</Button>}><div className="pos-new-order-warning"><AppIcons.warning size={24} /><p>The current order contains items that have not been paid. Starting a new order will clear the current cart.</p></div></Modal>
-    <Modal open={exitOpen} title="Exit POS?" onClose={() => setExitOpen(false)} actions={<Button onClick={() => navigate('/dashboard')}>Exit POS</Button>}><p>The current cart has not been submitted. Exiting POS will discard it.</p></Modal>
+    <Modal open={exitOpen} title="Exit POS?" onClose={() => setExitOpen(false)} actions={<><Button variant="outline" onClick={() => setExitOpen(false)}>Stay in POS</Button><Button onClick={() => navigate(currentUser?.role === 'admin' ? '/dashboard' : '/cashier-home')}>Exit POS</Button></>}><p>Your current cart will be cleared.</p></Modal>
     <CashReceivedDialog open={cashDialogOpen} totalCents={total} currentAmount={cashReceived} onClose={closeCashDialog} onConfirm={(amount) => { setCashReceived(amount); setPaymentMethod('cash'); setSelectedCustomer(null); setPaymentError(null); setCashDialogOpen(false) }} />
     <SeniorDiscountDialog open={discountDialogOpen} subtotalCents={subtotal} value={seniorDiscount} onClose={() => setDiscountDialogOpen(false)} onApply={(value) => { setSeniorDiscount(value); setDiscountDialogOpen(false); setPaymentError(null) }} onRemove={() => { setSeniorDiscount(null); setDiscountDialogOpen(false); setPaymentError(null) }} />
     <CustomerSelector open={customerSelectorOpen} selected={selectedCustomer} onClose={closeCustomerSelector} onSelect={(customer) => { setSelectedCustomer(customer); setPaymentMethod('credit'); setCashReceived(''); setPaymentError(customer ? null : 'Select a Customer before submitting Credit / Utang.'); setCustomerSelectorOpen(false) }} />

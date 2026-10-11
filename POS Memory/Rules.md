@@ -2,6 +2,21 @@
 
 ## Development Rules
 
+### Phase 10.20A — Dashboard and landing rules
+
+- Admin lands on Dashboard and may open POS manually. Cashier with Cashier privilege and an assigned Station lands on POS; without both, show the minimal Cashier Home fallback. Cashier never sees the Admin Dashboard or sidebar.
+- Admin POS exit returns to Dashboard. Cashier POS exit returns to Cashier Home. A nonempty cart must show an Exit POS confirmation with Stay in POS and Exit POS actions before it is discarded.
+- Do not show an account or profile control in the header. The Admin sidebar retains the previous logo/profile box with compact Username, System Role, and Privileges details above navigation, plus Logout at the bottom. The Dashboard has no Quick Access or Current User cards.
+- Dashboard monitoring and its API are Admin-only. Apply the selected Station scope consistently to today-only persisted Order KPIs, Today’s Sales, all-time Unremitted Cash, and stock counts. Use Asia/Manila day boundaries and the existing positive-balance low-stock threshold; do not recalculate Order totals or discounts.
+- Today’s Sales uses Admin pagination (10/20/50/100), read-only historical detail snapshots, and compact table styling. Cashier Home is not a KPI dashboard.
+- Keep the navigation-only sidebar at the compact 232px desktop width. Today’s Sales owns a dedicated 1100px table treatment and scrolls inside its panel; do not increase the shared Table minimum width.
+- Retain valid KPI and row data while dashboard filters refresh. Search, payment, and pagination refresh the sales presentation without replacing valid KPI values with temporary zeroes.
+- Cashier Home remains centered in the workspace, compact, and limited to Open POS and Logout. Its card content is consistently left-aligned, uses text-only branding and actions, and presents only Full Name, Privilege, and Assigned Station under a subtle Cashier Information label.
+- Dashboard KPI cards remain text-only: label, value, and supporting context. Do not add decorative icons or badges to these cards.
+- Dashboard filters are limited to the page-level Station selector and Today’s Sales Payment Method selector. Searching belongs in O.R Transactions.
+- Keep account identity and Logout in the Admin sidebar; do not duplicate them in the header. Preserve accessible Logout and existing authentication behavior.
+- Keep Login branding text-only and use the consistent University HomeStay POS name. Keep the card compact, plain, centered, and limited to email, password, and Login. The password visibility control uses state-based icons: open Eye when the password is visible and EyeOff when it is masked, while its accessible label describes the available Show/Hide action. Preserve its tooltip, keyboard focus state, and submission behavior.
+
 ### Current module boundary — Consignee removal
 
 - Do not add Consignee or Consignment Account routes, pages, endpoints, models, relationships, or schema without newly confirmed business requirements.

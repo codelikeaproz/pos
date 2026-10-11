@@ -4,6 +4,32 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.20A — Admin Dashboard and Cashier landing (2026-10-11)
+
+Implemented the Admin-only operational Dashboard with Station-scoped persisted Order KPIs, all-time unremitted Cash, low/out-of-stock counts, and a filtered/paginated Today’s Sales table. View opens the existing read-only historical Order detail. Admin login lands on Dashboard; a Cashier-privileged, Station-assigned End User lands on POS; Cashier POS exit goes to minimal Cashier Home and Admin POS exit returns to Dashboard. Nonempty carts require exit confirmation. The header now provides a compact profile dropdown and read-only My Profile; the sidebar identity block and Dashboard Quick Access/Current User modules were removed.
+
+Added `GET /api/dashboard` behind Admin middleware and focused dashboard API coverage. Stations do not currently have an active flag, so all existing Stations appear in the filter. Unremitted Cash intentionally spans all dates; other sales KPIs and rows are Manila-today only. Checkout, inventory mutation, Sale Remittance, O.R Transactions, and Senior Discount were not altered. Verification: 153 backend Feature tests / 1,235 assertions passed; Pint passed using installed PHP 8.3; frontend TypeScript passed; Electron production build passed; `git diff --check` passed. No Playwright or live visual test was run at the user’s request; no commit or push was made.
+
+Authorization boundary: the dashboard API enforces Admin on the backend. Cashier privilege and Station assignment control frontend POS landing and routing; the existing POS backend continues to enforce authentication and Station scope, not the business Cashier privilege. Enforcing that privilege on POS APIs would be a separate authorization change and requires updating legacy POS test fixtures and access policy.
+
+Phase 10.20A.1 polished the existing frontend without changing dashboard definitions or routing. The sidebar moved from 276px to 232px; Today’s Sales uses a dedicated 1100px wide table with nowrap rules and panel-local scrolling; empty sales avoid the wide-table treatment. Existing KPI and table data remain visible with subtle section-level refresh feedback. Primary KPIs now use restrained green icon hierarchy, operational metrics use the existing warning/danger tokens, filters align as one compact row, Cashier Home is centered and branded, and the profile menu is separated into identity, metadata, and accessible icon actions.
+
+Phase 10.20A.2 removed all Dashboard KPI icons and the Today’s Sales search field, including its state, debounce effect, and frontend request parameter. Cards now use only label, value, and supporting text, with restrained warning/danger borders for operational attention. The remaining filters are Station at dashboard level and Payment Method at table level. The dedicated 1100px table, nowrap rules, scrolling, pagination, refresh stability, profile UI, Cashier Home, and role-aware flow remain unchanged.
+
+Phase 10.20A.3 refined the existing profile surfaces without changing authentication, field derivation, opening, or logout behavior. The trigger uses a small profile icon, bounded user name, and Lucide chevron. The final minimalist treatment removes circular avatar decoration, heavy shadow, and the nested modal card: the dropdown uses a plain identity row, aligned metadata, divided icon actions, and restrained destructive Logout hover; My Profile uses one flat identity row followed by an aligned five-row detail list.
+
+The Admin sidebar identity area was subsequently restored at the user's request. It again shows the previous logo/profile image box followed by Username, System Role, and Privileges above the module navigation. The compact 232px sidebar width and header profile dropdown remain in place.
+
+The account controls were then simplified further at the user's request. Sidebar Logout is restored at the bottom, and the header profile trigger and dropdown were removed entirely. The Admin sidebar is now the sole account surface, retaining its identity summary and Logout; Cashier Home retains its own Logout action. Role, Privilege, Station, email, My Profile, and the profile modal remain absent from the header. Authentication and logout behavior are unchanged.
+
+### Phase 10.20A.4 — Cashier Home UI Simplification
+
+Cashier Home was simplified without changing authentication, authorization, routing, POS exit behavior, or logout behavior. The centered 420px card now uses one left content edge, subtle text-only University HomeStay POS branding, a stronger text-only page title, a labeled white Cashier Information box with compact 42px rows, and text-only Open POS and Logout buttons. All decorative, cart, and logout icons were removed from this screen. TypeScript, the Electron production build, and `git diff --check` passed. Desktop sizing was verified from the responsive layout rules; no live visual test was run at the user's request. No commit or push was made.
+
+### Phase 10.20A.5 — Login UI Refinement
+
+The Login surface now uses a centered 400px plain card, text-only University HomeStay POS branding, a Sign in title, and the compact “Enter your account details to continue.” subtitle. The decorative mark and gradient background were removed, spacing and typography use the shared design system, and Email, Password, and Login retain identical control widths and heights. The password field has an accessible 18px state-based visibility toggle: Eye for visible text and EyeOff for masked text, with Show/Hide action labels, tooltips, keyboard focus treatment, and sufficient text padding. Authentication, errors, loading, Enter submission, autocomplete, role-aware routing, and session behavior are unchanged. TypeScript, the Electron production build, and `git diff --check` passed. Responsive desktop behavior was verified from the centered max-width layout rules; no live visual test, commit, or push was performed.
+
 ### Consignee and Consignment Account removal (2026-10-09)
 
 Consignee Management and Consignment Account Management were removed from the active application after business reconciliation found no current operational use. Their React pages, routes, services, types, Laravel endpoints, controllers, requests, resources, models, tests, and schema definitions are no longer part of the maintained product. The development database is reconciled separately without deleting ordinary User accounts.

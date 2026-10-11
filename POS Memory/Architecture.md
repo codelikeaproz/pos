@@ -1,6 +1,20 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.20A — Admin Dashboard and Cashier landing (2026-10-11)
+
+Admin lands on `/dashboard`; End User with the Cashier privilege and an assigned Station lands directly on `/orders` after login. The Admin Dashboard is an operational monitoring screen only, protected by the Admin route guard and the Admin-only `GET /api/dashboard` endpoint. Cashier POS exit goes to `/cashier-home`; Admin POS exit returns to `/dashboard`. Cashier Home is a minimal Open POS/Logout fallback without Admin navigation or KPIs. A nonempty POS cart requires an exit confirmation. The shared header contains only application and current-page identity. The Admin sidebar owns the account surface: its previous logo/profile box, compact Username, System Role, and Privileges summary, plus Logout at the bottom.
+
+The dashboard endpoint returns the current Asia/Manila day, available Stations, persisted Order totals, and a paginated Today’s Sales list. Its selected Station scope applies to all aggregates and rows. Today’s Sales/Cash/Credit/transaction count use completed Orders from the Manila day, while Unremitted Cash counts all unremitted Cash Orders regardless of date. Low Stock counts positive Station Item balances at or below `items.reorder_point`; Out of Stock counts balances at or below zero. Order detail uses the existing read-only O.R snapshot endpoint. Stations have no active/inactive status in the current schema, so every existing Station appears in the selector. No checkout, remittance, or historical O.R behavior changes.
+
+Phase 10.20A.1 keeps this behavior and refines the presentation: the navigation-only sidebar is 232px, the Today’s Sales table has a dashboard-specific 1100px minimum width with internal horizontal scrolling, and valid dashboard data remains visible during filter refreshes. The profile dropdown is structured into identity, metadata, and actions. Cashier Home is an intentionally centered minimal workspace and Cashier still enters POS directly.
+
+Phase 10.20A.2 simplifies the Dashboard presentation without changing data behavior. KPI cards contain label, value, and supporting text only. Dashboard scope remains Station; Today’s Sales retains only Payment Method and Admin pagination. Detailed searching remains in O.R Transactions, while the Dashboard API may retain harmless search support for compatibility.
+
+The header profile trigger, dropdown, My Profile action, and profile modal are not part of the current interface. Admin identity details remain in the sidebar, with Logout at its bottom. Cashier Home retains its own Logout action and is a centered compact card with consistently left-aligned, text-only content and a lightweight three-row identity section.
+
+The Phase 10.20A.5 Login surface is a centered 400px card with text-only University HomeStay POS branding, a Sign in heading, compact account-detail guidance, and existing shared form controls. Password visibility is controlled locally in `LoginPage`; its state-based icon is Eye for visible text and EyeOff for masked text, while its accessible label describes the Show/Hide action. Credentials, validation, submission, routing, and authentication services are unchanged.
+
 ### Current module boundary — Consignee removal (2026-10-09)
 
 Consignee Management and the User-backed Consignment Account workflow are no longer active modules. The current schema has no `consignees` table and no `users.consignee_id`; the Laravel API and Electron React router expose no Consignee or Consignment Account endpoints or pages. Older sections describing Phases 10.5 and 10.6 are retained only as historical records and are superseded by this section.

@@ -14,7 +14,7 @@ export type NavItem = {
 
 // The visible Admin order and names follow the confirmed legacy sidebar.
 export const navItems: NavItem[] = [
-  { path: '/dashboard', label: 'Dashboard', icon: AppIcons.dashboard, title: 'Dashboard', description: 'Application overview and quick access.', allowedRoles: ['admin', 'end_user'] },
+  { path: '/dashboard', label: 'Dashboard', icon: AppIcons.dashboard, title: 'Dashboard', description: 'Admin operational monitoring.', allowedRoles: ['admin'] },
   { path: '/orders', label: 'POS', icon: AppIcons.orders, title: 'POS', description: 'Build sales using inventory from the assigned Station.', allowedRoles: ['admin', 'end_user'] },
   { path: '/items', label: 'Product Management', icon: AppIcons.items, title: 'Product Management', description: 'Manage product and food definitions.', allowedRoles: ['admin'] },
   { path: '/station-inventory', label: 'Station Inventory', icon: AppIcons.stationInventory, title: 'Station Inventory', description: 'Manage Station item quantities.', allowedRoles: ['admin'] },
@@ -32,6 +32,7 @@ export const navItems: NavItem[] = [
 
 // Existing pages stay routable without adding entries to the confirmed sidebar.
 const otherPages: NavItem[] = [
+  { path: '/cashier-home', label: 'Cashier Home', icon: AppIcons.orders, title: 'Cashier Home', description: 'Open POS.', allowedRoles: ['end_user'] },
   { path: '/spoilages', label: 'Spoilage', icon: AppIcons.warning, title: 'Spoilage Management', description: 'Record Station spoilage.', allowedRoles: ['admin'] },
   { path: '/transactions', label: 'Transactions', icon: AppIcons.transactions, title: 'Transaction History', description: 'View completed sales.', allowedRoles: ['admin', 'end_user'] }
 ]

@@ -20,6 +20,11 @@
   overflow: auto;
 }
 
+.app-shell__content--centered {
+  display: grid;
+  place-items: center;
+}
+
 @media (max-width: 800px) {
   .app-shell__body { flex-direction: column; }
   .app-shell__content { padding: var(--space-4); }

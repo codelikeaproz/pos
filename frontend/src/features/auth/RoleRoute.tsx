@@ -6,7 +6,7 @@ export function RoleRoute({ allowedRoles }: { allowedRoles: UserRole[] }) {
   const { currentUser } = useAuth()
 
   if (!currentUser || !allowedRoles.includes(currentUser.role)) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to={currentUser?.role === 'admin' ? '/dashboard' : '/cashier-home'} replace />
   }
 
   return <Outlet />

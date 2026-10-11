@@ -1,11 +1,14 @@
 import { Navigate, RouteObject } from 'react-router-dom'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
+import { useAuth } from '../features/auth/AuthContext'
 import { RoleRoute } from '../features/auth/RoleRoute'
+import { PosRoute } from '../features/auth/PosRoute'
 import { LoginPage } from '../features/auth/LoginPage'
 import { AppShell } from '../layouts/AppShell'
 import { CreditMonitoringPage } from '../pages/CreditMonitoringPage'
 import { CustomerManagementPage } from '../pages/CustomerManagementPage'
 import { DashboardPage } from '../pages/DashboardPage'
+import { CashierHomePage } from '../pages/CashierHomePage'
 import { EmployeesPage } from '../pages/EmployeesPage'
 import { ItemsPage } from '../pages/ItemsPage'
 import { ItemDeliveriesPage } from '../pages/ItemDeliveriesPage'
@@ -32,11 +35,11 @@ export const appRoutes: RouteObject[] = [
       {
         element: <AppShell />,
         children: [
-          { index: true, element: <Navigate to="/dashboard" replace /> },
-          { path: 'dashboard', element: <DashboardPage /> },
+          { index: true, element: <RoleLanding /> },
           {
             element: <RoleRoute allowedRoles={['admin']} />,
             children: [
+              { path: 'dashboard', element: <DashboardPage /> },
               { path: 'employees', element: <EmployeesPage /> },
               { path: 'items', element: <ItemsPage /> },
               { path: 'prices', element: <PricesPage /> },
@@ -52,11 +55,17 @@ export const appRoutes: RouteObject[] = [
               { path: 'customer-management', element: <CustomerManagementPage /> }
             ]
           },
-          { path: 'orders', element: <OrdersPage /> },
+          { path: 'cashier-home', element: <CashierHomePage /> },
+          { element: <PosRoute />, children: [{ path: 'orders', element: <OrdersPage /> }] },
           { path: 'transactions', element: <TransactionsPage /> },
-          { path: '*', element: <Navigate to="/dashboard" replace /> }
+          { path: '*', element: <RoleLanding /> }
         ]
       }
     ]
   }
 ]
+
+function RoleLanding() {
+  const { currentUser } = useAuth()
+  return <Navigate to={currentUser?.role === 'admin' ? '/dashboard' : '/cashier-home'} replace />
+}

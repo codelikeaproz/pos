@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CreditMonitoringController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ItemDeliveryController;
@@ -40,6 +41,7 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/current-user', [AuthController::class, 'currentUser']);
+    Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('admin');
 
     Route::get('/pos/items', [PosItemController::class, 'index']);
     Route::get('/pos/station-inventory', [PosItemController::class, 'stationInventory']);

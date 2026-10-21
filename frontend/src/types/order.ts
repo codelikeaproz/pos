@@ -7,6 +7,9 @@ export type OrderDetail = OrderHistoryRow & {
   seniorCount: number | null
   subtotalAmount: string
   discountAmount: string
+  taxStatusSnapshot: 'NON_VAT' | 'VAT_REGISTERED' | null
+  vatRateSnapshot: string | null
+  vatExemptSales: string | null
   cashReceived: string | null
   changeAmount: string | null
   items: Array<{ itemId: number; itemCode: string; itemName: string; unit: string; quantity: string; unitPrice: string; subtotal: string }>

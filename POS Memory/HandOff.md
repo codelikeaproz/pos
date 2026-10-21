@@ -4,6 +4,22 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.21 — Non-VAT / Tax Foundation (2026-10-21)
+
+University HomeStay is configured as `NON_VAT`. The new singleton `tax_settings` table defaults to `NON_VAT` and `12.00`, records the last Admin through nullable `updated_by_id`, and exposes compact Admin-only read/update endpoints and `/tax-configuration` UI. `VAT_REGISTERED` is reserved and rejected; changing the reference rate never changes checkout totals.
+
+The Tax Configuration screen presents VAT Calculation as plain uppercase status text rather than a button-like badge: `INACTIVE` is red and `ACTIVE` is green.
+
+New Orders snapshot `tax_status_snapshot`, `vat_rate_snapshot`, and nullable `vat_exempt_sales`. Normal undiscounted Cash and Credit / Utang sales store VAT Exempt Sales (X) equal to the authoritative final `total_amount`; Amount Due is that same total. Checkout remains atomic and server-authoritative. No VAT is added, and Prices, Senior Discount, Cash/Change, Customer requirements, stock deduction, SALE movements, Sale Remittance, Credit Monitoring, and Dashboard behavior are unchanged.
+
+The HTML receipt, physical 32-column print, O.R details, F6, and F7 display persisted tax snapshots. Existing Orders keep null fields and display an unavailable legacy fallback. Senior-discounted Orders snapshot status/rate but keep `vat_exempt_sales` null and display a pending accounting-rule fallback because the stakeholder has not confirmed whether the basis is pre-discount subtotal, Amount Due, or another value.
+
+The clean development schema defines the nullable Order tax snapshot fields directly in `2026_09_27_050000_create_orders_table.php`; `2026_10_21_000000_create_tax_settings_table.php` creates only the singleton configuration. Focused coverage includes defaults, Admin access/update, Cashier denial, invalid rates, rejected VAT activation, unchanged Non-VAT Cash/Credit totals, persisted snapshots, later-setting isolation, and unchanged Senior Discount totals.
+
+Verification passed: 159 backend tests with 1,281 assertions, Pint, frontend TypeScript checking, Electron production build, and `git diff --check`. The development database was rebuilt from the clean migrations and seeded; its Tax Configuration default is `NON_VAT` / `12.00`.
+
+Deferred: actual VAT charging or extraction, `VAT_REGISTERED` operation, product Vatable flags, mixed classifications, zero-rated sales, VAT payable/output/input VAT, VAT reports, BIR workflows, and the Senior Discount VAT Exempt Sales accounting basis.
+
 ### Phase 10.20A — Admin Dashboard and Cashier landing (2026-10-11)
 
 Implemented the Admin-only operational Dashboard with Station-scoped persisted Order KPIs, all-time unremitted Cash, low/out-of-stock counts, and a filtered/paginated Today’s Sales table. View opens the existing read-only historical Order detail. Admin login lands on Dashboard; a Cashier-privileged, Station-assigned End User lands on POS; Cashier POS exit goes to minimal Cashier Home and Admin POS exit returns to Dashboard. Nonempty carts require exit confirmation. The header now provides a compact profile dropdown and read-only My Profile; the sidebar identity block and Dashboard Quick Access/Current User modules were removed.
@@ -50,15 +66,15 @@ Drawer opening runs independently after the Order commit and does not gate recei
 
 ### Phase 10.20P.2 Variable Receipt Feed Calibration — Code complete, hardware feed follow-up remains (2026-10-08)
 
-Commits `8f966da` (`fix(printing): calibrate receipts for narrow paper`) and `344b5ec` (`fix(printing): refine LX-310 receipt output`) began the work completed on 2026-10-08. Subsequent physical tests accepted the 32-column layout with regular 11 pt Courier New, 1.25 line height, 2 mm left/right print-document insets, uppercase headings, and `PHP` money text. The receipt preview subtitle reads `Sale Receipt`, and the temporary Test Print button plus its IPC surface are removed.
+Commits `8f966da` (`fix(printing): calibrate receipts for narrow paper`) and `344b5ec` (`fix(printing): refine LX-310 receipt output`) began the work completed on 2026-10-08. Current physical calibration uses a 67 mm print canvas and 32-column layout with regular 10 pt Courier New, 1.25 line height, a 2 mm top margin, zero side/bottom margins, no padding, uppercase headings, and `PHP` money text. The receipt preview subtitle reads `Sale Receipt`, and the temporary Test Print button plus its IPC surface are removed.
 
-Calculated Electron page heights did not change the blank interval and could produce blank jobs. Printing therefore uses the selected printer driver's default paper form and printable-area margins. The leading calibration lines before `CMU HOMESTAY` are retained because the LX-310 clips the first physical line. The remaining large interval between jobs is a driver or printer form-feed limitation; test the driver's short custom form and hardware page-length settings before approving a separate raw ESC/P phase.
+Calculated Electron page heights did not change the blank interval and could produce blank jobs. Printing therefore uses the selected printer driver's default paper form and printable-area margins. A leading calibration line is retained because the LX-310 clips the first physical line. The visible institutional header now prints Central Mindanao University, University Homestay, Musuan Peak, Musuan, Maramag, Bukidnon, and TIN 621-400-000 on separate centered lines. The remaining large interval between jobs is a driver or printer form-feed limitation; test the driver's short custom form and hardware page-length settings before approving a separate raw ESC/P phase.
 
 ### Phase 10.20P.1 Windows Printer Compatibility status — Code-complete, physical verification required (2026-10-07)
 
 Print Receipt discovers installed Windows printers and passes the completed Order snapshot through preload IPC to Electron Main. Main validates it and prints a dedicated monospaced document through a hidden sandboxed BrowserWindow and the normal Windows print dialog. Rapid clicks are disabled during a job. The temporary development Test Print action and its IPC surface have been removed.
 
-Any printer exposed by Windows can be selected; EPSON LX-310 is the first physical test device rather than a required model. Its first successful receipt exposed left-edge clipping with the 48-column profile. Current calibration defaults are 32 columns, regular 11 pt Courier New, 1.25 line height, a 58 mm print canvas with 2 mm side insets, driver printable-area margins, two trailing feeds, and `PHP` money text. Record the selected driver, paper, feed behavior, wrapping, and a 30+ item receipt.
+Any printer exposed by Windows can be selected; EPSON LX-310 is the first physical test device rather than a required model. Its first successful receipt exposed left-edge clipping with the 48-column profile. Current calibration defaults are 32 columns, regular 10 pt Courier New, 1.25 line height, a 67 mm print canvas with a 2 mm top margin, zero side/bottom margins and no padding, driver printable-area margins, two trailing feeds, and `PHP` money text. Record the selected driver, paper, feed behavior, wrapping, and a 30+ item receipt.
 
 Raw ESC/P, silent printing, saved printer configuration, print logs/state, expanded reprint UI, Cash Drawer integration, and O.R generation are absent. Add raw ESC/P only if hardware tests show the Windows driver cannot provide stable density, feed, or form handling.
 

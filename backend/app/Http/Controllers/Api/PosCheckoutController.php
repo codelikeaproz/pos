@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\StationItem;
+use App\Models\TaxSetting;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -39,6 +40,7 @@ class PosCheckoutController extends Controller
     private function checkout(User $cashier, array $requestedItems, string $paymentMethod, ?string $cashReceived, ?int $customerId, ?int $customerCount, ?int $seniorCount): Order
     {
         return DB::transaction(function () use ($cashier, $requestedItems, $paymentMethod, $cashReceived, $customerId, $customerCount, $seniorCount) {
+            $taxSetting = TaxSetting::query()->lockForUpdate()->findOrFail(1);
             $customer = $customerId ? Customer::query()->lockForUpdate()->find($customerId) : null;
             if ($paymentMethod === 'credit' && ! $customer) {
                 throw ValidationException::withMessages(['customerId' => ['Select a valid Customer for Credit / Utang.']]);
@@ -136,6 +138,10 @@ class PosCheckoutController extends Controller
                 'senior_count' => $seniorCount,
                 'subtotal_amount' => $this->formatFixed($subtotalCents, 2),
                 'discount_amount' => $this->formatFixed($discountCents, 2),
+                'tax_status_snapshot' => $taxSetting->tax_status->value,
+                'vat_rate_snapshot' => $taxSetting->vat_rate,
+                // The discounted-sale exempt basis awaits stakeholder confirmation.
+                'vat_exempt_sales' => $discountCents === 0 ? $this->formatFixed($finalTotalCents, 2) : null,
                 'total_amount' => $this->formatFixed($finalTotalCents, 2),
                 'cash_received' => $cashCents === null ? null : $this->formatFixed($cashCents, 2),
                 'change_amount' => $cashCents === null ? null : $this->formatFixed($cashCents - $finalTotalCents, 2),

@@ -39,6 +39,8 @@ export function PaymentReceipt({ order }: { order: CheckoutOrder }) {
           <div><dt>Customers / Seniors</dt><dd>{order.customerCount} / {order.seniorCount}</dd></div>
         </> : null}
         <div className="pos-receipt__grand-total"><dt>Total</dt><dd>{formatPrice(order.totalAmount)}</dd></div>
+        <div><dt>VAT Exempt Sales (X)</dt><dd>{order.vatExemptSales === null ? order.taxStatusSnapshot ? 'Pending rule' : 'Unavailable' : formatPrice(order.vatExemptSales)}</dd></div>
+        <div><dt>Amount Due</dt><dd>{formatPrice(order.totalAmount)}</dd></div>
         {order.paymentMethod === 'cash' ? <>
           <div><dt>Cash Received</dt><dd>{formatPrice(order.cashReceived ?? '0.00')}</dd></div>
           <div><dt>Change</dt><dd>{formatPrice(order.changeAmount ?? '0.00')}</dd></div>

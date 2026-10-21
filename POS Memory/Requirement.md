@@ -3,6 +3,8 @@
 # University HomeStay POS
 ## Requirements
 
+> Phase 10.21 status (2026-10-21): University HomeStay is **NON-VAT**. Admin-only Tax Configuration stores the current status and adjustable reference VAT rate; the rate is inactive and never added to sales. New Orders preserve tax status/rate snapshots, and normal non-discounted sales preserve `VAT Exempt Sales (X)` equal to the persisted final total. Existing Orders remain nullable rather than receiving fabricated history. The Senior Discount formula is unchanged; the discounted-order VAT Exempt Sales basis remains pending stakeholder confirmation. Full VAT registration, product tax classification, zero-rated/mixed sales, and VAT reporting are deferred.
+
 > Current scope decision (2026-10-09): Consignee Management and Consignment Account Management have been removed because reconciliation found no current operational use. User Management remains required for authentication and operational accountability; Customers remain the supported Credit / Utang identity. Earlier Consignee and Consignment requirements below are retained as historical discovery notes only and are not active product scope. Reintroduction requires newly confirmed business requirements.
 
 > Phase 10.19.1 status (2026-10-05): **Complete.** Ctrl+D applies the confirmed Senior Citizen formula `(Order Subtotal / Customers) × 20% × Seniors`. Laravel performs the authoritative integer-cent calculation and half-up discount rounding; React provides a recalculating preview. Orders preserve subtotal, discount, final total, and Customer/Senior counts. Cash, Credit, receipt preview, transaction details, remittance, monitoring, and inventory behavior are integrated without a generic discount system.

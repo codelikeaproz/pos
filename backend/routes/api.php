@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\SaleRemittanceController;
 use App\Http\Controllers\Api\SpoilageController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationItemController;
+use App\Http\Controllers\Api\TaxSettingController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/current-user', [AuthController::class, 'currentUser']);
     Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('admin');
+    Route::get('/tax-settings', [TaxSettingController::class, 'show'])->middleware('admin');
+    Route::put('/tax-settings', [TaxSettingController::class, 'update'])->middleware('admin');
 
     Route::get('/pos/items', [PosItemController::class, 'index']);
     Route::get('/pos/station-inventory', [PosItemController::class, 'stationInventory']);

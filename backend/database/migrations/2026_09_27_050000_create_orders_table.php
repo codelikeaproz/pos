@@ -20,6 +20,9 @@ return new class extends Migration
             $table->unsignedInteger('senior_count')->nullable();
             $table->decimal('subtotal_amount', 12, 2);
             $table->decimal('discount_amount', 12, 2)->default(0);
+            $table->string('tax_status_snapshot', 32)->nullable();
+            $table->decimal('vat_rate_snapshot', 5, 2)->nullable();
+            $table->decimal('vat_exempt_sales', 12, 2)->nullable();
             $table->decimal('total_amount', 12, 2);
             $table->decimal('cash_received', 12, 2)->nullable();
             $table->decimal('change_amount', 12, 2)->nullable();

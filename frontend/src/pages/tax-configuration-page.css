@@ -1,0 +1,8 @@
+.tax-configuration-page .ui-panel { max-width: 34rem; }
+.tax-configuration-form { display: flex; flex-direction: column; gap: var(--space-4); }
+.tax-configuration-form__rate { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); }
+.tax-configuration-form__status { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.tax-configuration-form__status-value { font-size: var(--font-size-secondary); }
+.tax-configuration-form__status-value--inactive { color: var(--color-danger); }
+.tax-configuration-form__status-value--active { color: var(--color-success); }
+.tax-configuration-form .ui-button { align-self: flex-start; }

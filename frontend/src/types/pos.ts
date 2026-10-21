@@ -62,6 +62,9 @@ export type CheckoutOrder = {
   seniorCount: number | null
   subtotalAmount: string
   discountAmount: string
+  taxStatusSnapshot: 'NON_VAT' | null
+  vatRateSnapshot: string | null
+  vatExemptSales: string | null
   totalAmount: string
   cashReceived: string | null
   changeAmount: string | null

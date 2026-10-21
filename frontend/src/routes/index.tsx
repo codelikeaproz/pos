@@ -22,6 +22,7 @@ import { StationsPage } from '../pages/StationsPage'
 import { StationInventoryPage } from '../pages/StationInventoryPage'
 import { SpoilagesPage } from '../pages/SpoilagesPage'
 import { TransactionsPage } from '../pages/TransactionsPage'
+import { TaxConfigurationPage } from '../pages/TaxConfigurationPage'
 
 export const appRoutes: RouteObject[] = [
   {
@@ -43,6 +44,7 @@ export const appRoutes: RouteObject[] = [
               { path: 'employees', element: <EmployeesPage /> },
               { path: 'items', element: <ItemsPage /> },
               { path: 'prices', element: <PricesPage /> },
+              { path: 'tax-configuration', element: <TaxConfigurationPage /> },
               { path: 'privilege', element: <PrivilegesPage /> },
               { path: 'privilege-assignment', element: <PrivilegeAssignmentsPage /> },
               { path: 'sale-remittance', element: <SaleRemittancesPage /> },

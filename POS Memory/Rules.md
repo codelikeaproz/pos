@@ -2,6 +2,17 @@
 
 ## Development Rules
 
+### Phase 10.21 — Non-VAT and tax snapshot rules
+
+- Treat University HomeStay as `NON_VAT`. Never add the configured VAT rate to Item prices, Subtotal, Senior Discount, Amount Due, Cash, Change, Credit, remittance, or Dashboard totals.
+- Keep one authoritative `tax_settings` record. Only Admin may read or update it; validate rate as 0–100 with at most two decimals, reject `VAT_REGISTERED`, and record `updated_by_id`.
+- Checkout must load and lock Tax Configuration server-side. Never trust tax status, rate, or exempt-sales values supplied by React or Electron.
+- Snapshot tax status and rate on every new Order. For a normal undiscounted Non-VAT Order, snapshot `vat_exempt_sales = total_amount`; Amount Due remains the same persisted `total_amount`.
+- Leave legacy Order tax fields null. Do not backfill or fabricate unknown historical tax context.
+- For Senior Discount Orders, preserve the existing formula and final total and leave `vat_exempt_sales` null until the stakeholder confirms its accounting basis. Show a clear pending-rule fallback instead of inventing a value.
+- Receipts, reprints, O.R details, and F6/F7 details must use persisted Order tax snapshots. Do not recalculate historical tax values from current settings.
+- Do not add product tax fields or controls. VAT charging, VAT-inclusive/exclusive calculations, zero-rated sales, mixed tax classes, VAT reports, and BIR VAT workflows remain deferred.
+
 ### Phase 10.20A — Dashboard and landing rules
 
 - Admin lands on Dashboard and may open POS manually. Cashier with Cashier privilege and an assigned Station lands on POS; without both, show the minimal Cashier Home fallback. Cashier never sees the Admin Dashboard or sidebar.
@@ -40,7 +51,7 @@
 - React has no Node or printer access. Use only narrow preload methods; keep `contextIsolation: true`, `nodeIntegration: false`, and renderer sandboxing enabled.
 - Print only completed historical snapshots after checkout commits. Failure or cancellation never changes checkout, payment, discount, inventory, movements, remittance, Credit Monitoring, or O.R Transactions.
 - Use explicit OS printer confirmation. Do not hard-code silent printing, add print-state columns, or install native/raw dependencies without physical evidence.
-- Keep the hardware-tested physical profile centralized: 32 columns, regular 11 pt Courier New, 1.25 line height, and 2 mm side insets. Use `PHP` until hardware proves the peso glyph; record the selected driver, printer capabilities, paper, feed, alignment, wrapping, and long-receipt results.
+- Keep the physical profile centralized: 67 mm print canvas, 32 columns, regular 10 pt Courier New, 1.25 line height, a 2 mm top margin, zero side/bottom margins, and no padding. Use `PHP` until hardware proves the peso glyph; record the selected driver, printer capabilities, paper, feed, alignment, wrapping, and long-receipt results.
 - Use the printer driver's selected default paper form; Electron custom page heights proved ineffective with the LX-310 driver.
 - Cash Drawer integration and Accounting Office O.R Number generation remain deferred.
 

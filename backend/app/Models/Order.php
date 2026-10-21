@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     /** @var list<string> */
-    protected $fillable = ['order_number', 'ordered_at', 'station_id', 'cashier_id', 'customer_id', 'payment_method', 'customer_count', 'senior_count', 'subtotal_amount', 'discount_amount', 'total_amount', 'cash_received', 'change_amount', 'remitted_at', 'remitted_by_id'];
+    protected $fillable = ['order_number', 'ordered_at', 'station_id', 'cashier_id', 'customer_id', 'payment_method', 'customer_count', 'senior_count', 'subtotal_amount', 'discount_amount', 'tax_status_snapshot', 'vat_rate_snapshot', 'vat_exempt_sales', 'total_amount', 'cash_received', 'change_amount', 'remitted_at', 'remitted_by_id'];
 
     protected static function booted(): void
     {
@@ -28,7 +28,7 @@ class Order extends Model
 
     protected function casts(): array
     {
-        return ['ordered_at' => 'datetime', 'remitted_at' => 'datetime', 'subtotal_amount' => 'decimal:2', 'discount_amount' => 'decimal:2', 'total_amount' => 'decimal:2', 'cash_received' => 'decimal:2', 'change_amount' => 'decimal:2'];
+        return ['ordered_at' => 'datetime', 'remitted_at' => 'datetime', 'subtotal_amount' => 'decimal:2', 'discount_amount' => 'decimal:2', 'vat_rate_snapshot' => 'decimal:2', 'vat_exempt_sales' => 'decimal:2', 'total_amount' => 'decimal:2', 'cash_received' => 'decimal:2', 'change_amount' => 'decimal:2'];
     }
 
     public function station(): BelongsTo

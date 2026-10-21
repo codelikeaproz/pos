@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Price;
 use App\Models\Station;
 use App\Models\StationItem;
+use App\Models\TaxSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -113,6 +114,33 @@ class PosCheckoutApiTest extends TestCase
         $this->assertSame('0.000', $stock->fresh()->quantity);
     }
 
+    public function test_non_vat_cash_checkout_snapshots_exempt_sales_without_adding_vat(): void
+    {
+        [$user, $station, $item] = $this->context();
+        $item->prices()->update(['amount' => '45.00']);
+        $second = $this->item('RICE', 'Rice Plain', '15.00');
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '5.000']);
+        TaxSetting::query()->findOrFail(1)->update(['vat_rate' => '15.00']);
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/pos/checkout', [
+            'items' => [
+                ['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '45.00'],
+                ['itemId' => $second->id, 'quantity' => '1.000', 'expectedUnitPrice' => '15.00'],
+            ],
+            'paymentMethod' => 'cash', 'cashReceived' => '100.00',
+        ])->assertCreated()
+            ->assertJsonPath('order.subtotalAmount', '60.00')
+            ->assertJsonPath('order.totalAmount', '60.00')
+            ->assertJsonPath('order.taxStatusSnapshot', 'NON_VAT')
+            ->assertJsonPath('order.vatRateSnapshot', '15.00')
+            ->assertJsonPath('order.vatExemptSales', '60.00')
+            ->assertJsonPath('order.cashReceived', '100.00')
+            ->assertJsonPath('order.changeAmount', '40.00');
+
+        $this->assertDatabaseHas('orders', ['tax_status_snapshot' => 'NON_VAT', 'vat_rate_snapshot' => '15.00', 'vat_exempt_sales' => '60.00', 'total_amount' => '60.00']);
+    }
+
     public function test_credit_checkout_uses_same_stock_and_price_path_and_appears_in_monitoring(): void
     {
         [$user, , $item, $stock] = $this->context();
@@ -127,6 +155,9 @@ class PosCheckoutApiTest extends TestCase
             ->assertJsonPath('order.totalAmount', '37.50')
             ->assertJsonPath('order.cashReceived', null)
             ->assertJsonPath('order.changeAmount', null)
+            ->assertJsonPath('order.taxStatusSnapshot', 'NON_VAT')
+            ->assertJsonPath('order.vatRateSnapshot', '12.00')
+            ->assertJsonPath('order.vatExemptSales', '37.50')
             ->assertJsonPath('order.items.0.subtotal', '37.50');
         $this->assertSame($customer->id, Order::query()->firstOrFail()->customer_id);
         $this->assertSame('3.500', $stock->fresh()->quantity);
@@ -236,6 +267,7 @@ class PosCheckoutApiTest extends TestCase
             ->assertJsonPath('order.customerCount', 5)->assertJsonPath('order.seniorCount', 1)
             ->assertJsonPath('order.subtotalAmount', '400.00')->assertJsonPath('order.discountAmount', '16.00')
             ->assertJsonPath('order.totalAmount', '384.00')->assertJsonPath('order.changeAmount', '16.00')
+            ->assertJsonPath('order.taxStatusSnapshot', 'NON_VAT')->assertJsonPath('order.vatExemptSales', null)
             ->assertJsonPath('order.items.0.unitPrice', '400.00')->assertJsonPath('order.items.0.subtotal', '400.00');
 
         $this->assertSame('4.000', $stock->fresh()->quantity);
@@ -261,6 +293,24 @@ class PosCheckoutApiTest extends TestCase
                 'customerCount' => $case['customers'], 'seniorCount' => $case['seniors'],
             ])->assertCreated()->assertJsonPath('order.discountAmount', $case['discount'])->assertJsonPath('order.totalAmount', $case['total']);
         }
+    }
+
+    public function test_order_tax_snapshot_does_not_change_with_later_configuration(): void
+    {
+        [$user, , $item] = $this->context();
+        Sanctum::actingAs($user);
+        $response = $this->postJson('/api/pos/checkout', $this->payload($item->id))->assertCreated();
+        $orderId = $response->json('order.id');
+
+        TaxSetting::query()->findOrFail(1)->update(['vat_rate' => '18.00']);
+
+        $order = Order::query()->findOrFail($orderId);
+        $this->assertSame('NON_VAT', $order->tax_status_snapshot);
+        $this->assertSame('12.00', $order->vat_rate_snapshot);
+        $this->assertSame('25.00', $order->vat_exempt_sales);
+        $this->getJson("/api/orders/{$orderId}")->assertOk()
+            ->assertJsonPath('order.vatRateSnapshot', '12.00')
+            ->assertJsonPath('order.vatExemptSales', '25.00');
     }
 
     public function test_discount_counts_are_validated_as_positive_whole_numbers(): void

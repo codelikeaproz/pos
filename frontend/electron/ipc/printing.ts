@@ -18,6 +18,9 @@ export type ReceiptPrintData = {
   paymentMethod: 'cash' | 'credit'
   subtotalAmount: string
   discountAmount: string
+  taxStatusSnapshot: 'NON_VAT' | null
+  vatRateSnapshot: string | null
+  vatExemptSales: string | null
   totalAmount: string
   customerCount: number | null
   seniorCount: number | null
@@ -35,6 +38,7 @@ const text = (value: unknown, maximum = 160): string => typeof value === 'string
 const money = (value: string): string => `PHP ${Number(value).toFixed(2)}`
 const quantity = (value: string): string => Number(value).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')
 const line = (label: string, value: string): string => `${label}${value.padStart(Math.max(1, RECEIPT_COLUMNS - label.length))}`
+const center = (value: string): string => value.padStart(Math.floor((RECEIPT_COLUMNS + value.length) / 2))
 const wrap = (value: string): string[] => value.replace(/\s+/g, ' ').match(new RegExp(`.{1,${RECEIPT_COLUMNS}}`, 'g')) ?? ['']
 const decimal = (value: string): boolean => /^\d+(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value))
 
@@ -62,13 +66,16 @@ function parseReceipt(value: unknown): ReceiptPrintData | null {
   const parsed = {
     orderNumber: text(order.orderNumber, 100), orderedAt: text(order.orderedAt, 50), paymentMethod,
     subtotalAmount: text(order.subtotalAmount, 30), discountAmount: text(order.discountAmount, 30), totalAmount: text(order.totalAmount, 30),
+    taxStatusSnapshot: order.taxStatusSnapshot === 'NON_VAT' ? 'NON_VAT' as const : null,
+    vatRateSnapshot: order.vatRateSnapshot === null || order.vatRateSnapshot === undefined ? null : text(order.vatRateSnapshot, 30),
+    vatExemptSales: order.vatExemptSales === null || order.vatExemptSales === undefined ? null : text(order.vatExemptSales, 30),
     customerCount: Number.isInteger(order.customerCount) ? order.customerCount as number : null,
     seniorCount: Number.isInteger(order.seniorCount) ? order.seniorCount as number : null,
     cashReceived: order.cashReceived === null ? null : text(order.cashReceived, 30),
     changeAmount: order.changeAmount === null ? null : text(order.changeAmount, 30), station, cashier, customer,
     items: items.filter((item): item is ReceiptItem => item !== null)
   }
-  const amounts = [parsed.subtotalAmount, parsed.discountAmount, parsed.totalAmount, ...(paymentMethod === 'cash' ? [parsed.cashReceived, parsed.changeAmount] : [])]
+  const amounts = [parsed.subtotalAmount, parsed.discountAmount, parsed.totalAmount, ...(parsed.vatRateSnapshot === null ? [] : [parsed.vatRateSnapshot]), ...(parsed.vatExemptSales === null ? [] : [parsed.vatExemptSales]), ...(paymentMethod === 'cash' ? [parsed.cashReceived, parsed.changeAmount] : [])]
   if (!parsed.orderNumber || !Date.parse(parsed.orderedAt) || !paymentMethod || !station || !cashier || (paymentMethod === 'credit' && !customer) || parsed.items.length !== items.length || parsed.items.length === 0 || amounts.some((amount) => !amount || !decimal(amount))) return null
   return parsed as ReceiptPrintData
 }
@@ -77,9 +84,12 @@ export function formatPrintReceipt(order: ReceiptPrintData): string {
   const rule = '-'.repeat(RECEIPT_COLUMNS)
   const output = [
     '',
-    'HEADER'.padStart((RECEIPT_COLUMNS + 12) / 2),
-    'CMU HOMESTAY'.padStart((RECEIPT_COLUMNS + 12) / 2),
-    'SALE RECEIPT'.padStart((RECEIPT_COLUMNS + 12) / 2), '',
+    center('HEADER'),
+    center('CENTRAL MINDANAO UNIVERSITY'),
+    center('UNIVERSITY HOMESTAY'),
+    center('MUSUAN PEAK'),
+    center('MUSUAN, MARAMAG, BUKIDNON'),
+    center('TIN: 621-400-000'), '',
     ...wrap(`Station : ${order.station.name}`), ...wrap(`Txn No. : ${order.orderNumber}`),
     ...wrap(`Date    : ${new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.orderedAt))}`),
     ...wrap(`Cashier : ${order.cashier.name}`), ...wrap(`Customer: ${order.customer?.name ?? 'Walk-in'}`),
@@ -93,6 +103,7 @@ export function formatPrintReceipt(order: ReceiptPrintData): string {
     output.push(line('Senior Discount', `-${money(order.discountAmount)}`), line('Customers', String(order.customerCount ?? 0)), line('Senior Citizens', String(order.seniorCount ?? 0)))
   }
   output.push(line('TOTAL', money(order.totalAmount)))
+  output.push(line('VAT Exempt Sales (X)', order.vatExemptSales === null ? order.taxStatusSnapshot ? 'Pending rule' : 'Unavailable' : money(order.vatExemptSales)), line('Amount Due', money(order.totalAmount)))
   if (order.paymentMethod === 'cash') output.push(line('Cash Received', money(order.cashReceived!)), line('Change', money(order.changeAmount!)))
   output.push(rule, '', 'Thank you for your purchase!'.padStart((RECEIPT_COLUMNS + 28) / 2), '', '')
   return output.join('\n')
@@ -103,7 +114,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>]/g, (character
 async function printText(content: string): Promise<PrintResult> {
   const printWindow = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } })
   try {
-    const html = `<!doctype html><meta charset="utf-8"><title>Receipt</title><style>@page{margin:0}body{box-sizing:border-box;width:58mm;margin:0;padding:2mm 2mm 0;color:#000;background:#fff;font:400 11pt/1.25 "Courier New",monospace;white-space:pre-wrap}pre{margin:0}</style><pre>${escapeHtml(content)}</pre>`
+    const html = `<!doctype html><meta charset="utf-8"><title>Receipt</title><style>@page{margin:0}body{box-sizing:border-box;width:67mm;margin:2mm 0 0;padding:0;color:#000;background:#fff;font:400 10pt/1.25 "Courier New",monospace;white-space:pre-wrap}pre{margin:0}</style><pre>${escapeHtml(content)}</pre>`
     await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
     return await new Promise((resolve) => printWindow.webContents.print({ silent: false, printBackground: false, usePrinterDefaultPageSize: true, margins: { marginType: 'printableArea' } }, (success, failureReason) => {
       if (success) resolve({ status: 'success', message: 'Receipt was sent to the selected printer.' })

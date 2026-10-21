@@ -1,6 +1,16 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.21 — Non-VAT / Tax Foundation (2026-10-21)
+
+University HomeStay currently operates as `NON_VAT`. A singleton `tax_settings` record holds the Admin-controlled status, future reference VAT rate, responsible User, and timestamps. The default is `NON_VAT` with `12.00`; the configured rate is never charged while Non-VAT. `VAT_REGISTERED` exists only as a reserved database enum value and cannot be activated through the API or UI.
+
+Checkout locks and reads the authoritative Tax Setting inside the existing transaction. Completed Orders snapshot `tax_status_snapshot`, `vat_rate_snapshot`, and nullable `vat_exempt_sales`. Normal Non-VAT Orders snapshot final `total_amount` as VAT Exempt Sales (X); no VAT is added and Item prices, Senior Discount, Cash, Change, Credit, inventory, movements, remittance, and Dashboard calculations remain unchanged. Snapshot fields are nullable for imported or otherwise legacy Orders whose historical tax context cannot be reconstructed safely.
+
+Senior-discounted Orders snapshot status and rate but leave `vat_exempt_sales` null until the stakeholder confirms whether the exempt-sales presentation uses the original subtotal, final amount due, or another accounting basis. Receipt and detail views show a pending-rule fallback for these Orders and an unavailable fallback for legacy Orders. HTML receipt preview, Electron physical printing, O.R details, and F6/F7 details consume persisted Order snapshots; React and Electron do not calculate tax.
+
+The compact `/tax-configuration` screen and `GET/PUT /api/tax-settings` endpoints are Admin-only. Updates validate a 0–100 percentage with at most two decimals, reject `VAT_REGISTERED`, serialize against checkout through the same row lock, and record `updated_by_id`. Full VAT charging, extraction, product classification, zero-rated sales, mixed classifications, VAT reporting, and automatic VAT registration remain deferred.
+
 ### Phase 10.20A — Admin Dashboard and Cashier landing (2026-10-11)
 
 Admin lands on `/dashboard`; End User with the Cashier privilege and an assigned Station lands directly on `/orders` after login. The Admin Dashboard is an operational monitoring screen only, protected by the Admin route guard and the Admin-only `GET /api/dashboard` endpoint. Cashier POS exit goes to `/cashier-home`; Admin POS exit returns to `/dashboard`. Cashier Home is a minimal Open POS/Logout fallback without Admin navigation or KPIs. A nonempty POS cart requires an exit confirmation. The shared header contains only application and current-page identity. The Admin sidebar owns the account surface: its previous logo/profile box, compact Username, System Role, and Privileges summary, plus Logout at the bottom.
@@ -31,13 +41,13 @@ The USB trigger model, Windows representation, driver, and documented open comma
 
 ### Phase 10.20P.2 — Variable Receipt Feed Calibration (2026-10-08)
 
-Physical print jobs retain the tested 58 mm, 32-column layout and use the selected printer driver's default paper form. The accepted LX-310 calibration uses regular 11 pt Courier New, 1.25 line height, and 2 mm left/right print-document insets. Electron no longer overrides the driver with a calculated custom page size because the LX-310 ignored those dimensions. The Windows print dialog and driver printable-area margins remain authoritative.
+Physical print jobs retain the tested 32-column layout and use the selected printer driver's default paper form. The current LX-310 calibration uses a 67 mm print canvas, regular 10 pt Courier New, 1.25 line height, a 2 mm top margin, zero side/bottom margins, and no padding. Electron no longer overrides the driver with a calculated custom page size because the LX-310 ignored those dimensions.
 
-Physical testing established that the LX-310 clips its first rendered line and advances to its configured form boundary after a Windows print job. The print document retains leading calibration content so `CMU HOMESTAY` remains visible. Feed length is owned by the driver or printer configuration; raw ESC/P remains a separate follow-up if those settings cannot reduce the interval.
+Physical testing established that the LX-310 clips its first rendered line and advances to its configured form boundary after a Windows print job. The print document retains a leading calibration line so the institutional header remains visible. The header prints Central Mindanao University, University Homestay, Musuan Peak, Musuan, Maramag, Bukidnon, and TIN 621-400-000 on separate centered lines. Feed length is owned by the driver or printer configuration; raw ESC/P remains a separate follow-up if those settings cannot reduce the interval.
 
 ### Phase 10.20P.1 — Windows Printer Compatibility POC (2026-10-07)
 
-The 58 mm HTML receipt remains the screen preview. Physical receipts use a separate black-only, monospaced, 32-column document with a 58 mm print canvas and calibrated side insets, generated from completed Order and Order Item snapshots. React sends structured data through a narrow preload bridge; Electron Main validates it, enumerates Windows printers, creates a sandboxed hidden BrowserWindow, and opens the native print dialog for explicit printer confirmation.
+The 58 mm HTML receipt remains the screen preview. Physical receipts use a separate black-only, monospaced, 32-column document with a 67 mm print canvas, generated from completed Order and Order Item snapshots. React sends structured data through a narrow preload bridge; Electron Main validates it, enumerates Windows printers, creates a sandboxed hidden BrowserWindow, and opens the native print dialog for explicit printer confirmation.
 
 Printing starts only after checkout commits and cannot mutate or roll back the Order, payment, discount, stock, or Inventory Movements. Cash and Credit / Utang use persisted values; Credit omits Cash Received and Change; Senior Discount is not recalculated; O.R Number is omitted.
 

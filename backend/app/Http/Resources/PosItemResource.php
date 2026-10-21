@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,7 @@ class PosItemResource extends JsonResource
             'unit' => $this->item->units_backup,
             'price' => $this->item->activePrice->amount,
             'available_quantity' => $this->quantity,
-            'is_low_stock' => (float) $this->quantity <= (float) $this->item->reorder_point,
+            'is_low_stock' => (float) $this->quantity <= Item::LOW_STOCK_QUANTITY,
         ];
     }
 }

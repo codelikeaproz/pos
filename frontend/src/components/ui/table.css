@@ -40,6 +40,11 @@
   background: var(--color-danger-bg);
 }
 
+.ui-table tbody tr.ui-table__row--warning,
+.ui-table tbody tr.ui-table__row--warning:hover {
+  background: var(--color-warning-bg);
+}
+
 .ui-table tbody tr.ui-table__row--success,
 .ui-table tbody tr.ui-table__row--success:hover {
   background: var(--color-success-bg);

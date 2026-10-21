@@ -4,16 +4,16 @@
 
 .dashboard-page__kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); transition: opacity var(--transition-fast); }
 .dashboard-page__kpis.is-refreshing, .dashboard-sales-table.is-refreshing { opacity: .62; }
-.dashboard-page__kpi { display: grid; gap: 2px; min-width: 0; padding: var(--space-4); background: var(--color-bg-surface); border: 1px solid var(--color-border); border-top: 3px solid var(--color-brand-green); border-radius: var(--radius-sm); }
-.dashboard-page__kpi-label { color: var(--color-text-secondary); font-size: var(--font-size-label); }
-.dashboard-page__kpi strong { margin-top: 2px; color: var(--color-brand-green); font-size: 1.55rem; font-weight: 650; line-height: 1.2; white-space: nowrap; }
+.dashboard-page__kpi { display: grid; gap: 2px; min-width: 0; padding: var(--space-3); background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.dashboard-page__kpi-label { color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
+.dashboard-page__kpi strong { color: var(--color-brand-green); font-size: 1.1rem; font-weight: 650; line-height: 1.2; white-space: nowrap; }
 .dashboard-page__kpi small { margin-top: var(--space-1); color: var(--color-text-muted); font-size: 11px; }
 
 .dashboard-page__operations { display: grid; gap: var(--space-2); }
 .dashboard-page__operations h2 { margin: 0; color: var(--color-text-secondary); font-size: var(--font-size-label); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .dashboard-page__secondary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
-.dashboard-page__kpi--small { gap: 1px; padding: var(--space-3); border-top-width: 1px; }
-.dashboard-page__kpi--small strong { font-size: 1.12rem; }
+.dashboard-page__kpi--small { gap: 2px; padding: var(--space-3); }
+.dashboard-page__kpi--small strong { font-size: 1.1rem; }
 .dashboard-page__kpi--warning { border-left: 3px solid var(--color-warning); }
 .dashboard-page__kpi--danger { border-left: 3px solid var(--color-danger); }
 

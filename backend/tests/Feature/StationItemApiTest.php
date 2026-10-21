@@ -38,7 +38,7 @@ class StationItemApiTest extends TestCase
         $this->putJson("/api/station-items/{$id}", ['quantity' => '2.750', 'station_id' => 999, 'item_id' => 999])
             ->assertOk()
             ->assertJsonPath('station_item.quantity', '2.750')
-            ->assertJsonPath('station_item.is_low_stock', false)
+            ->assertJsonPath('station_item.is_low_stock', true)
             ->assertJsonPath('station_item.item.id', $item->id)
             ->assertJsonPath('station_item.station.id', $station->id);
         $this->deleteJson("/api/station-items/{$id}")->assertConflict();
@@ -62,21 +62,21 @@ class StationItemApiTest extends TestCase
         $this->deleteJson("/api/stations/{$station->id}")->assertConflict();
     }
 
-    public function test_low_stock_status_includes_below_equal_and_above_reorder_point(): void
+    public function test_low_stock_status_uses_the_fixed_ten_unit_boundary(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
         $station = $this->station();
-        $item = $this->item(reorderPoint: '5.000');
+        $item = $this->item(reorderPoint: '999.000');
         $response = $this->postJson('/api/station-items', [
             'station_id' => $station->id,
             'item_id' => $item->id,
-            'quantity' => '5.000',
+            'quantity' => '10.000',
         ])->assertCreated()->assertJsonPath('station_item.is_low_stock', true);
         $id = $response->json('station_item.id');
 
-        $this->putJson("/api/station-items/{$id}", ['quantity' => '4.999'])
+        $this->putJson("/api/station-items/{$id}", ['quantity' => '9.999'])
             ->assertOk()->assertJsonPath('station_item.is_low_stock', true);
-        $this->putJson("/api/station-items/{$id}", ['quantity' => '5.001'])
+        $this->putJson("/api/station-items/{$id}", ['quantity' => '10.001'])
             ->assertOk()->assertJsonPath('station_item.is_low_stock', false);
     }
 

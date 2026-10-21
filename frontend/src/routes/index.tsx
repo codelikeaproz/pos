@@ -16,6 +16,7 @@ import { OrdersPage } from '../pages/OrdersPage'
 import { OrTransactionsPage } from '../pages/OrTransactionsPage'
 import { PricesPage } from '../pages/PricesPage'
 import { SaleRemittancesPage } from '../pages/SaleRemittancesPage'
+import { SalesReportPage } from '../pages/SalesReportPage'
 import { PrivilegesPage } from '../pages/PrivilegesPage'
 import { PrivilegeAssignmentsPage } from '../pages/PrivilegeAssignmentsPage'
 import { StationsPage } from '../pages/StationsPage'
@@ -48,6 +49,7 @@ export const appRoutes: RouteObject[] = [
               { path: 'privilege', element: <PrivilegesPage /> },
               { path: 'privilege-assignment', element: <PrivilegeAssignmentsPage /> },
               { path: 'sale-remittance', element: <SaleRemittancesPage /> },
+              { path: 'sales-report', element: <SalesReportPage /> },
               { path: 'or-transactions', element: <OrTransactionsPage /> },
               { path: 'stations', element: <StationsPage /> },
               { path: 'station-inventory', element: <StationInventoryPage /> },

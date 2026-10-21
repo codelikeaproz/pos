@@ -9,6 +9,8 @@ use LogicException;
 
 class Item extends Model
 {
+    public const LOW_STOCK_QUANTITY = 10;
+
     protected $attributes = ['is_active' => true];
 
     /** @var list<string> */

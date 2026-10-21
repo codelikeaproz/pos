@@ -1,0 +1,13 @@
+.sales-report__filters { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: var(--space-2); align-items: end; }
+.sales-report__filters > div { display: grid; gap: var(--space-1); }
+.sales-report__summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-2); }
+.sales-report__summary article { display: grid; gap: 2px; padding: var(--space-3); background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.sales-report__summary span { color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
+.sales-report__summary strong { color: var(--color-brand-green); font-size: 1.1rem; }
+.sales-report__transactions { min-width: 0; padding: var(--space-4); background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.sales-report__transactions-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-3); margin-bottom: var(--space-3); }
+.sales-report__transactions-head h2 { margin: 0; color: var(--color-brand-green); font-size: var(--font-size-section); }
+.sales-report__transactions-head p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
+.sales-report__transactions .ui-table { min-width: 1050px; font-size: var(--font-size-secondary); }
+@media (max-width: 1100px) { .sales-report__filters { grid-template-columns: repeat(3, 1fr); } .sales-report__summary { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) { .sales-report__filters, .sales-report__summary { grid-template-columns: 1fr; } .sales-report__transactions-head { align-items: stretch; flex-direction: column; } }

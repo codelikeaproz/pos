@@ -1,6 +1,14 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.22A — Sales Reports (2026-10-21)
+
+The Admin-only `/sales-report` page and `GET /api/reports/sales` endpoint provide a dynamic, read-only report over persisted `orders`. Summary values and the paginated transaction table share the same Manila date period, Station, Payment Method, and search filters. Periods are Today, Yesterday, This Week (Monday through the current Manila date), This Month (month start through the current Manila date), and an inclusive Custom Range. The default is This Month.
+
+`orders.total_amount` is the financial source for Total, Cash, and Credit / Utang sales; Order count supplies Transactions and persisted `orders.discount_amount` supplies Senior Discounts. The endpoint aggregates in SQL, paginates newest-first, and eager-loads only table relationships. `GET /api/reports/sales/{order}` reuses the existing historical Order detail resource and `order_items` snapshots. Current Item prices, Station inventory, and inventory movements never determine report revenue.
+
+Both endpoints use Sanctum and Admin middleware. The report creates no tables and performs no writes to Orders, inventory, movements, remittance, Tax Configuration, or Credit state. Credit / Utang means recorded Credit sales, not an Accounting Office balance. Existing nullable tax snapshots and the Senior Discount pending-accounting-rule presentation are preserved.
+
 ### Phase 10.21 — Non-VAT / Tax Foundation (2026-10-21)
 
 University HomeStay currently operates as `NON_VAT`. A singleton `tax_settings` record holds the Admin-controlled status, future reference VAT rate, responsible User, and timestamps. The default is `NON_VAT` with `12.00`; the configured rate is never charged while Non-VAT. `VAT_REGISTERED` exists only as a reserved database enum value and cannot be activated through the API or UI.

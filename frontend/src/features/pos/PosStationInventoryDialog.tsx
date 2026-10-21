@@ -6,7 +6,7 @@ import { Pagination } from '../../components/ui/Pagination'
 import { SearchField } from '../../components/ui/SearchField'
 import { Table, type TableColumn } from '../../components/ui/Table'
 import { StockQuantity } from '../../components/ui/StockQuantity'
-import { formatQuantity } from '../../lib/posCalculations'
+import { formatQuantity, quantityToThousandths } from '../../lib/posCalculations'
 import { getUserFacingApiMessage } from '../../services/apiClient'
 import { loadPosStationInventory } from '../../services/posService'
 import type { PosStationInventoryList, PosStationInventoryRow } from '../../types/pos'
@@ -47,7 +47,7 @@ export function PosStationInventoryDialog({ open, onClose }: { open: boolean; on
       <p className="pos-dialog-content__note">{list.station.name || 'Your Station'} · Read-only stock balances, including inactive and unpriced Items.</p>
       <SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search item name or code..." label="Search Station inventory" />
       {error ? <Alert tone="warning">{error}</Alert> : null}
-      {loading ? <LoadingState label="Loading Station inventory…" /> : <><p className="pos-dialog-content__note">{list.total} assigned item{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.items} rowKey={(row) => String(row.itemId)} rowClassName={(row) => row.isLowStock ? 'ui-table__row--danger' : undefined} emptyMessage="No Station inventory items found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Station inventory" onPageChange={setPage} /></>}
+      {loading ? <LoadingState label="Loading Station inventory…" /> : <><p className="pos-dialog-content__note">{list.total} assigned item{list.total === 1 ? '' : 's'}</p><Table columns={columns} rows={list.items} rowKey={(row) => String(row.itemId)} rowClassName={(row) => (quantityToThousandths(row.currentQuantity) ?? 0n) <= 0n ? 'ui-table__row--danger' : row.isLowStock ? 'ui-table__row--warning' : undefined} emptyMessage="No Station inventory items found." /><Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Station inventory" onPageChange={setPage} /></>}
     </div>
   </Modal>
 }

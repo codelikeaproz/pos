@@ -2,6 +2,22 @@
 
 ## Development Rules
 
+### Phase 10.22A — Sales Report rules
+
+- Sales Reports are Admin-only and read-only. Business Privileges never grant access around the Admin system role.
+- Use persisted `orders` and `order_items` as the financial and detail sources. Sum `orders.total_amount`, count Orders, and sum persisted `discount_amount`; never reconstruct history from current Prices or inventory.
+- Apply Period, inclusive Custom Range, Station, Payment Method, and Search to both summary and rows. Use Manila calendar boundaries; This Week begins Monday and This Month ends on the current date.
+- Paginate rows server-side at 10/20/50/100, newest first. Summary values always cover the full filtered dataset.
+- Credit / Utang totals are recorded Credit sales, not outstanding balances or settlements.
+- Reporting must not mutate Orders, inventory, movements, remittance, or Tax Settings. Preserve historical tax snapshots and the pending Senior Discount accounting rule.
+- Keep exports, charts, formal report printing, Accounting O.R Numbers, Credit settlement, Monthly End Inventory, and Inventory Reconciliation deferred.
+
+### Shared low-stock presentation
+
+- Low Stock uses one fixed shared rule: a positive Station balance from 1 through 10 units. A zero or negative balance is Out of Stock.
+- Dashboard counts, Station Inventory, POS Available Items, and the POS Station Inventory dialog must consume the same backend status. Use a yellow row for Low Stock and a red row for Out of Stock; neither presentation changes checkout stock validation.
+- Do not add a threshold control or Low Stock column to Product Management. Its existing legacy `reorder_point` field is not used by this fixed rule.
+
 ### Phase 10.21 — Non-VAT and tax snapshot rules
 
 - Treat University HomeStay as `NON_VAT`. Never add the configured VAT rate to Item prices, Subtotal, Senior Discount, Amount Due, Cash, Change, Credit, remittance, or Dashboard totals.

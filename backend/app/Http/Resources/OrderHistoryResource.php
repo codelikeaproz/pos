@@ -17,6 +17,7 @@ class OrderHistoryResource extends JsonResource
             'cashier' => ['id' => $this->cashier->id, 'name' => $this->cashier->name],
             'customer' => $this->customer ? ['id' => $this->customer->id, 'name' => $this->customer->name] : null,
             'paymentMethod' => $this->payment_method,
+            'discountAmount' => $this->discount_amount,
             'totalAmount' => $this->total_amount,
             'remittedAt' => $this->remitted_at?->toISOString(),
         ];

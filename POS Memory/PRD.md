@@ -4,6 +4,8 @@
 # University HomeStay POS
 ## Product Requirements Document
 
+> Phase 10.22A status (2026-10-21): Sales Report is an Admin-only historical reporting page sourced from completed Orders. It supports predefined Manila periods, inclusive Custom Range, Station, Payment Method, Search, full-filter summary metrics, 10/20/50/100 pagination, and read-only snapshot detail. The five metrics are Total Sales, Transactions, Cash Sales, Credit / Utang sales, and Senior Discounts. It does not modify operational data or provide export, charts, settlement, O.R assignment, or inventory reconciliation.
+
 > Phase 10.21 status (2026-10-21): University HomeStay currently operates as **Non-VAT**. Admin controls a centralized reference VAT rate, but VAT calculation remains inactive and customer totals do not change. Normal new sales show persisted **VAT Exempt Sales (X)** and **Amount Due** on HTML/physical receipts and transaction details. Historical tax context is stored with each new Order. Full VAT operation and product-level tax classification remain future work, and the VAT Exempt Sales basis for Senior Discount transactions awaits stakeholder confirmation.
 
 > Current scope decision (2026-10-09): Consignee Management and Consignment Account Management are removed from the product after business reconciliation found no current use. User Management remains essential, and Customer Management continues to support Credit / Utang. The older Consignee and Consignment sections are historical discovery evidence, not current requirements. Any future return must begin with a newly confirmed workflow and scope.

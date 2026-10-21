@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderHistoryResource;
+use App\Models\Item;
 use App\Models\Order;
 use App\Models\Station;
 use App\Models\StationItem;
@@ -38,7 +39,7 @@ class DashboardController extends Controller
         $stock = StationItem::query()->join('items', 'items.id', '=', 'station_items.item_id')
             ->whereIn('station_items.station_id', $stationIds)
             ->when($stationId, fn ($query) => $query->where('station_items.station_id', $stationId))
-            ->selectRaw('SUM(CASE WHEN station_items.quantity > 0 AND station_items.quantity <= items.reorder_point THEN 1 ELSE 0 END) AS low_stock, SUM(CASE WHEN station_items.quantity <= 0 THEN 1 ELSE 0 END) AS out_of_stock')->first();
+            ->selectRaw('SUM(CASE WHEN station_items.quantity > 0 AND station_items.quantity <= ? THEN 1 ELSE 0 END) AS low_stock, SUM(CASE WHEN station_items.quantity <= 0 THEN 1 ELSE 0 END) AS out_of_stock', [Item::LOW_STOCK_QUANTITY])->first();
 
         $search = trim($filters['search'] ?? '');
         $orders = (clone $todayOrders)->with(['station', 'cashier', 'customer'])

@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\PriceController;
 use App\Http\Controllers\Api\PrivilegeAssignmentController;
 use App\Http\Controllers\Api\PrivilegeController;
 use App\Http\Controllers\Api\SaleRemittanceController;
+use App\Http\Controllers\Api\SalesReportController;
 use App\Http\Controllers\Api\SpoilageController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationItemController;
@@ -43,6 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/current-user', [AuthController::class, 'currentUser']);
     Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('admin');
+    Route::get('/reports/sales', [SalesReportController::class, 'index'])->middleware('admin');
+    Route::get('/reports/sales/{order}', [SalesReportController::class, 'show'])->middleware('admin');
     Route::get('/tax-settings', [TaxSettingController::class, 'show'])->middleware('admin');
     Route::put('/tax-settings', [TaxSettingController::class, 'update'])->middleware('admin');
 

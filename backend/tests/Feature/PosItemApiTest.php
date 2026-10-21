@@ -51,7 +51,7 @@ class PosItemApiTest extends TestCase
             ->assertJsonPath('data.0.unit', 'BOTTLE')
             ->assertJsonPath('data.0.price', '15.00')
             ->assertJsonPath('data.0.available_quantity', '10.500')
-            ->assertJsonPath('data.0.is_low_stock', true);
+            ->assertJsonPath('data.0.is_low_stock', false);
     }
 
     public function test_admin_with_an_assigned_station_can_use_the_pos_endpoint(): void
@@ -146,7 +146,7 @@ class PosItemApiTest extends TestCase
             ->assertOk()->assertJsonPath('station.id', $station->id)
             ->assertJsonCount(2, 'data')->assertJsonPath('data.0.itemCode', 'INACTIVE')
             ->assertJsonPath('data.0.isActive', false)->assertJsonPath('data.0.quantity', '2.500')
-            ->assertJsonPath('data.0.isLowStock', false)
+            ->assertJsonPath('data.0.isLowStock', true)
             ->assertJsonPath('data.1.itemCode', 'UNPRICED')->assertJsonPath('data.1.quantity', '0.000')
             ->assertJsonPath('data.1.isLowStock', true);
 

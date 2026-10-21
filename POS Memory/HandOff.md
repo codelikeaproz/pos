@@ -4,6 +4,22 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.22A — Sales Reports (2026-10-21)
+
+Implemented the Admin-only Sales Report page and `GET /api/reports/sales`, with This Month as default and Manila-aware Today, Yesterday, Monday-based This Week, and inclusive Custom Range. Station, Cash/Credit Payment Method, and debounced Order/Customer/Cashier/Station search feed one filtered Order query used by both SQL summary aggregation and the newest-first server-paginated table. Admin page sizes are 10, 20, 50, and 100.
+
+Custom Range uses an explicit `MM/DD/YYYY` display independent of Windows regional settings and converts valid input to the API's ISO date parameters. Dashboard KPI cards now share the Sales Report card border, spacing, label size, and compact value size.
+
+Low-stock follow-up: the system uses one fixed rule—positive Station stock from 1 through 10 is Low Stock, while zero or negative stock is Out of Stock. Dashboard, Station Inventory, POS Available Items, and the POS Station Inventory dialog share this rule. Low-stock rows are yellow and out-of-stock rows are red. Product Management has no threshold control or Low Stock column.
+
+Summary values use persisted Order fields: Total/Cash/Credit from `total_amount`, Transactions from Order count, and Senior Discounts from `discount_amount`. `GET /api/reports/sales/{order}` and the existing Order detail UI preserve Order Item names/codes/prices, Cash/Change behavior, tax snapshots, legacy-null handling, and the discounted-order `Pending accounting rule` fallback. Cashiers, including those with business Privileges, receive 403.
+
+No migration or report table was added. Report GETs do not modify Orders, Order Items, Station inventory, Inventory Movements, remittance, Credit state, or Tax Settings. Credit / Utang is recorded Credit sales and is not an Accounting Office balance.
+
+Deferred: Senior Discount VAT Exempt Sales decision; VAT Registered operation and VAT/BIR features; Accounting O.R Number and Credit settlement integration; Monthly End Inventory (10.22B); Inventory Reconciliation (10.22C); exports, formal report printing, charts/comparative analytics; Cash Drawer work and remaining physical printer validation.
+
+Verification passed: 164 backend tests with 1,356 assertions, Pint, frontend TypeScript checking, Electron production build, and `git diff --check`.
+
 ### Phase 10.21 — Non-VAT / Tax Foundation (2026-10-21)
 
 University HomeStay is configured as `NON_VAT`. The new singleton `tax_settings` table defaults to `NON_VAT` and `12.00`, records the last Admin through nullable `updated_by_id`, and exposes compact Admin-only read/update endpoints and `/tax-configuration` UI. `VAT_REGISTERED` is reserved and rejected; changing the reference rate never changes checkout totals.

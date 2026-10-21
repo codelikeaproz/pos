@@ -4,11 +4,35 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.M1 — Developer Context Architecture (2026-10-21)
+
+Added layered developer context without changing application behavior: root `AGENTS.md` and `CONTEXT.md`, a POS Memory router, six concise domain references, and phase contracts for completed Phases 10.21, 10.22A, and 10.22B. Confirmed stakeholder requirements and canonical POS Memory remain above source and Graphify in the documented authority order; phase and reference files route to their owners instead of copying full rules.
+
+Obsidian, Graphify, and ICM are explicitly retained as complementary layers: Obsidian visualizes the linked POS Memory vault, ICM routes selective context, and Graphify maps source structure. POS Memory routers, references, phases, and canonical documents use Obsidian wikilinks so the new nodes remain connected in the vault graph. Vault context files use descriptive unique names instead of repeated `CONTEXT.md` labels so Obsidian shows `POS Memory Context`, `Phase 10.21 Tax Context`, `Phase 10.22A Sales Report Context`, and `Phase 10.22B Monthly Inventory Context` as distinct nodes.
+
+Graphify 0.9.93 is installed through isolated `pipx` and registered project-locally for Codex under `.codex/`. A code-only local graph generated 1,679 nodes, 4,619 edges, and 112 communities without an API key or semantic document extraction. `GRAPH_REPORT.md` is retained as the compact human artifact; the approximately 2 MB `graph.json`, approximately 2 MB `graph.html`, caches, and manifests are reproducible and ignored. No Cursor configuration was added because the repository had none.
+
+The global Codex config did not contain `multi_agent = true`; it was left unchanged because this side phase avoids overwriting user-global configuration. Graph extraction succeeded locally without it. The root README still contains an older statement that domain APIs beyond login are not fully implemented; treat that as stale setup text until a dedicated README refresh is requested.
+
+No Laravel, React feature, Electron runtime, migration, package manifest, business rule, or database state was changed by Phase 10.M1.
+
+Validation passed: all 17 expected routing, integration, and graph artifacts exist; Graphify diagnostics found 1,679 verified nodes, 4,619 valid edges, no missing or dangling endpoints, and no duplicate edges; known checkout, Sales Report, Monthly End Inventory, and printing nodes resolve to current source. Frontend TypeScript checking, Laravel application loading, relative-path/privacy checks, and `git diff --check` passed.
+
+### Phase 10.22B — Monthly End Inventory (2026-10-21)
+
+Implemented the Admin-only Monthly End Inventory module with Station, Month, Year, and Status filters plus 10/20/50/100 server pagination. Creating a report snapshots all assigned Station Items, including zero-stock, inactive, and unpriced Items, with historical code, name, unit, and two-decimal System Count. The database enforces one report per Station and period.
+
+Draft detail supports searchable Physical Count entry and distinguishes blank Uncounted values from a valid zero. The API derives Variance and Short, Match, Over, or Uncounted results and summary counts. Finalize first requires every Item to be counted, records the responsible Admin and timestamp, and makes the report read-only.
+
+No Monthly End Inventory action changes `station_items.quantity` or creates `inventory_movements`. Inventory Reconciliation remains Phase 10.22C; export and formal printing remain Phase 10.22D. Sales Report retains the requested native date inputs and Windows-controlled date display.
+
+Verification passed: 171 backend tests with 1,434 assertions, Pint, frontend TypeScript checking, Electron production build, and `git diff --check`. The Phase 10.22B migration was applied successfully to the development database and is recorded as run.
+
 ### Phase 10.22A — Sales Reports (2026-10-21)
 
 Implemented the Admin-only Sales Report page and `GET /api/reports/sales`, with This Month as default and Manila-aware Today, Yesterday, Monday-based This Week, and inclusive Custom Range. Station, Cash/Credit Payment Method, and debounced Order/Customer/Cashier/Station search feed one filtered Order query used by both SQL summary aggregation and the newest-first server-paginated table. Admin page sizes are 10, 20, 50, and 100.
 
-Custom Range uses an explicit `MM/DD/YYYY` display independent of Windows regional settings and converts valid input to the API's ISO date parameters. Dashboard KPI cards now share the Sales Report card border, spacing, label size, and compact value size.
+Custom Range uses native date inputs with calendar pickers; their displayed date order follows the Windows regional format while the API continues receiving ISO date parameters. Dashboard KPI cards share the Sales Report card border, spacing, label size, and compact value size.
 
 Low-stock follow-up: the system uses one fixed rule—positive Station stock from 1 through 10 is Low Stock, while zero or negative stock is Out of Stock. Dashboard, Station Inventory, POS Available Items, and the POS Station Inventory dialog share this rule. Low-stock rows are yellow and out-of-stock rows are red. Product Management has no threshold control or Low Stock column.
 

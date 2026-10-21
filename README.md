@@ -10,6 +10,14 @@ Windows desktop POS modernization.
 | `backend/` | Laravel 12 API |
 | `POS Memory/` | Obsidian project docs |
 
+## AI Context Architecture
+
+- `AGENTS.md` contains repository entry rules.
+- `CONTEXT.md` routes tasks to the smallest relevant context.
+- `POS Memory/` remains the canonical project memory; `references/` routes by domain and `phases/` records phase contracts.
+- `graphify-out/` is generated structural evidence for code relationships, not business authority.
+- Obsidian visualizes the linked POS Memory vault, ICM routes selective documentation context, and Graphify maps source-code structure.
+
 ## Frontend
 
 ```powershell

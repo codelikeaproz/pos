@@ -2,6 +2,27 @@
 
 ## Development Rules
 
+### Developer context architecture
+
+- Use **Obsidian + Graphify + ICM** as complementary development tools. Obsidian visualizes the POS Memory vault, ICM routes selective context, and Graphify discovers source-code relationships.
+- POS Memory remains authoritative for business and domain rules. Graphify output is structural evidence and cannot override confirmed requirements, accepted Rules, current source, or tests.
+- Start repository work from root `CONTEXT.md`, then load the smallest relevant domain reference and phase context. Do not load every historical document by default.
+- Keep Obsidian vault filenames descriptive and unique. Avoid generic repeated names such as `CONTEXT.md` inside `POS Memory/` because they create indistinguishable graph nodes.
+- Use Obsidian `[[wikilinks]]` between vault documents and repository-relative code paths for source locations. Never add machine-specific absolute paths.
+- Never activate work listed in `references/deferred.md` unless the current stakeholder request explicitly brings it into scope.
+- Refresh Graphify after major modules, schema changes, or large refactors. Do not treat generated graphs as runtime dependencies or business documentation.
+- After a major phase, update the canonical documents that changed, `HandOff.md`, the descriptive phase context, and the deferred register.
+
+### Phase 10.22B — Monthly End Inventory rules
+
+- Monthly End Inventory is Admin-only. Business Privileges never grant access around the Admin system role.
+- Allow one report per Station, month, and year. Creation must snapshot every assigned Station Item, including zero-stock, inactive, and unpriced Items.
+- Freeze Item code, name, unit, and two-decimal System Count at creation. Never reconstruct a historical report from current Item or Station Inventory values.
+- Keep Physical Count nullable while Draft; null means Uncounted and `0.00` is a valid completed count. Derive Variance as Physical Count minus System Count and classify it as Short, Match, Over, or Uncounted.
+- Finalize only when every Item has a Physical Count. Record the finalizing Admin and time, and reject every later count change or repeated finalization.
+- Creating, saving, viewing, and finalizing a report must never update Station stock or create Inventory Movements. Stock adjustment belongs to Phase 10.22C reconciliation.
+- Keep export, formal printing, and monthly analytics deferred to Phase 10.22D.
+
 ### Phase 10.22A — Sales Report rules
 
 - Sales Reports are Admin-only and read-only. Business Privileges never grant access around the Admin system role.

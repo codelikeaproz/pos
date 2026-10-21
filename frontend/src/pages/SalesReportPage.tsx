@@ -18,25 +18,10 @@ import type { OrderDetail, OrderHistoryRow } from '../types/order'
 import type { SalesReportData, SalesReportPeriod } from '../types/salesReport'
 import './sales-report-page.css'
 
-function displayDate(value: string): string {
-  const [year, month, day] = value.split('-')
-  return year && month && day ? `${month}/${day}/${year}` : ''
-}
-
-function isoDate(value: string): string {
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)
-  if (!match) return ''
-  const [, month, day, year] = match
-  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
-  return date.getUTCFullYear() === Number(year) && date.getUTCMonth() === Number(month) - 1 && date.getUTCDate() === Number(day) ? `${year}-${month}-${day}` : ''
-}
-
 export function SalesReportPage() {
   const [period, setPeriod] = useState<SalesReportPeriod>('this_month')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
-  const [fromInput, setFromInput] = useState('')
-  const [toInput, setToInput] = useState('')
   const [stationId, setStationId] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('')
   const [searchInput, setSearchInput] = useState('')
@@ -84,8 +69,8 @@ export function SalesReportPage() {
     <header className="page__header"><div><h1 className="page__title">Sales Report</h1><p className="page__description">Review historical sales and transaction activity.</p></div></header>
     <div className="sales-report__filters">
       <div><Label htmlFor="report-period">Period</Label><select id="report-period" className="ui-input" value={period} onChange={(event) => { setPeriod(event.target.value as SalesReportPeriod); setPage(1) }}><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="this_week">This Week</option><option value="this_month">This Month</option><option value="custom">Custom Range</option></select></div>
-      <div><Label htmlFor="report-from">From</Label><Input id="report-from" type="text" inputMode="numeric" placeholder="MM/DD/YYYY" maxLength={10} disabled={period !== 'custom'} value={period === 'custom' ? fromInput : displayDate(data?.filters.from ?? '')} error={period === 'custom' && fromInput.length === 10 && !from} onChange={(event) => { setFromInput(event.target.value); setFrom(isoDate(event.target.value)); setPage(1) }} /></div>
-      <div><Label htmlFor="report-to">To</Label><Input id="report-to" type="text" inputMode="numeric" placeholder="MM/DD/YYYY" maxLength={10} disabled={period !== 'custom'} value={period === 'custom' ? toInput : displayDate(data?.filters.to ?? '')} error={period === 'custom' && toInput.length === 10 && (!to || Boolean(from && to < from))} onChange={(event) => { setToInput(event.target.value); setTo(isoDate(event.target.value)); setPage(1) }} /></div>
+      <div><Label htmlFor="report-from">From</Label><Input id="report-from" type="date" disabled={period !== 'custom'} value={period === 'custom' ? from : data?.filters.from ?? ''} onChange={(event) => { setFrom(event.target.value); setPage(1) }} /></div>
+      <div><Label htmlFor="report-to">To</Label><Input id="report-to" type="date" disabled={period !== 'custom'} min={from || undefined} value={period === 'custom' ? to : data?.filters.to ?? ''} onChange={(event) => { setTo(event.target.value); setPage(1) }} /></div>
       <div><Label htmlFor="report-station">Station</Label><select id="report-station" className="ui-input" value={stationId} onChange={(event) => { setStationId(event.target.value); setPage(1) }}><option value="">All Stations</option>{data?.stations.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></div>
       <div><Label htmlFor="report-payment">Payment Method</Label><select id="report-payment" className="ui-input" value={paymentMethod} onChange={(event) => { setPaymentMethod(event.target.value); setPage(1) }}><option value="">All</option><option value="cash">Cash</option><option value="credit">Credit / Utang</option></select></div>
     </div>

@@ -1,6 +1,14 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.22B — Monthly End Inventory (2026-10-21)
+
+The Admin-only `/monthly-end-inventory` module records a Station inventory count for one month and year. Creating a report snapshots every assigned `station_items` row, including zero-stock, inactive, and unpriced Items, into `monthly_end_reports` and `monthly_end_report_items`. The snapshot freezes Item code, name, unit, and the current two-decimal system count so later inventory or Item changes do not rewrite history. One report is allowed per Station and period.
+
+Draft reports accept nullable two-decimal Physical Counts; null means uncounted and zero is a completed count. Variance and Short, Match, Over, or Uncounted results are derived from the frozen System Count. Finalization requires every Item to be counted and records the responsible Admin and timestamp. Finalized reports are read-only.
+
+Creation, draft saving, and finalization never change `station_items.quantity` and never create `inventory_movements`. Inventory Reconciliation is deferred to Phase 10.22C, while export and formal printing are deferred to Phase 10.22D.
+
 ### Phase 10.22A — Sales Reports (2026-10-21)
 
 The Admin-only `/sales-report` page and `GET /api/reports/sales` endpoint provide a dynamic, read-only report over persisted `orders`. Summary values and the paginated transaction table share the same Manila date period, Station, Payment Method, and search filters. Periods are Today, Yesterday, This Week (Monday through the current Manila date), This Month (month start through the current Manila date), and an inclusive Custom Range. The default is This Month.

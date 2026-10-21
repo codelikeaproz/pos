@@ -11,6 +11,7 @@ import { DashboardPage } from '../pages/DashboardPage'
 import { CashierHomePage } from '../pages/CashierHomePage'
 import { EmployeesPage } from '../pages/EmployeesPage'
 import { ItemsPage } from '../pages/ItemsPage'
+import { MonthlyEndInventoryPage } from '../pages/MonthlyEndInventoryPage'
 import { ItemDeliveriesPage } from '../pages/ItemDeliveriesPage'
 import { OrdersPage } from '../pages/OrdersPage'
 import { OrTransactionsPage } from '../pages/OrTransactionsPage'
@@ -44,6 +45,7 @@ export const appRoutes: RouteObject[] = [
               { path: 'dashboard', element: <DashboardPage /> },
               { path: 'employees', element: <EmployeesPage /> },
               { path: 'items', element: <ItemsPage /> },
+              { path: 'monthly-end-inventory', element: <MonthlyEndInventoryPage /> },
               { path: 'prices', element: <PricesPage /> },
               { path: 'tax-configuration', element: <TaxConfigurationPage /> },
               { path: 'privilege', element: <PrivilegesPage /> },

@@ -27,6 +27,7 @@ export const navItems: NavItem[] = [
   { path: '/prices', label: 'Price', icon: AppIcons.price, title: 'Price', description: 'Manage price history and the current selling price.', allowedRoles: ['admin'] },
   { path: '/tax-configuration', label: 'Tax Configuration', icon: AppIcons.settings, title: 'Tax Configuration', description: 'Manage the Non-VAT status and reference VAT rate.', allowedRoles: ['admin'] },
   { path: '/sales-report', label: 'Sales Report', icon: AppIcons.transactions, title: 'Sales Report', description: 'Review historical sales and transaction activity.', allowedRoles: ['admin'] },
+  { path: '/monthly-end-inventory', label: 'Monthly End Inventory', icon: AppIcons.stationInventory, title: 'Monthly End Inventory', description: 'Record monthly physical inventory counts.', allowedRoles: ['admin'] },
   { path: '/sale-remittance', label: 'Sale Remittance', icon: AppIcons.payment, title: 'Sale Remittance', description: 'Record completed Cash sales as remitted.', allowedRoles: ['admin'] },
   { path: '/item-deliveries', label: 'Item Delivery', icon: AppIcons.itemDelivery, title: 'Item Delivery', description: 'Deliver items to Stations and review history.', allowedRoles: ['admin'] },
   { path: '/employees', label: 'User Management', icon: AppIcons.employee, title: 'User Management', description: 'Manage users and their access roles.', allowedRoles: ['admin'] }

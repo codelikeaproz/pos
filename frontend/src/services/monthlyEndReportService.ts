@@ -28,3 +28,7 @@ export async function saveMonthlyEndCounts(id: number, counts: Array<{ id: numbe
 export async function finalizeMonthlyEndReport(id: number): Promise<MonthlyEndReport> {
   return (await apiRequest<{ report: MonthlyEndReport }>(`/api/monthly-end-reports/${id}/finalize`, { method: 'POST' })).report
 }
+
+export async function reconcileMonthlyEndItems(id: number, itemIds: number[]): Promise<MonthlyEndReport> {
+  return (await apiRequest<{ report: MonthlyEndReport }>(`/api/monthly-end-reports/${id}/reconcile`, { method: 'POST', body: { itemIds } })).report
+}

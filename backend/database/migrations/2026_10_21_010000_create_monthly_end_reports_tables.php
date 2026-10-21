@@ -30,6 +30,9 @@ return new class extends Migration
             $table->string('unit_snapshot', 50);
             $table->decimal('system_count', 12, 2);
             $table->decimal('physical_count', 12, 2)->nullable();
+            $table->dateTime('reconciled_at')->nullable();
+            $table->foreignId('reconciled_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('reconciliation_movement_id')->nullable()->constrained('inventory_movements')->restrictOnDelete();
             $table->timestamps();
             $table->unique(['monthly_end_report_id', 'item_id']);
         });

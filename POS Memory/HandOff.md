@@ -4,6 +4,10 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.22B.1 — Modal Escape Fix (2026-10-21)
+
+The Monthly End Inventory detail modal now ignores its close handler while the Finalize confirmation is open. Pressing Escape closes only the confirmation and keeps the underlying report detail open. This is a frontend-only interaction fix with no API, database, inventory, variance, draft, or finalization behavior change.
+
 ### Phase 10.M1 — Developer Context Architecture (2026-10-21)
 
 Added layered developer context without changing application behavior: root `AGENTS.md` and `CONTEXT.md`, a POS Memory router, six concise domain references, and phase contracts for completed Phases 10.21, 10.22A, and 10.22B. Confirmed stakeholder requirements and canonical POS Memory remain above source and Graphify in the documented authority order; phase and reference files route to their owners instead of copying full rules.
@@ -1307,3 +1311,8 @@ Each phase should be completed and verified before moving to the next.
 > Preserve the existing workflow first. Improve it second. Expand it later.
 
 The new architecture should make the system easier to maintain without unnecessarily changing how the users currently operate the POS.
+### Phase 10.22C — Inventory Reconciliation (2026-10-21)
+
+Implemented Admin-only reconciliation inside finalized Monthly End Inventory detail. Admins can select pending Short/Over rows, select all pending discrepancies, review stored variance against current live stock, and reconcile the selection. The backend re-derives every variance, locks report and stock records, blocks zero/already-reconciled/missing/negative-result items, and rolls back the full batch on any failure.
+
+Successful rows update current `station_items.quantity` by the signed variance, create traceable ADJUSTMENT movements, and record reconciled actor/time/movement metadata without changing the historical Monthly End snapshot. The UI shows Matches, Pending, Reconciled, current/resulting stock preview, and inline movement audit details. Phase 10.22B.1 topmost Escape protection remains active for both confirmations.

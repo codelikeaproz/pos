@@ -19,7 +19,8 @@ Current authority and status are maintained in [[Rules]], [[Requirement]], [[PRD
 
 ## Inventory
 
-- Phase 10.22C Inventory Reconciliation and ADJUSTMENT movements
+- Generic/manual inventory adjustment workflow
+- Reconciliation reversal or unreconcile workflow
 
 ## Reporting
 

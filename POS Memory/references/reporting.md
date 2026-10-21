@@ -11,6 +11,7 @@
 
 - Sales Report revenue and discounts come from persisted `orders` and `order_items`, never Inventory Movements or current Prices.
 - Monthly End Inventory comes from a frozen Station inventory snapshot plus manual Physical Counts.
+- Reconciliation adds audit metadata and an Inventory Movement reference to a finalized discrepancy while preserving every report snapshot field.
 - Monthly variance is Physical Count minus System Count: negative Short, zero Match, positive Over, null Uncounted.
 - Sales Reports and Monthly End Inventory are separate read/reporting domains and must not mutate each other.
 - PDF, Excel, CSV, and formal report printing remain deferred.

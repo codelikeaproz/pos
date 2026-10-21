@@ -13,4 +13,5 @@
 - Movement signs: SALE negative, DELIVERY positive, SPOILAGE negative, ADJUSTMENT signed.
 - Stock status: quantity at or below 0 is Out of Stock; positive quantity through 10 is Low Stock; above 10 is Normal.
 - Monthly End Inventory records frozen System Counts and manual Physical Counts. Finalization never changes Station stock or creates a movement.
-- Inventory Reconciliation and ADJUSTMENT creation belong to Phase 10.22C and require explicit activation.
+- Finalized Monthly End discrepancies can be reconciled once. The server derives `physical_count - system_count`, applies that signed variance to locked current Station stock, and records a traceable ADJUSTMENT movement.
+- Reconciliation never rewrites historical counts, never sets live stock directly to the physical count, and rejects any batch that would produce negative stock.

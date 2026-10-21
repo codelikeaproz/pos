@@ -31,7 +31,7 @@
 - Paginate rows server-side at 10/20/50/100, newest first. Summary values always cover the full filtered dataset.
 - Credit / Utang totals are recorded Credit sales, not outstanding balances or settlements.
 - Reporting must not mutate Orders, inventory, movements, remittance, or Tax Settings. Preserve historical tax snapshots and the pending Senior Discount accounting rule.
-- Keep exports, charts, formal report printing, Accounting O.R Numbers, Credit settlement, Monthly End Inventory, and Inventory Reconciliation deferred.
+- Keep exports, charts, formal report printing, Accounting O.R Numbers, Credit settlement, generic inventory adjustment, and reconciliation reversal deferred.
 
 ### Shared low-stock presentation
 
@@ -1072,3 +1072,10 @@ Unnecessary dependencies
 The goal is not to create the largest POS system.
 
 The goal is to create a reliable system that matches the actual business workflow.
+### Phase 10.22C — Inventory Reconciliation rules
+
+- Admins may reconcile only non-zero discrepancies in FINALIZED Monthly End reports, once per report item.
+- The server derives variance from stored Physical Count minus System Count and applies it to locked current `station_items.quantity`; it never overwrites current stock with the old physical count.
+- A selected batch is atomic. Missing Station stock, zero variance, prior reconciliation, or a negative resulting balance rejects every selected change.
+- Every successful item creates a signed ADJUSTMENT movement and records its movement, Admin, and server timestamp. Original Monthly End snapshots remain immutable.
+- Generic stock adjustment, reconciliation reversal, tax, orders, sales reporting, and accounting effects remain outside this workflow.

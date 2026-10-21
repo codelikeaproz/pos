@@ -29,6 +29,7 @@ Graphify accelerates discovery. Verify actual source and tests before changing c
 | Tax or Senior Discount tax | `POS Memory/references/tax.md`, `POS Memory/phases/10.21-tax/Phase 10.21 Tax Context.md` | Checkout, tax configuration, receipt code, and tests |
 | Sales reporting | `POS Memory/references/reporting.md`, `POS Memory/phases/10.22A-sales-report/Phase 10.22A Sales Report Context.md` | Report controller, page, and tests |
 | Monthly End Inventory | `POS Memory/references/inventory.md`, `POS Memory/phases/10.22B-monthly-inventory/Phase 10.22B Monthly Inventory Context.md` | Monthly report schema, source, and tests |
+| Inventory reconciliation | `POS Memory/references/inventory.md`, `POS Memory/phases/10.22C-inventory-reconciliation/CONTEXT.md` | Finalized Monthly End items, movements, live Station stock, and tests |
 | Printing or hardware | `POS Memory/references/printing.md` | Electron IPC, receipt UI, and completed Order snapshots |
 | New or postponed feature | `POS Memory/references/deferred.md` | Current user scope and relevant canonical rules |
 

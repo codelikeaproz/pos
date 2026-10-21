@@ -475,3 +475,4 @@ A feature is considered complete when:
 - Code follows naming conventions
 - Documentation is updated
 - Changes are committed to Git
+> Phase 10.22C status (2026-10-21): Admin can reconcile selected non-zero discrepancies from a FINALIZED Monthly End report. The API derives the signed variance from immutable snapshots, applies it to locked current Station stock, rejects negative results, creates a traceable ADJUSTMENT movement, and prevents duplicate reconciliation. Selected batches succeed or roll back together.

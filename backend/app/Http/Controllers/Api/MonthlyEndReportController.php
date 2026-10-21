@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReconcileMonthlyEndItemsRequest;
 use App\Http\Requests\StoreMonthlyEndReportRequest;
 use App\Http\Requests\UpdateMonthlyEndCountsRequest;
 use App\Http\Resources\MonthlyEndReportResource;
+use App\Models\InventoryMovement;
 use App\Models\MonthlyEndReport;
 use App\Models\Station;
 use App\Models\StationItem;
@@ -76,7 +78,7 @@ class MonthlyEndReportController extends Controller
 
     public function show(Request $request, MonthlyEndReport $monthlyEndReport): JsonResponse
     {
-        return response()->json(['report' => (new MonthlyEndReportResource($monthlyEndReport->load(['station', 'createdBy', 'finalizedBy', 'items'])))->resolve($request)]);
+        return response()->json(['report' => (new MonthlyEndReportResource($monthlyEndReport->load($this->detailRelations())))->resolve($request)]);
     }
 
     public function updateCounts(UpdateMonthlyEndCountsRequest $request, MonthlyEndReport $monthlyEndReport): JsonResponse
@@ -93,7 +95,7 @@ class MonthlyEndReportController extends Controller
                 $items->get($count['id'])->update(['physical_count' => $count['physicalCount']]);
             }
 
-            return $report->load(['station', 'createdBy', 'finalizedBy', 'items']);
+            return $report->load($this->detailRelations());
         });
 
         return response()->json(['message' => 'Draft inventory counts saved.', 'report' => (new MonthlyEndReportResource($report))->resolve($request)]);
@@ -114,10 +116,88 @@ class MonthlyEndReportController extends Controller
                 'finalized_at' => now(),
             ]);
 
-            return $report->load(['station', 'createdBy', 'finalizedBy', 'items']);
+            return $report->load($this->detailRelations());
         });
 
         return response()->json(['message' => 'Monthly inventory report finalized.', 'report' => (new MonthlyEndReportResource($report))->resolve($request)]);
+    }
+
+    public function reconcile(ReconcileMonthlyEndItemsRequest $request, MonthlyEndReport $monthlyEndReport): JsonResponse
+    {
+        $report = DB::transaction(function () use ($request, $monthlyEndReport) {
+            $report = MonthlyEndReport::query()->whereKey($monthlyEndReport->id)->lockForUpdate()->firstOrFail();
+            if ($report->status !== MonthlyEndReport::STATUS_FINALIZED) {
+                throw ValidationException::withMessages(['report' => ['Only finalized Monthly End Inventory reports can be reconciled.']]);
+            }
+
+            $ids = collect($request->validated('itemIds'))->sort()->values();
+            $items = $report->items()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
+            if ($items->count() !== $ids->count()) {
+                throw ValidationException::withMessages(['itemIds' => ['Every selected item must belong to this report.']]);
+            }
+
+            $stationItems = StationItem::query()->where('station_id', $report->station_id)
+                ->whereIn('item_id', $items->pluck('item_id'))->orderBy('item_id')->lockForUpdate()->get()->keyBy('item_id');
+            $report->loadMissing('station');
+            $changes = [];
+            foreach ($items as $item) {
+                if ($item->physical_count === null || $item->reconciled_at !== null) {
+                    throw ValidationException::withMessages(['itemIds' => ["{$item->item_name_snapshot} is not pending reconciliation."]]);
+                }
+                $variance = self::toCents($item->physical_count) - self::toCents($item->system_count);
+                if ($variance === 0) {
+                    throw ValidationException::withMessages(['itemIds' => ["{$item->item_name_snapshot} matches the System Count and requires no adjustment."]]);
+                }
+                $stock = $stationItems->get($item->item_id);
+                if (! $stock) {
+                    throw ValidationException::withMessages(['itemIds' => ["Cannot reconcile {$item->item_name_snapshot} because its current Station inventory record no longer exists."]]);
+                }
+                $current = self::toCents($stock->quantity);
+                if ($current + $variance < 0) {
+                    throw ValidationException::withMessages(['itemIds' => ["Cannot reconcile {$item->item_name_snapshot} because the current live stock is ".self::fromCents($current).' and the required adjustment is '.self::fromCents($variance).'.']]);
+                }
+                $changes[] = [$item, $stock, $variance, $current + $variance];
+            }
+
+            foreach ($changes as [$item, $stock, $variance, $result]) {
+                $movement = InventoryMovement::query()->create([
+                    'station_item_id' => $stock->id,
+                    'item_id' => $stock->item_id,
+                    'quantity_change' => self::fromCents($variance),
+                    'type' => 'ADJUSTMENT',
+                    'reference_type' => 'monthly_end_report_item',
+                    'reference_id' => $item->id,
+                    'actor_id' => $request->user()->id,
+                    'notes' => "Monthly End Inventory reconciliation — {$report->report_month}/{$report->report_year} — {$report->station->name}",
+                ]);
+                $stock->update(['quantity' => self::fromCents($result)]);
+                $item->update(['reconciled_at' => now(), 'reconciled_by_id' => $request->user()->id, 'reconciliation_movement_id' => $movement->id]);
+            }
+
+            return $report->load($this->detailRelations());
+        });
+
+        return response()->json(['message' => 'Selected inventory discrepancies reconciled.', 'report' => (new MonthlyEndReportResource($report))->resolve($request)]);
+    }
+
+    private function detailRelations(): array
+    {
+        return ['station', 'createdBy', 'finalizedBy', 'items.reconciledBy', 'items.reconciliationMovement', 'items.item.stationItems'];
+    }
+
+    private static function toCents(string $value): int
+    {
+        [$whole, $fraction] = array_pad(explode('.', $value, 2), 2, '');
+
+        return (int) $whole * 100 + (int) str_pad($fraction, 2, '0');
+    }
+
+    private static function fromCents(int $value): string
+    {
+        $sign = $value < 0 ? '-' : '';
+        $absolute = abs($value);
+
+        return $sign.intdiv($absolute, 100).'.'.str_pad((string) ($absolute % 100), 2, '0', STR_PAD_LEFT);
     }
 
     private function ensureDraft(MonthlyEndReport $report): void

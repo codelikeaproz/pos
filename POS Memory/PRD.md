@@ -343,3 +343,4 @@ The future customer system may display:
 - Availability status
 
 This is outside the initial release.
+> Phase 10.22C status (2026-10-21): Finalized Monthly End details now show reconciliation counts, pending selection, a current-stock/result preview, and reconciliation audit details. Reconciliation changes live Station inventory through signed ADJUSTMENT movements while preserving the historical report. Generic adjustments, reversal, and exports remain deferred.

@@ -924,3 +924,6 @@ The first objective is:
 Modernize and reproduce the existing University HomeStay POS workflow using a maintainable technology stack.
 
 New features should only be added after the existing workflow is stable and verified.
+### Phase 10.22C — Inventory Reconciliation (2026-10-21)
+
+Finalized Monthly End report items are the sole source for reconciliation. One Admin batch endpoint locks the report, selected report items, and matching `station_items` in stable order, validates the full selection, then applies each persisted signed variance to current live stock inside one transaction. Each result creates an `ADJUSTMENT` `inventory_movement` linked by `reference_type = monthly_end_report_item` and `reference_id`, while the report item records the actor, timestamp, and movement foreign key. Any invalid item rolls back the full batch.

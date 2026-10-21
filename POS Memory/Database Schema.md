@@ -301,3 +301,6 @@ amount ->varchar
 cpd_id ->int
 cpay_id ->int
 consign_id ->int
+### Phase 10.22C reconciliation additions
+
+`monthly_end_report_items` includes nullable `reconciled_at`, `reconciled_by_id` → `users.id`, and `reconciliation_movement_id` → `inventory_movements.id`. A reconciled discrepancy points to one signed ADJUSTMENT movement; that movement also points back through `reference_type = monthly_end_report_item` and `reference_id = monthly_end_report_items.id`. The original System Count, Physical Count, and Item snapshots are unchanged.

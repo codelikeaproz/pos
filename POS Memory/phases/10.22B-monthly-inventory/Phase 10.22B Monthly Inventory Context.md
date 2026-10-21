@@ -2,6 +2,8 @@
 
 **STATUS: COMPLETE**
 
+Phase 10.22B.1 keeps the detail modal open when Escape dismisses the Finalize confirmation. This interaction patch does not change report or inventory behavior.
+
 ## Goal
 
 Record and finalize one historical physical inventory count per Station and month/year without adjusting operational stock.

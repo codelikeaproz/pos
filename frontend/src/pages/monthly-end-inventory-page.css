@@ -11,5 +11,7 @@
 .monthly-end__summary span { color: var(--color-text-secondary); font-size: var(--font-size-secondary); }
 .monthly-end__summary strong { color: var(--color-brand-green); font-size: 1.1rem; }
 .monthly-end__count { width: 110px; }
+.monthly-end__preview { display: grid; gap: var(--space-2); }
+.monthly-end__preview div { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: var(--space-2); padding: var(--space-2); background: var(--color-bg-subtle); }
 .monthly-end__detail .ui-table { min-width: 880px; }
 @media(max-width:900px){.monthly-end__filters,.monthly-end__create,.monthly-end__meta{grid-template-columns:repeat(2,1fr)}.monthly-end__summary{grid-template-columns:repeat(3,1fr)}}

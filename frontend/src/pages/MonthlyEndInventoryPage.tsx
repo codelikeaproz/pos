@@ -13,7 +13,7 @@ import { formatManilaDateTime } from '../lib/dateTime'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
 import { formatQuantity } from '../lib/posCalculations'
 import { getUserFacingApiMessage } from '../services/apiClient'
-import { createMonthlyEndReport, finalizeMonthlyEndReport, loadMonthlyEndReport, loadMonthlyEndReports, reconcileMonthlyEndItems, saveMonthlyEndCounts } from '../services/monthlyEndReportService'
+import { createMonthlyEndReport, exportMonthlyEndReport, finalizeMonthlyEndReport, loadMonthlyEndReport, loadMonthlyEndReports, reconcileMonthlyEndItems, saveMonthlyEndCounts } from '../services/monthlyEndReportService'
 import type { MonthlyEndReport, MonthlyEndReportItem, MonthlyEndReportList } from '../types/monthlyEndReport'
 import './monthly-end-inventory-page.css'
 
@@ -46,6 +46,7 @@ export function MonthlyEndInventoryPage() {
   const [confirmingReconciliation, setConfirmingReconciliation] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
@@ -90,6 +91,13 @@ export function MonthlyEndInventoryPage() {
     try { setDetailState(await reconcileMonthlyEndItems(detail.id, selectedItems)); setConfirmingReconciliation(false); await refresh() }
     catch (failure) { setConfirmingReconciliation(false); setError(getUserFacingApiMessage(failure)) } finally { setSubmitting(false) }
   }
+  async function exportExcel() {
+    if (!detail) return
+    setExporting(true); setError(null)
+    try { await exportMonthlyEndReport(detail.id) }
+    catch (failure) { setError(getUserFacingApiMessage(failure) === 'Unable to connect' ? 'Unable to export Monthly End Inventory.' : getUserFacingApiMessage(failure)) }
+    finally { setExporting(false) }
+  }
 
   const listColumns: TableColumn<MonthlyEndReport>[] = [
     { key: 'period', header: 'Period', render: (row) => `${MONTHS[row.reportMonth - 1]} ${row.reportYear}` },
@@ -129,7 +137,7 @@ export function MonthlyEndInventoryPage() {
 
     <Modal open={creating} title="Create Inventory Count" onClose={() => { if (!submitting) setCreating(false) }} actions={<Button disabled={submitting} onClick={() => void create()} icon={<AppIcons.save size={iconSize} />}>Create Inventory Count</Button>}><div className="monthly-end__create"><div><Label htmlFor="monthly-create-month" required>Month</Label><select id="monthly-create-month" className="ui-input" value={createMonth} onChange={(event) => setCreateMonth(event.target.value)}>{MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}</select></div><div><Label htmlFor="monthly-create-year" required>Year</Label><Input id="monthly-create-year" type="number" min="2000" max="2100" value={createYear} onChange={(event) => setCreateYear(event.target.value)} /></div><div><Label htmlFor="monthly-create-station" required>Station</Label><select id="monthly-create-station" className="ui-input" value={createStation} onChange={(event) => setCreateStation(event.target.value)}><option value="">Select Station</option>{list.stations.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></div></div>{creating && error ? <Alert tone="error">{error}</Alert> : null}<p className="page__note">System Count will snapshot the Station inventory when this report is created.</p></Modal>
 
-    <Modal open={detail !== null} title={detail ? `${MONTHS[detail.reportMonth - 1]} ${detail.reportYear} Inventory` : 'Monthly End Inventory'} size="large" onClose={() => { if (!submitting && !confirming && !confirmingReconciliation) { setDetail(null); setError(null) } }} actions={detail?.status === 'DRAFT' ? <><Button variant="outline" disabled={submitting} onClick={() => void save()}>Save Draft</Button><Button disabled={submitting} onClick={() => void prepareFinalize()}>Finalize Report</Button></> : detail?.summary.pendingReconciliation ? <><Button variant="outline" disabled={submitting} onClick={() => setSelectedItems(pendingItems.map((item) => item.id))}>Select All Pending</Button><Button disabled={submitting || selectedItems.length === 0} onClick={() => setConfirmingReconciliation(true)}>Reconcile Selected</Button></> : undefined}>
+    <Modal open={detail !== null} title={detail ? `${MONTHS[detail.reportMonth - 1]} ${detail.reportYear} Inventory` : 'Monthly End Inventory'} size="large" onClose={() => { if (!submitting && !exporting && !confirming && !confirmingReconciliation) { setDetail(null); setError(null) } }} actions={detail?.status === 'DRAFT' ? <><Button variant="outline" disabled={submitting} onClick={() => void save()}>Save Draft</Button><Button disabled={submitting} onClick={() => void prepareFinalize()}>Finalize Report</Button></> : <><Button variant="outline" disabled={exporting || submitting} onClick={() => void exportExcel()} icon={<AppIcons.exportExcel size={18} />}>{exporting ? 'Exporting…' : 'Export Excel'}</Button>{detail?.summary.pendingReconciliation ? <><Button variant="outline" disabled={submitting} onClick={() => setSelectedItems(pendingItems.map((item) => item.id))}>Select All Pending</Button><Button disabled={submitting || selectedItems.length === 0} onClick={() => setConfirmingReconciliation(true)}>Reconcile Selected</Button></> : null}</>}>
       {detail ? <div className="monthly-end__detail"><dl className="monthly-end__meta"><div><dt>Station</dt><dd>{detail.station.name}</dd></div><div><dt>Status</dt><dd>{detail.status === 'DRAFT' ? 'Draft' : 'Finalized'}</dd></div>{detail.reconciliationStatus ? <div><dt>Reconciliation</dt><dd>{reconciliationStatusText[detail.reconciliationStatus]}</dd></div> : null}<div><dt>Created By</dt><dd>{detail.createdBy.name}</dd></div><div><dt>Created</dt><dd>{formatManilaDateTime(detail.createdAt)}</dd></div>{detail.finalizedBy ? <div><dt>Finalized By</dt><dd>{detail.finalizedBy.name}</dd></div> : null}{detail.finalizedAt ? <div><dt>Finalized</dt><dd>{formatManilaDateTime(detail.finalizedAt)}</dd></div> : null}</dl><div className="monthly-end__summary">{Object.entries(detail.status === 'FINALIZED' ? { 'Total Items': detail.summary.totalItems, Matches: detail.summary.matched, Pending: detail.summary.pendingReconciliation, Reconciled: detail.summary.reconciled } : { 'Total Items': currentSummary.totalItems, Matched: currentSummary.matched, Short: currentSummary.short, Over: currentSummary.over, Uncounted: currentSummary.uncounted }).map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div><SearchField value={itemSearch} onChange={setItemSearch} onClear={() => setItemSearch('')} placeholder="Search Item name or code..." label="Search report items" />{error ? <Alert tone="error">{error}</Alert> : null}<Table columns={itemColumns} rows={visibleItems} rowKey={(row) => String(row.id)} emptyMessage="No report items match the search." /></div> : null}
     </Modal>
     <Modal open={confirming && detail !== null} title="Finalize Monthly Inventory?" onClose={() => { if (!submitting) setConfirming(false) }} actions={<Button disabled={submitting} onClick={() => void finalize()}>Finalize Report</Button>}><p>Finalize the {detail ? `${MONTHS[detail.reportMonth - 1]} ${detail.reportYear}` : ''} inventory count for <strong>{detail?.station.name}</strong>?</p><p className="page__note">Once finalized, this report can no longer be edited. Inventory quantities will not be adjusted.</p></Modal>

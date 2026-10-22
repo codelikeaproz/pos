@@ -11,10 +11,12 @@ use App\Models\InventoryMovement;
 use App\Models\MonthlyEndReport;
 use App\Models\Station;
 use App\Models\StationItem;
+use App\Services\ReportExportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MonthlyEndReportController extends Controller
 {
@@ -178,6 +180,19 @@ class MonthlyEndReportController extends Controller
         });
 
         return response()->json(['message' => 'Selected inventory discrepancies reconciled.', 'report' => (new MonthlyEndReportResource($report))->resolve($request)]);
+    }
+
+    public function export(MonthlyEndReport $monthlyEndReport, ReportExportService $exporter): BinaryFileResponse
+    {
+        if ($monthlyEndReport->status !== MonthlyEndReport::STATUS_FINALIZED) {
+            throw ValidationException::withMessages(['report' => ['Only finalized Monthly End Inventory reports can be exported.']]);
+        }
+        $report = $monthlyEndReport->load(['station', 'createdBy', 'finalizedBy', 'items.reconciledBy']);
+        $slug = (string) str($report->station->name)->slug();
+        $slug = $slug !== '' ? $slug : 'station-'.$report->station_id;
+        $filename = sprintf('monthly-end-inventory-%s-%d-%02d.xlsx', $slug, $report->report_year, $report->report_month);
+
+        return response()->download($exporter->monthlyEnd($report), $filename, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend();
     }
 
     private function detailRelations(): array

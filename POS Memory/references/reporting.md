@@ -14,4 +14,5 @@
 - Reconciliation adds audit metadata and an Inventory Movement reference to a finalized discrepancy while preserving every report snapshot field.
 - Monthly variance is Physical Count minus System Count: negative Short, zero Match, positive Over, null Uncounted.
 - Sales Reports and Monthly End Inventory are separate read/reporting domains and must not mutate each other.
-- PDF, Excel, CSV, and formal report printing remain deferred.
+- Excel export is Admin-only and read-only. Sales exports reuse the screen filters and include all matches; finalized Monthly End exports use frozen snapshots and reconciliation audit fields.
+- PDF, CSV, formal report printing, advanced charts, and comparative analytics remain deferred.

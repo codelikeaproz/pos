@@ -13,7 +13,7 @@ import { formatManilaDateTime } from '../lib/dateTime'
 import { AppIcons, iconStroke } from '../lib/icons'
 import { formatPrice } from '../lib/posCalculations'
 import { getUserFacingApiMessage } from '../services/apiClient'
-import { loadSalesReport, loadSalesReportDetail } from '../services/salesReportService'
+import { exportSalesReport, loadSalesReport, loadSalesReportDetail } from '../services/salesReportService'
 import type { OrderDetail, OrderHistoryRow } from '../types/order'
 import type { SalesReportData, SalesReportPeriod } from '../types/salesReport'
 import './sales-report-page.css'
@@ -33,6 +33,7 @@ export function SalesReportPage() {
   const [error, setError] = useState<string | null>(null)
   const [detail, setDetail] = useState<OrderDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const detailAbort = useRef<AbortController | null>(null)
 
   useEffect(() => { const timeout = window.setTimeout(() => { setSearch(searchInput.trim()); setPage(1) }, 350); return () => window.clearTimeout(timeout) }, [searchInput])
@@ -52,6 +53,14 @@ export function SalesReportPage() {
     finally { if (!controller.signal.aborted) setDetailLoading(false) }
   }
 
+  async function exportExcel() {
+    if (period === 'custom' && (!from || !to)) { setError('Select both From and To dates before exporting.'); return }
+    setExporting(true); setError(null)
+    try { await exportSalesReport({ period, from, to, stationId, paymentMethod, search }) }
+    catch (failure) { setError(getUserFacingApiMessage(failure) === 'Unable to connect' ? 'Unable to export Sales Report.' : getUserFacingApiMessage(failure)) }
+    finally { setExporting(false) }
+  }
+
   const columns: TableColumn<OrderHistoryRow>[] = [
     { key: 'date', header: 'Date', render: (row) => formatManilaDateTime(row.orderedAt) },
     { key: 'order', header: 'Order No.', render: (row) => row.orderNumber },
@@ -66,7 +75,7 @@ export function SalesReportPage() {
   const summary = data?.summary
 
   return <section className="page sales-report-page">
-    <header className="page__header"><div><h1 className="page__title">Sales Report</h1><p className="page__description">Review historical sales and transaction activity.</p></div></header>
+    <header className="page__header"><div><h1 className="page__title">Sales Report</h1><p className="page__description">Review historical sales and transaction activity.</p></div><Button variant="outline" disabled={exporting || loading || (period === 'custom' && (!from || !to))} onClick={() => void exportExcel()} icon={<AppIcons.exportExcel size={18} />}>{exporting ? 'Exporting…' : 'Export Excel'}</Button></header>
     <div className="sales-report__filters">
       <div><Label htmlFor="report-period">Period</Label><select id="report-period" className="ui-input" value={period} onChange={(event) => { setPeriod(event.target.value as SalesReportPeriod); setPage(1) }}><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="this_week">This Week</option><option value="this_month">This Month</option><option value="custom">Custom Range</option></select></div>
       <div><Label htmlFor="report-from">From</Label><Input id="report-from" type="date" disabled={period !== 'custom'} value={period === 'custom' ? from : data?.filters.from ?? ''} onChange={(event) => { setFrom(event.target.value); setPage(1) }} /></div>

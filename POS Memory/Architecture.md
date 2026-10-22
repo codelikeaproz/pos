@@ -1,13 +1,19 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.22D — Excel Report Export (2026-10-22)
+
+Laravel generates Admin-only, read-only `.xlsx` workbooks for Sales Report and finalized Monthly End Inventory/Reconciliation. The Sales screen and export share one validated filter and query path; export omits pagination and therefore contains every matching Order. Financial values come from persisted Order totals and discounts. Monthly End export uses frozen Item and count snapshots plus persisted reconciliation audit metadata, never current Item names or live stock.
+
+`openspout/openspout` 4.28 generates real workbooks synchronously on PHP 8.2 without the unavailable GD extension. The renderer requests authenticated files through the existing bearer-token API client and browser Blob download, preserving Electron `contextIsolation`, disabled `nodeIntegration`, and sandboxing. No database schema, queue, public URL, PDF, CSV, or printer path was added.
+
 ### Phase 10.22B — Monthly End Inventory (2026-10-21)
 
 The Admin-only `/monthly-end-inventory` module records a Station inventory count for one month and year. Creating a report snapshots every assigned `station_items` row, including zero-stock, inactive, and unpriced Items, into `monthly_end_reports` and `monthly_end_report_items`. The snapshot freezes Item code, name, unit, and the current two-decimal system count so later inventory or Item changes do not rewrite history. One report is allowed per Station and period.
 
 Draft reports accept nullable two-decimal Physical Counts; null means uncounted and zero is a completed count. Variance and Short, Match, Over, or Uncounted results are derived from the frozen System Count. Finalization requires every Item to be counted and records the responsible Admin and timestamp. Finalized reports are read-only.
 
-Creation, draft saving, and finalization never change `station_items.quantity` and never create `inventory_movements`. Inventory Reconciliation is deferred to Phase 10.22C, while export and formal printing are deferred to Phase 10.22D.
+ Creation, draft saving, and finalization never change `station_items.quantity` and never create `inventory_movements`. Reconciliation is implemented by Phase 10.22C and finalized-report Excel export by Phase 10.22D; formal printing remains deferred.
 
 ### Phase 10.22A — Sales Reports (2026-10-21)
 

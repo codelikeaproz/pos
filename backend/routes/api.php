@@ -51,7 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/monthly-end-reports/{monthlyEndReport}/physical-counts', [MonthlyEndReportController::class, 'updateCounts'])->middleware('admin');
     Route::post('/monthly-end-reports/{monthlyEndReport}/finalize', [MonthlyEndReportController::class, 'finalize'])->middleware('admin');
     Route::post('/monthly-end-reports/{monthlyEndReport}/reconcile', [MonthlyEndReportController::class, 'reconcile'])->middleware('admin');
+    Route::get('/monthly-end-reports/{monthlyEndReport}/export', [MonthlyEndReportController::class, 'export'])->middleware('admin');
     Route::get('/reports/sales', [SalesReportController::class, 'index'])->middleware('admin');
+    Route::get('/reports/sales/export', [SalesReportController::class, 'export'])->middleware('admin');
     Route::get('/reports/sales/{order}', [SalesReportController::class, 'show'])->middleware('admin');
     Route::get('/tax-settings', [TaxSettingController::class, 'show'])->middleware('admin');
     Route::put('/tax-settings', [TaxSettingController::class, 'update'])->middleware('admin');

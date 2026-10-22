@@ -15,6 +15,7 @@ import {
   FilePlus,
   Eye,
   EyeOff,
+  FileSpreadsheet,
   Info,
   LayoutDashboard,
   LogOut,
@@ -82,7 +83,8 @@ export const AppIcons = {
   payment: Banknote,
   cashDrawer: Archive,
   refresh: RefreshCw,
-  newOrder: FilePlus
+  newOrder: FilePlus,
+  exportExcel: FileSpreadsheet
 } as const satisfies Record<string, LucideIcon>
 
 export type AppIconName = keyof typeof AppIcons

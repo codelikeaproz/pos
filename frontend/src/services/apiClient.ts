@@ -263,6 +263,32 @@ export async function apiRequest<T>(
   }
 }
 
+export async function downloadApiFile(path: string): Promise<void> {
+  const headers: Record<string, string> = { Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+  const token = getAuthToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+  const response = await fetch(`${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`, { headers })
+  if (!response.ok) {
+    let data: unknown = null
+    try { data = await response.json() } catch { /* Laravel may return an empty error body. */ }
+    if (response.status === 401 && token) invalidateAuthSession()
+    throw new ApiError('http', messageForHttpStatus(response.status, data), response.status, validationErrorsFrom(data))
+  }
+  if (!response.headers.get('content-type')?.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+    throw new ApiError('invalid', 'The backend returned an invalid Excel export.', response.status)
+  }
+  const disposition = response.headers.get('content-disposition') ?? ''
+  const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? 'report.xlsx'
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
 export function getUserFacingApiMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.kind === 'network' || error.kind === 'timeout') {

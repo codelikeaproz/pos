@@ -4,6 +4,8 @@
 # University HomeStay POS
 ## Product Requirements Document
 
+> Phase 10.22D status (2026-10-22): Sales Report provides an Admin-only Export Excel action using the active period, Station, Payment Method, and search filters across all matching transactions. Finalized Monthly End detail provides an Admin-only Export Excel action containing its frozen inventory snapshot and reconciliation audit. Downloads are real styled `.xlsx` workbooks and do not change application data. Draft Monthly End reports cannot be exported.
+
 > Phase 10.22B status (2026-10-21): Admin can create one Monthly End Inventory report per Station and month/year, enter and save physical counts, review derived variances, and finalize a completed count. Reports preserve the historical Item identity and System Count even when current inventory changes. All Station Items are included, while uncounted and zero remain distinct. Finalization records accountability and locks editing without changing operational inventory. Reconciliation, export, and formal printing are later phases.
 
 > Phase 10.22A status (2026-10-21): Sales Report is an Admin-only historical reporting page sourced from completed Orders. It supports predefined Manila periods, inclusive Custom Range, Station, Payment Method, Search, full-filter summary metrics, 10/20/50/100 pagination, and read-only snapshot detail. The five metrics are Total Sales, Transactions, Cash Sales, Credit / Utang sales, and Senior Discounts. It does not modify operational data or provide export, charts, settlement, O.R assignment, or inventory reconciliation.

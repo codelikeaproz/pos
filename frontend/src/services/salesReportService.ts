@@ -1,4 +1,4 @@
-import { apiRequest } from './apiClient'
+import { apiRequest, downloadApiFile } from './apiClient'
 import type { OrderDetail } from '../types/order'
 import type { SalesReportData, SalesReportPeriod } from '../types/salesReport'
 
@@ -15,4 +15,13 @@ export function loadSalesReport(filters: SalesReportFilters, signal?: AbortSigna
 
 export async function loadSalesReportDetail(orderId: number, signal?: AbortSignal): Promise<OrderDetail> {
   return (await apiRequest<{ order: OrderDetail }>(`/api/reports/sales/${orderId}`, { signal })).order
+}
+
+export function exportSalesReport(filters: Omit<SalesReportFilters, 'page' | 'perPage'>): Promise<void> {
+  const params = new URLSearchParams({ period: filters.period })
+  if (filters.period === 'custom') { params.set('from', filters.from); params.set('to', filters.to) }
+  if (filters.stationId) params.set('station_id', filters.stationId)
+  if (filters.paymentMethod) params.set('payment_method', filters.paymentMethod)
+  if (filters.search) params.set('search', filters.search)
+  return downloadApiFile(`/api/reports/sales/export?${params}`)
 }

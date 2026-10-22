@@ -3,6 +3,8 @@
 # University HomeStay POS
 ## Requirements
 
+> Phase 10.22D status (2026-10-22): Admin can download valid `.xlsx` files for the current filtered Sales Report and for Finalized Monthly End Inventory/Reconciliation. Sales export contains the complete filtered dataset and persisted financial values, independent of page size. Monthly End export preserves snapshot identity, counts, variance, result, and reconciliation audit fields. Both exports are authenticated and read-only; PDF, CSV, and formal report printing remain deferred.
+
 > Phase 10.22B status (2026-10-21): Monthly End Inventory is an Admin-only monthly Station count. A report snapshots all assigned Station Items and their current two-decimal System Counts, including zero-stock, inactive, and unpriced Items. Drafts accept nullable Physical Counts, derive Variance and Short/Match/Over/Uncounted status, and can finalize only after every Item is counted. Finalized reports are read-only. This phase does not adjust Station stock or create Inventory Movements; reconciliation remains Phase 10.22C.
 
 > Phase 10.22A status (2026-10-21): Admin Sales Report provides This Month by default plus Today, Yesterday, Monday-based This Week, and inclusive Custom Range. Station, Payment Method, and Search apply consistently to SQL-derived summary values and the server-paginated transaction table. Total/Cash/Credit sales use persisted `orders.total_amount`; Transactions count Orders; Senior Discounts sum persisted `orders.discount_amount`. Historical detail reuses Order and Order Item snapshots. The module is read-only and creates no reporting table. Credit / Utang is recorded Credit sales, not an Accounting Office outstanding balance.

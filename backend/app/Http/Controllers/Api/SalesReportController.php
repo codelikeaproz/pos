@@ -7,29 +7,23 @@ use App\Http\Resources\OrderDetailResource;
 use App\Http\Resources\OrderHistoryResource;
 use App\Models\Order;
 use App\Models\Station;
+use App\Services\ReportExportService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SalesReportController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->validate([
-            'period' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
-            'from' => ['nullable', 'required_if:period,custom', 'date_format:Y-m-d'],
-            'to' => ['nullable', 'required_if:period,custom', 'date_format:Y-m-d', 'after_or_equal:from'],
-            'station_id' => ['nullable', 'integer', 'exists:stations,id'],
-            'payment_method' => ['nullable', 'in:cash,credit'],
-            'search' => ['nullable', 'string', 'max:100'],
-            'per_page' => ['nullable', 'integer', 'in:10,20,50,100'],
-        ]);
+        $filters = $this->filters($request);
 
         $period = $filters['period'] ?? 'this_month';
         [$from, $to] = $this->dateRange($period, $filters);
         $query = $this->filteredOrders($filters, $from, $to);
-        $summary = (clone $query)->selectRaw("COUNT(*) AS transactions, COALESCE(SUM(total_amount), 0) AS total_sales, COALESCE(SUM(CASE WHEN payment_method = 'cash' THEN total_amount ELSE 0 END), 0) AS cash_sales, COALESCE(SUM(CASE WHEN payment_method = 'credit' THEN total_amount ELSE 0 END), 0) AS credit_sales, COALESCE(SUM(discount_amount), 0) AS senior_discounts")->first();
+        $summary = $this->summary($query);
         $orders = (clone $query)->with(['station', 'cashier', 'customer'])
             ->orderByDesc('ordered_at')->orderByDesc('id')
             ->paginate((int) ($filters['per_page'] ?? 10))->withQueryString();
@@ -46,6 +40,26 @@ class SalesReportController extends Controller
             ],
             'orders' => OrderHistoryResource::collection($orders)->response()->getData(true),
         ]);
+    }
+
+    public function export(Request $request, ReportExportService $exporter): BinaryFileResponse
+    {
+        $filters = $this->filters($request);
+        $period = $filters['period'] ?? 'this_month';
+        [$from, $to] = $this->dateRange($period, $filters);
+        $query = $this->filteredOrders($filters, $from, $to);
+        $orders = (clone $query)->with(['station', 'cashier', 'customer'])->orderByDesc('ordered_at')->orderByDesc('id')->get();
+        $fromDate = $from->setTimezone('Asia/Manila')->toDateString();
+        $toDate = $to->subSecond()->setTimezone('Asia/Manila')->toDateString();
+        $path = $exporter->sales($orders, $this->summary($query), [
+            'from' => CarbonImmutable::parse($fromDate)->format('F j, Y'),
+            'to' => CarbonImmutable::parse($toDate)->format('F j, Y'),
+            'station' => isset($filters['station_id']) ? Station::query()->findOrFail($filters['station_id'])->name : 'All Stations',
+            'payment' => ($filters['payment_method'] ?? null) === 'cash' ? 'Cash' : (($filters['payment_method'] ?? null) === 'credit' ? 'Credit / Utang' : 'All'),
+            'search' => trim($filters['search'] ?? ''),
+        ]);
+
+        return response()->download($path, "sales-report-{$fromDate}-to-{$toDate}.xlsx", ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend();
     }
 
     public function show(Request $request, Order $order): JsonResponse
@@ -68,6 +82,24 @@ class SalesReportController extends Controller
                 ->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('cashier', fn ($cashier) => $cashier->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('station', fn ($station) => $station->where('name', 'like', "%{$search}%"))));
+    }
+
+    private function filters(Request $request): array
+    {
+        return $request->validate([
+            'period' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
+            'from' => ['nullable', 'required_if:period,custom', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'required_if:period,custom', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'station_id' => ['nullable', 'integer', 'exists:stations,id'],
+            'payment_method' => ['nullable', 'in:cash,credit'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'in:10,20,50,100'],
+        ]);
+    }
+
+    private function summary(Builder $query): object
+    {
+        return (clone $query)->selectRaw("COUNT(*) AS transactions, COALESCE(SUM(total_amount), 0) AS total_sales, COALESCE(SUM(CASE WHEN payment_method = 'cash' THEN total_amount ELSE 0 END), 0) AS cash_sales, COALESCE(SUM(CASE WHEN payment_method = 'credit' THEN total_amount ELSE 0 END), 0) AS credit_sales, COALESCE(SUM(discount_amount), 0) AS senior_discounts")->first();
     }
 
     /** @param array<string, mixed> $filters

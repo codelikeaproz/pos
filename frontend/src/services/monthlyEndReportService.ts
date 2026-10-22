@@ -1,4 +1,4 @@
-import { apiRequest } from './apiClient'
+import { apiRequest, downloadApiFile } from './apiClient'
 import type { MonthlyEndReport, MonthlyEndReportList } from '../types/monthlyEndReport'
 
 export type MonthlyEndFilters = { month: string; year: string; stationId: string; status: string; page: number; perPage: number }
@@ -31,4 +31,8 @@ export async function finalizeMonthlyEndReport(id: number): Promise<MonthlyEndRe
 
 export async function reconcileMonthlyEndItems(id: number, itemIds: number[]): Promise<MonthlyEndReport> {
   return (await apiRequest<{ report: MonthlyEndReport }>(`/api/monthly-end-reports/${id}/reconcile`, { method: 'POST', body: { itemIds } })).report
+}
+
+export function exportMonthlyEndReport(id: number): Promise<void> {
+  return downloadApiFile(`/api/monthly-end-reports/${id}/export`)
 }

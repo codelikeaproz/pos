@@ -24,7 +24,7 @@ Current authority and status are maintained in [[Rules]], [[Requirement]], [[PRD
 
 ## Reporting
 
-- PDF, Excel, and CSV export
+- PDF and CSV export
 - Formal report printing
 - Advanced charts and comparative analytics
 

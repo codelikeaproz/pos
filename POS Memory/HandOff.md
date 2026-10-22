@@ -4,6 +4,16 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.22D — Excel Report Export (2026-10-22)
+
+Implemented Admin-only `.xlsx` exports for Sales Report and finalized Monthly End Inventory/Reconciliation. Sales screen and export reuse the same validated filters and Order query, while export deliberately ignores `page` and `per_page` and includes every match. The workbook contains filter metadata, persisted summary values, historical transaction rows, numeric currency cells, Manila date/time cells, and a clear empty-result message.
+
+Finalized Monthly End detail now exports frozen report metadata and Item snapshots, server-derived variance/result, and reconciliation status, signed adjustment, actor, timestamp, and movement reference. Draft reports return validation failure. Both endpoints are read-only and protected by Sanctum plus Admin middleware.
+
+Added `openspout/openspout` 4.28 for PHP 8.2-compatible server-side workbook generation. React uses the authenticated API client and browser Blob download; no Node renderer access or Electron security change was required. Phase 10.22D adds no migration, PDF, CSV, report printing, queue, or background job.
+
+Verification passed: focused export coverage passed with 2 tests and 20 assertions; the complete Laravel suite passed with 177 tests and 1,486 assertions; Pint, Composer validation, frontend TypeScript checking, Electron production build, and `git diff --check` passed. Graphify was refreshed to 2,112 nodes, 5,284 edges, and 119 communities and resolves the new frontend export functions, workbook service, and export tests.
+
 ### Phase 10.22B.1 — Modal Escape Fix (2026-10-21)
 
 The Monthly End Inventory detail modal now ignores its close handler while the Finalize confirmation is open. Pressing Escape closes only the confirmation and keeps the underlying report detail open. This is a frontend-only interaction fix with no API, database, inventory, variance, draft, or finalization behavior change.
@@ -28,7 +38,7 @@ Implemented the Admin-only Monthly End Inventory module with Station, Month, Yea
 
 Draft detail supports searchable Physical Count entry and distinguishes blank Uncounted values from a valid zero. The API derives Variance and Short, Match, Over, or Uncounted results and summary counts. Finalize first requires every Item to be counted, records the responsible Admin and timestamp, and makes the report read-only.
 
-No Monthly End Inventory action changes `station_items.quantity` or creates `inventory_movements`. Inventory Reconciliation remains Phase 10.22C; export and formal printing remain Phase 10.22D. Sales Report retains the requested native date inputs and Windows-controlled date display.
+No Monthly End Inventory counting action changes `station_items.quantity` or creates `inventory_movements`. Inventory Reconciliation is implemented by Phase 10.22C and finalized-report Excel export by Phase 10.22D; formal printing remains deferred. Sales Report retains the requested native date inputs and Windows-controlled date display.
 
 Verification passed: 171 backend tests with 1,434 assertions, Pint, frontend TypeScript checking, Electron production build, and `git diff --check`. The Phase 10.22B migration was applied successfully to the development database and is recorded as run.
 

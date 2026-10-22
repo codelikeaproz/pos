@@ -13,6 +13,15 @@
 - Refresh Graphify after major modules, schema changes, or large refactors. Do not treat generated graphs as runtime dependencies or business documentation.
 - After a major phase, update the canonical documents that changed, `HandOff.md`, the descriptive phase context, and the deferred register.
 
+### Phase 10.22D — Excel export rules
+
+- Excel exports are Admin-only, authenticated, synchronous, and read-only. Business Privileges never grant access around `users.role`.
+- Sales export must use the same Manila period, Station, Payment Method, and search rules as the Sales Report screen and include every matching Order regardless of UI pagination.
+- Persisted Order totals and discounts are financial authority. Never reconstruct historical sales from current Prices, current inventory, or Excel formulas.
+- Monthly End export is limited to Finalized reports and must use frozen Item/count snapshots plus persisted reconciliation audit fields. Never substitute current Item metadata or live stock.
+- Workbook generation must not write Orders, inventory, movements, reports, reconciliation, tax, remittance, or credit state.
+- Keep PDF, CSV, formal report printing, charts, and comparative analytics deferred.
+
 ### Phase 10.22B — Monthly End Inventory rules
 
 - Monthly End Inventory is Admin-only. Business Privileges never grant access around the Admin system role.
@@ -21,7 +30,7 @@
 - Keep Physical Count nullable while Draft; null means Uncounted and `0.00` is a valid completed count. Derive Variance as Physical Count minus System Count and classify it as Short, Match, Over, or Uncounted.
 - Finalize only when every Item has a Physical Count. Record the finalizing Admin and time, and reject every later count change or repeated finalization.
 - Creating, saving, viewing, and finalizing a report must never update Station stock or create Inventory Movements. Stock adjustment belongs to Phase 10.22C reconciliation.
-- Keep export, formal printing, and monthly analytics deferred to Phase 10.22D.
+- Finalized-report Excel export is implemented by Phase 10.22D. Keep formal printing and monthly analytics deferred.
 
 ### Phase 10.22A — Sales Report rules
 
@@ -31,7 +40,7 @@
 - Paginate rows server-side at 10/20/50/100, newest first. Summary values always cover the full filtered dataset.
 - Credit / Utang totals are recorded Credit sales, not outstanding balances or settlements.
 - Reporting must not mutate Orders, inventory, movements, remittance, or Tax Settings. Preserve historical tax snapshots and the pending Senior Discount accounting rule.
-- Keep exports, charts, formal report printing, Accounting O.R Numbers, Credit settlement, generic inventory adjustment, and reconciliation reversal deferred.
+- Keep PDF/CSV export, charts, formal report printing, Accounting O.R Numbers, Credit settlement, generic inventory adjustment, and reconciliation reversal deferred.
 
 ### Shared low-stock presentation
 

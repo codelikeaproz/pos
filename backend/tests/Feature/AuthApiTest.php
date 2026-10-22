@@ -40,7 +40,7 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('message', 'Login successful.')
             ->assertJsonPath('user.email', 'admin@example.com')
             ->assertJsonPath('user.role', UserRole::Admin->value)
-            ->assertJsonStructure(['token', 'user' => ['id', 'name', 'email', 'role']]);
+            ->assertJsonStructure(['token', 'user' => ['id', 'name', 'email', 'sex', 'role']]);
 
         $this->assertArrayNotHasKey('password', $response->json('user'));
         $this->assertTrue(Hash::check('password', $user->fresh()->password));
@@ -119,9 +119,60 @@ class AuthApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('user.id', $user->id)
             ->assertJsonPath('user.role', UserRole::Admin->value)
+            ->assertJsonPath('user.sex', $user->sex)
             ->assertJsonPath('user.privileges.0.description', 'Cashier')
             ->assertJsonMissingPath('user.password')
             ->assertJsonMissingPath('token');
+    }
+
+    public function test_authenticated_user_can_update_own_profile_without_changing_authorization(): void
+    {
+        $user = User::factory()->endUser()->create(['email' => 'operator@example.com']);
+        Sanctum::actingAs($user);
+
+        $this->patchJson('/api/current-user', [
+            'name' => 'Updated Operator',
+            'email' => 'updated@example.com',
+            'sex' => 'female',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+            'role' => UserRole::Admin->value,
+        ])->assertOk()
+            ->assertJsonPath('message', 'Profile updated successfully.')
+            ->assertJsonPath('user.name', 'Updated Operator')
+            ->assertJsonPath('user.email', 'updated@example.com')
+            ->assertJsonPath('user.sex', 'female')
+            ->assertJsonPath('user.role', UserRole::EndUser->value);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'Updated Operator',
+            'email' => 'updated@example.com',
+            'sex' => 'female',
+            'role' => UserRole::EndUser->value,
+        ]);
+        $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
+    }
+
+    public function test_profile_update_requires_authentication_and_valid_identity_fields(): void
+    {
+        $this->patchJson('/api/current-user', [])->assertUnauthorized();
+
+        $user = User::factory()->admin()->create();
+        $other = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $this->patchJson('/api/current-user', ['name' => '', 'email' => 'invalid', 'sex' => 'unknown'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['name', 'email', 'sex']);
+
+        $this->patchJson('/api/current-user', ['name' => $user->name, 'email' => $other->email, 'sex' => $user->sex])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->patchJson('/api/current-user', ['name' => $user->name, 'email' => $user->email, 'sex' => $user->sex, 'password' => 'new-password', 'password_confirmation' => 'different'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
     }
 
     public function test_expired_token_is_rejected(): void

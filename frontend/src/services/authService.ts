@@ -3,7 +3,8 @@ import { clearAuthToken, setAuthToken } from './authToken'
 import type {
   CurrentUser,
   CurrentUserResponse,
-  LoginResponse
+  LoginResponse,
+  ProfileInput
 } from '../types/auth'
 
 function isCurrentUser(value: unknown): value is CurrentUser {
@@ -24,6 +25,7 @@ function isCurrentUser(value: unknown): value is CurrentUser {
     typeof record.id === 'number' &&
     typeof record.name === 'string' &&
     typeof record.email === 'string' &&
+    (record.sex === 'male' || record.sex === 'female') &&
     (record.role === 'admin' || record.role === 'end_user') &&
     hasValidStation
   )
@@ -53,6 +55,19 @@ export async function fetchCurrentUser(
   const data = await apiRequest<CurrentUserResponse>('/api/current-user', {
     method: 'GET',
     signal
+  })
+
+  if (!isCurrentUser(data?.user)) {
+    throw new ApiError('invalid', 'Unexpected response from the backend.')
+  }
+
+  return data.user
+}
+
+export async function updateProfile(input: ProfileInput): Promise<CurrentUser> {
+  const data = await apiRequest<CurrentUserResponse>('/api/current-user', {
+    method: 'PATCH',
+    body: input
   })
 
   if (!isCurrentUser(data?.user)) {

@@ -29,6 +29,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'password' => ['nullable', 'string', Password::min(8)],
             'role' => ['required', Rule::enum(UserRole::class)],
+            'sex' => ['required', Rule::in(['male', 'female'])],
             'station_id' => ['nullable', 'integer', 'exists:stations,id'],
         ];
     }

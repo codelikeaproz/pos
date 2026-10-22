@@ -11,6 +11,7 @@ import {
   CircleCheck,
   CircleOff,
   CircleX,
+  ChevronDown,
   ClipboardList,
   FilePlus,
   Eye,
@@ -35,6 +36,7 @@ import {
   Trash2,
   TriangleAlert,
   UserCog,
+  UserRound,
   Users,
   X,
   type LucideIcon
@@ -84,7 +86,9 @@ export const AppIcons = {
   cashDrawer: Archive,
   refresh: RefreshCw,
   newOrder: FilePlus,
-  exportExcel: FileSpreadsheet
+  exportExcel: FileSpreadsheet,
+  chevronDown: ChevronDown,
+  profile: UserRound
 } as const satisfies Record<string, LucideIcon>
 
 export type AppIconName = keyof typeof AppIcons

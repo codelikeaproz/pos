@@ -24,6 +24,7 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', Password::min(8)],
             'role' => ['required', Rule::enum(UserRole::class)],
+            'sex' => ['required', Rule::in(['male', 'female'])],
             'station_id' => ['nullable', 'integer', 'exists:stations,id'],
         ];
     }

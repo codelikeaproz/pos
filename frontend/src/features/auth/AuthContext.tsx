@@ -11,7 +11,8 @@ import {
   extractLoginErrorMessage,
   fetchCurrentUser,
   login as loginRequest,
-  logout as logoutRequest
+  logout as logoutRequest,
+  updateProfile as updateProfileRequest
 } from '../../services/authService'
 import { ApiError } from '../../services/apiClient'
 import {
@@ -21,7 +22,7 @@ import {
   type AuthSessionInvalidatedDetail
 } from '../../services/authToken'
 import type { AlertTone } from '../../components/feedback/Alert'
-import type { AuthStatus, CurrentUser } from '../../types/auth'
+import type { AuthStatus, CurrentUser, ProfileInput } from '../../types/auth'
 
 type AuthNotice = {
   tone: AlertTone
@@ -35,6 +36,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   refreshCurrentUser: () => Promise<void>
+  updateProfile: (input: ProfileInput) => Promise<void>
   bootstrapError: string | null
   authNotice: AuthNotice | null
 }
@@ -171,6 +173,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCurrentUser(user)
   }, [])
 
+  const updateProfile = useCallback(async (input: ProfileInput) => {
+    setCurrentUser(await updateProfileRequest(input))
+  }, [])
+
   const value = useMemo(
     () => ({
       status,
@@ -178,10 +184,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refreshCurrentUser,
+      updateProfile,
       bootstrapError,
       authNotice
     }),
-    [status, currentUser, login, logout, refreshCurrentUser, bootstrapError, authNotice]
+    [status, currentUser, login, logout, refreshCurrentUser, updateProfile, bootstrapError, authNotice]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

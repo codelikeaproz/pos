@@ -20,6 +20,7 @@
   z-index: 1;
   width: min(100%, 480px);
   background: var(--color-bg-surface);
+  color: var(--color-text);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   outline: none;

@@ -4,6 +4,7 @@ import { Alert } from '../../components/feedback/Alert'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
+import logo from '../../assets/cmuhomestaylogo.jpg'
 import { AppIcons, iconStroke } from '../../lib/icons'
 import { useAuth } from './AuthContext'
 import './login-page.css'
@@ -39,7 +40,10 @@ export function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-page__panel">
-        <p className="login-page__brand">University HomeStay POS</p>
+        <div className="login-page__brand">
+          <img src={logo} alt="CMU HomeStay" />
+          <p>University HomeStay POS</p>
+        </div>
 
         <div className="login-page__heading">
           <h1 className="login-page__title">Sign in</h1>

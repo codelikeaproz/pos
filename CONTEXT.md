@@ -32,6 +32,7 @@ Graphify accelerates discovery. Verify actual source and tests before changing c
 | Inventory reconciliation | `POS Memory/references/inventory.md`, `POS Memory/phases/10.22C-inventory-reconciliation/CONTEXT.md` | Finalized Monthly End items, movements, live Station stock, and tests |
 | Excel report export | `POS Memory/references/reporting.md`, `POS Memory/phases/10.22D-excel-export/CONTEXT.md` | Sales filters, Monthly End snapshots, reconciliation audit, export endpoints, and tests |
 | Printing or hardware | `POS Memory/references/printing.md` | Electron IPC, receipt UI, and completed Order snapshots |
+| Sidebar, profile, or User Management | `POS Memory/phases/10.23UI-sidebar-profile/CONTEXT.md` | Current-user resource, user schema/forms, navigation configuration, and route guards |
 | New or postponed feature | `POS Memory/references/deferred.md` | Current user scope and relevant canonical rules |
 
 ## Graphify use

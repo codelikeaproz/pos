@@ -43,6 +43,7 @@ function fieldErrorsFrom(error: unknown): EmployeeFieldErrors {
     name: error.errors.name?.[0],
     email: error.errors.email?.[0],
     password: error.errors.password?.[0],
+    sex: error.errors.sex?.[0],
     role: error.errors.role?.[0],
     station_id: error.errors.station_id?.[0]
   }

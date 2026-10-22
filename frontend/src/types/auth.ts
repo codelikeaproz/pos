@@ -1,9 +1,11 @@
 export type UserRole = 'admin' | 'end_user'
+export type UserSex = 'male' | 'female'
 
 export type CurrentUser = {
   id: number
   name: string
   email: string
+  sex: UserSex
   role: UserRole
   station: { id: number; name: string } | null
   privileges: { id: number; description: string }[]
@@ -19,6 +21,11 @@ export type LoginResponse = {
 
 export type CurrentUserResponse = {
   user: CurrentUser
+}
+
+export type ProfileInput = Pick<CurrentUser, 'name' | 'email' | 'sex'> & {
+  password?: string
+  password_confirmation?: string
 }
 
 export function roleLabel(role: UserRole): string {

@@ -1,20 +1,18 @@
-import { useLocation } from 'react-router-dom'
-import { getNavItemByPath } from '../../lib/navigation'
+import logo from '../../assets/cmuhomestaylogo.jpg'
+import { useAuth } from '../../features/auth/AuthContext'
+import { SidebarProfileMenu } from './SidebarProfileMenu'
 import './app-header.css'
 
 export function AppHeader() {
-  const location = useLocation()
-  const current = getNavItemByPath(location.pathname)
+  const { currentUser, logout, updateProfile } = useAuth()
 
   return (
     <header className="app-header">
       <div className="app-header__brand">
-        <span className="app-header__brand-mark" aria-hidden="true" />
-        <div>
-          <p className="app-header__app-name">University HomeStay POS</p>
-          {location.pathname !== '/orders' ? <p className="app-header__page">{current.title}</p> : null}
-        </div>
+        <img className="app-header__logo" src={logo} alt="CMU HomeStay" />
+        <p className="app-header__app-name">University HomeStay POS</p>
       </div>
+      {currentUser ? <SidebarProfileMenu user={currentUser} logout={logout} updateProfile={updateProfile} /> : null}
     </header>
   )
 }

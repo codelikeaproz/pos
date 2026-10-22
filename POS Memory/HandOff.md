@@ -4,6 +4,26 @@
 # University HomeStay POS
 ## Development Handoff
 
+### Phase 10.23UI — Sidebar Profile and Navigation (2026-10-22)
+
+Replaced the expanded Admin sidebar identity block with a navbar avatar, name, System Role, and chevron trigger. The accessible dropdown closes on outside click or Escape and displays email, explicit System Role, informational Privilege badges, Station, My Profile, and Logout. Existing Admin modules are grouped under Main, Inventory & Products, Sales & Transactions, Reports, and Administration; Spoilage is now visible in its existing authorized route. Route guards and `users.role` authorization are unchanged.
+
+My Profile provides an Edit icon for every authenticated Admin and Cashier. `PATCH /api/current-user` validates and updates only the signed-in User's name, unique email, sex, and optional password with matching confirmation, then refreshes frontend auth state. The User model hashes changed passwords. System Role, Privileges, and Station are not editable through this self-service endpoint. Focused authentication coverage passed with 13 tests and 74 assertions.
+
+The non-POS header now uses the supplied CMU HomeStay logo beside the fixed `University HomeStay POS` name, removes dynamic page titles, and places the authenticated profile menu at the right edge. My Profile uses a separated avatar/name/email identity row and left-aligned two-column metadata cards, while dropdown actions share consistent label and icon sizing. Logout remains inside this shared profile menu for Admin and Cashier users; the standalone header and Cashier Home Logout actions are removed. A compact brand-green institutional footer spans beneath the sidebar and content on every non-POS page; the POS route keeps its existing operational footer.
+
+The POS masthead now uses the shared brand-green token instead of a separate hard-coded green and displays the supplied HomeStay logo beside `CMU HomeStay`.
+
+The Login card now centers the supplied HomeStay logo and `University HomeStay POS` name above the existing sign-in form. Authentication behavior is unchanged.
+
+Cashier Home uses the same centered logo and product-name treatment above its existing cashier details and Open POS action.
+
+The desktop Admin sidebar is 260px wide and keeps navigation labels on one line so long module names remain readable without reducing text size. The mobile layout remains responsive.
+
+Added required `users.sex` (`male` or `female`) directly to the clean users creation migration, User model/resource, validation, factory, development seed, frontend types, User Management form, and table. The supplied `maleprofile.png` and `femaleprofile.png` are selected from that persisted value. The development database was rebuilt successfully and seeded with Administrator and POS Operator accounts using `male`.
+
+Verification passed: 178 Laravel tests with 1,492 assertions, Pint, frontend TypeScript checking, Electron production build, and `git diff --check`. User Management coverage includes accepted persisted sex and invalid-value rejection. No authorization middleware, route permission, Privilege relationship, checkout, inventory, tax, or report behavior changed.
+
 ### Phase 10.22D — Excel Report Export (2026-10-22)
 
 Implemented Admin-only `.xlsx` exports for Sales Report and finalized Monthly End Inventory/Reconciliation. Sales screen and export reuse the same validated filters and Order query, while export deliberately ignores `page` and `per_page` and includes every match. The workbook contains filter metadata, persisted summary values, historical transaction rows, numeric currency cells, Manila date/time cells, and a clear empty-result message.

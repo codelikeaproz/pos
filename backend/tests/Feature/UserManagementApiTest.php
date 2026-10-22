@@ -64,12 +64,14 @@ class UserManagementApiTest extends TestCase
             'email' => 'new.operator@example.com',
             'password' => 'secure-password',
             'role' => UserRole::EndUser->value,
+            'sex' => 'female',
         ]);
 
         $response
             ->assertCreated()
             ->assertJsonPath('message', 'Employee created successfully.')
             ->assertJsonPath('user.role', UserRole::EndUser->value)
+            ->assertJsonPath('user.sex', 'female')
             ->assertJsonMissingPath('user.password')
             ->assertJsonMissingPath('user.remember_token');
 
@@ -87,6 +89,7 @@ class UserManagementApiTest extends TestCase
             'email' => 'second.admin@example.com',
             'password' => 'secure-password',
             'role' => UserRole::Admin->value,
+            'sex' => 'male',
         ])
             ->assertCreated()
             ->assertJsonPath('user.role', UserRole::Admin->value);
@@ -101,6 +104,7 @@ class UserManagementApiTest extends TestCase
         $response = $this->postJson('/api/users', [
             'name' => 'Station Employee', 'email' => 'station@example.com',
             'password' => 'secure-password', 'role' => UserRole::EndUser->value,
+            'sex' => 'female',
             'station_id' => $firstStation->id,
         ])->assertCreated()->assertJsonPath('user.station.name', 'Main Station');
 
@@ -108,17 +112,18 @@ class UserManagementApiTest extends TestCase
         $this->getJson('/api/users?search=Main Station')->assertOk()->assertJsonCount(1, 'data');
         $this->putJson("/api/users/{$userId}", [
             'name' => 'Station Employee', 'email' => 'station@example.com',
-            'role' => UserRole::EndUser->value, 'station_id' => $secondStation->id,
+            'role' => UserRole::EndUser->value, 'sex' => 'female', 'station_id' => $secondStation->id,
         ])->assertOk()->assertJsonPath('user.station.name', 'Sugbahan');
         $this->putJson("/api/users/{$userId}", [
             'name' => 'Station Employee', 'email' => 'station@example.com',
-            'role' => UserRole::EndUser->value, 'station_id' => null,
+            'role' => UserRole::EndUser->value, 'sex' => 'female', 'station_id' => null,
         ])->assertOk()->assertJsonPath('user.station', null);
 
         $this->getJson('/api/employee-options')->assertOk()->assertJsonCount(2, 'stations');
         $this->postJson('/api/users', [
             'name' => 'Invalid Station', 'email' => 'invalid-station@example.com',
             'password' => 'secure-password', 'role' => UserRole::EndUser->value,
+            'sex' => 'male',
             'station_id' => 999999,
         ])->assertUnprocessable()->assertJsonValidationErrors('station_id');
     }
@@ -135,6 +140,7 @@ class UserManagementApiTest extends TestCase
             'email' => 'new@example.com',
             'password' => 'secure-password',
             'role' => UserRole::EndUser->value,
+            'sex' => 'male',
         ], $overrides))
             ->assertUnprocessable()
             ->assertJsonValidationErrors($invalidField);
@@ -150,6 +156,7 @@ class UserManagementApiTest extends TestCase
             'invalid email' => [['email' => 'not-an-email'], 'email'],
             'invalid role' => [['role' => 'manager'], 'role'],
             'short password' => [['password' => 'short'], 'password'],
+            'invalid sex' => [['sex' => 'unknown'], 'sex'],
         ];
     }
 
@@ -167,6 +174,7 @@ class UserManagementApiTest extends TestCase
             'name' => 'Updated Operator',
             'email' => 'operator@example.com',
             'role' => UserRole::EndUser->value,
+            'sex' => 'female',
         ])
             ->assertOk()
             ->assertJsonPath('user.name', 'Updated Operator')
@@ -188,6 +196,7 @@ class UserManagementApiTest extends TestCase
             'email' => $user->email,
             'password' => 'replacement-password',
             'role' => UserRole::EndUser->value,
+            'sex' => $user->sex,
         ])
             ->assertOk()
             ->assertJsonMissingPath('user.password');
@@ -252,6 +261,7 @@ class UserManagementApiTest extends TestCase
             'name' => $lastOtherAdmin->name,
             'email' => $lastOtherAdmin->email,
             'role' => UserRole::EndUser->value,
+            'sex' => $lastOtherAdmin->sex,
         ])
             ->assertConflict()
             ->assertJsonPath('message', 'The system must have at least one administrator.');
@@ -269,6 +279,7 @@ class UserManagementApiTest extends TestCase
             'name' => $otherAdmin->name,
             'email' => $otherAdmin->email,
             'role' => UserRole::EndUser->value,
+            'sex' => $otherAdmin->sex,
         ])
             ->assertOk()
             ->assertJsonPath('user.role', UserRole::EndUser->value);

@@ -2,11 +2,11 @@ import { FormEvent, useState } from 'react'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
 import { Select } from '../../components/ui/Select'
-import type { UserRole } from '../../types/auth'
+import type { UserRole, UserSex } from '../../types/auth'
 import type { Employee, EmployeeInput, EmployeeOptions } from '../../types/user'
 
 export type EmployeeFieldErrors = Partial<
-  Record<'name' | 'email' | 'password' | 'role' | 'station_id', string>
+  Record<'name' | 'email' | 'password' | 'role' | 'sex' | 'station_id', string>
 >
 
 type EmployeeFormProps = {
@@ -35,6 +35,7 @@ export function EmployeeForm({
   const [email, setEmail] = useState(employee?.email ?? '')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>(employee?.role ?? 'end_user')
+  const [sex, setSex] = useState<UserSex>(employee?.sex ?? 'male')
   const [stationId, setStationId] = useState(employee?.station?.id ?? 0)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -44,6 +45,7 @@ export function EmployeeForm({
       name: name.trim(),
       email: email.trim(),
       role,
+      sex,
       station_id: stationId || null
     }
 
@@ -129,6 +131,23 @@ export function EmployeeForm({
             {errors.password}
           </span>
         ) : null}
+      </div>
+
+      <div className="employee-form__field">
+        <Label htmlFor={`${formId}-sex`} required>
+          Sex
+        </Label>
+        <Select
+          id={`${formId}-sex`}
+          value={sex}
+          onChange={(event) => setSex(event.target.value as UserSex)}
+          options={[{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }]}
+          required
+          disabled={disabled}
+          error={Boolean(errors.sex)}
+          aria-describedby={errors.sex ? `${formId}-sex-error` : undefined}
+        />
+        {errors.sex ? <span id={`${formId}-sex-error`} className="page__field-error">{errors.sex}</span> : null}
       </div>
 
       <div className="employee-form__field">

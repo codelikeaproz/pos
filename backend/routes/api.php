@@ -44,6 +44,7 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/current-user', [AuthController::class, 'currentUser']);
+    Route::patch('/current-user', [AuthController::class, 'updateProfile']);
     Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('admin');
     Route::get('/monthly-end-reports', [MonthlyEndReportController::class, 'index'])->middleware('admin');
     Route::post('/monthly-end-reports', [MonthlyEndReportController::class, 'store'])->middleware('admin');

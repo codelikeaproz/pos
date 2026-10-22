@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'sex' => $this->sex,
             'role' => $this->role instanceof \BackedEnum
                 ? $this->role->value
                 : (string) $this->role,

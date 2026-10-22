@@ -23,6 +23,7 @@ class DevelopmentUserSeeder extends Seeder
                 'name' => 'Administrator',
                 'password' => Hash::make('password'),
                 'role' => UserRole::Admin,
+                'sex' => 'male',
             ]
         );
 
@@ -32,6 +33,7 @@ class DevelopmentUserSeeder extends Seeder
                 'name' => 'POS Operator',
                 'password' => Hash::make('password'),
                 'role' => UserRole::EndUser,
+                'sex' => 'male',
             ]
         );
     }

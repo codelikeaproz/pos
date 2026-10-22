@@ -36,3 +36,4 @@ Current authority and status are maintained in [[Rules]], [[Requirement]], [[PRD
 ## Other
 
 - Removed Consignee and Consignment Account workflows require new stakeholder analysis before reintroduction.
+- Any Privilege-to-permission/RBAC redesign requires stakeholder consultation. Self-service name, email, sex, and confirmed password updates are implemented in My Profile.

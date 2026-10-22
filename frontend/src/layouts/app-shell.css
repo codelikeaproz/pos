@@ -20,6 +20,9 @@
   overflow: auto;
 }
 
+.app-shell__workspace { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.app-shell__footer { flex-shrink: 0; padding: 8px var(--space-6); background: var(--color-brand-green); color: #fff; font-size: 11px; text-align: center; }
+
 .app-shell__content--centered {
   display: grid;
   place-items: center;
@@ -28,4 +31,5 @@
 @media (max-width: 800px) {
   .app-shell__body { flex-direction: column; }
   .app-shell__content { padding: var(--space-4); }
+  .app-shell__footer { padding-inline: var(--space-4); }
 }

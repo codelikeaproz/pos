@@ -14,10 +14,13 @@ export function AppShell() {
       {!isPos ? <AppHeader /> : null}
       <div className="app-shell__body">
         {!isPos && currentUser?.role === 'admin' ? <AppSidebar /> : null}
-        <main className={`app-shell__content${isCashierHome ? ' app-shell__content--centered' : ''}`}>
-          <Outlet />
-        </main>
+        <div className="app-shell__workspace">
+          <main className={`app-shell__content${isCashierHome ? ' app-shell__content--centered' : ''}`}>
+            <Outlet />
+          </main>
+        </div>
       </div>
+      {!isPos ? <footer className="app-shell__footer">© 2026 Central Mindanao University · University HomeStay POS</footer> : null}
     </div>
   )
 }

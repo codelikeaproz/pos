@@ -32,6 +32,7 @@ export function EmployeeTable({
       )
     },
     { key: 'email', header: 'Email', render: (employee) => employee.email },
+    { key: 'sex', header: 'Sex', render: (employee) => employee.sex === 'female' ? 'Female' : 'Male' },
     { key: 'station', header: 'Station', render: (employee) => employee.station?.name ?? '—' },
     {
       key: 'role',

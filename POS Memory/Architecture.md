@@ -1,6 +1,14 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.23UI — Sidebar Profile and Navigation (2026-10-22)
+
+The shared navbar profile trigger displays the authenticated User's sex-based local avatar, readable name, and System Role. Its focused dropdown reuses current-user state for email, System Role, informational business Privileges, Station, My Profile, and Logout. My Profile separates avatar/name/email identity from left-aligned metadata cards and exposes an Edit icon. Edit mode calls authenticated `PATCH /api/current-user` and may change only the signed-in User's name, email, sex, and optional confirmed password; role, Privileges, and Station are excluded from validation and updates. The User model's hashed cast stores a changed password securely, and the returned User replaces frontend auth state immediately. Outside click and Escape close only the dropdown. Profile actions share consistent text and icon sizing. The navigation-only Admin sidebar groups existing modules under Main, Inventory & Products, Sales & Transactions, Reports, and Administration while preserving every existing role check and route guard.
+
+The shared non-POS header uses the local CMU HomeStay logo, fixed `University HomeStay POS` identity, and a right-edge profile menu instead of a dynamic page title or standalone Logout. A compact shared footer identifies `© 2026 Central Mindanao University · University HomeStay POS` on non-POS pages. The POS route retains its dedicated operational footer and does not render the shared footer.
+
+The fresh `users` schema stores required `sex` as `male` or `female`; User Management creates and edits it and the existing User resource supplies it to authentication and management views. It selects the supplied local profile artwork only and does not change authentication, `users.role`, Privilege relationships, API middleware, or Cashier routing.
+
 ### Phase 10.22D — Excel Report Export (2026-10-22)
 
 Laravel generates Admin-only, read-only `.xlsx` workbooks for Sales Report and finalized Monthly End Inventory/Reconciliation. The Sales screen and export share one validated filter and query path; export omits pagination and therefore contains every matching Order. Financial values come from persisted Order totals and discounts. Monthly End export uses frozen Item and count snapshots plus persisted reconciliation audit metadata, never current Item names or live stock.
@@ -35,7 +43,7 @@ The compact `/tax-configuration` screen and `GET/PUT /api/tax-settings` endpoint
 
 ### Phase 10.20A — Admin Dashboard and Cashier landing (2026-10-11)
 
-Admin lands on `/dashboard`; End User with the Cashier privilege and an assigned Station lands directly on `/orders` after login. The Admin Dashboard is an operational monitoring screen only, protected by the Admin route guard and the Admin-only `GET /api/dashboard` endpoint. Cashier POS exit goes to `/cashier-home`; Admin POS exit returns to `/dashboard`. Cashier Home is a minimal Open POS/Logout fallback without Admin navigation or KPIs. A nonempty POS cart requires an exit confirmation. The shared header contains only application and current-page identity. The Admin sidebar owns the account surface: its previous logo/profile box, compact Username, System Role, and Privileges summary, plus Logout at the bottom.
+Admin lands on `/dashboard`; End User with the Cashier privilege and an assigned Station lands directly on `/orders` after login. The Admin Dashboard is an operational monitoring screen only, protected by the Admin route guard and the Admin-only `GET /api/dashboard` endpoint. Cashier POS exit goes to `/cashier-home`; Admin POS exit returns to `/dashboard`. Cashier Home is a minimal Open POS fallback without Admin navigation or KPIs; Logout remains available in the shared header. A nonempty POS cart requires an exit confirmation.
 
 The dashboard endpoint returns the current Asia/Manila day, available Stations, persisted Order totals, and a paginated Today’s Sales list. Its selected Station scope applies to all aggregates and rows. Today’s Sales/Cash/Credit/transaction count use completed Orders from the Manila day, while Unremitted Cash counts all unremitted Cash Orders regardless of date. Low Stock counts positive Station Item balances at or below `items.reorder_point`; Out of Stock counts balances at or below zero. Order detail uses the existing read-only O.R snapshot endpoint. Stations have no active/inactive status in the current schema, so every existing Station appears in the selector. No checkout, remittance, or historical O.R behavior changes.
 
@@ -43,9 +51,9 @@ Phase 10.20A.1 keeps this behavior and refines the presentation: the navigation-
 
 Phase 10.20A.2 simplifies the Dashboard presentation without changing data behavior. KPI cards contain label, value, and supporting text only. Dashboard scope remains Station; Today’s Sales retains only Payment Method and Admin pagination. Detailed searching remains in O.R Transactions, while the Dashboard API may retain harmless search support for compatibility.
 
-The header profile trigger, dropdown, My Profile action, and profile modal are not part of the current interface. Admin identity details remain in the sidebar, with Logout at its bottom. Cashier Home retains its own Logout action and is a centered compact card with consistently left-aligned, text-only content and a lightweight three-row identity section.
+The shared header contains fixed product identity and Logout. Admin profile access remains in the sidebar dropdown and centered My Profile modal. Cashier Home is a centered compact card with consistently left-aligned, text-only content and a lightweight three-row identity section.
 
-The Phase 10.20A.5 Login surface is a centered 400px card with text-only University HomeStay POS branding, a Sign in heading, compact account-detail guidance, and existing shared form controls. Password visibility is controlled locally in `LoginPage`; its state-based icon is Eye for visible text and EyeOff for masked text, while its accessible label describes the Show/Hide action. Credentials, validation, submission, routing, and authentication services are unchanged.
+The Login surface is a centered 400px card with the local HomeStay logo and University HomeStay POS name centered above a Sign in heading, compact account-detail guidance, and existing shared form controls. Password visibility is controlled locally in `LoginPage`; its state-based icon is Eye for visible text and EyeOff for masked text, while its accessible label describes the Show/Hide action. Credentials, validation, submission, routing, and authentication services are unchanged.
 
 ### Current module boundary — Consignee removal (2026-10-09)
 

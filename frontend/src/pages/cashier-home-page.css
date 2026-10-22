@@ -1,5 +1,7 @@
 .cashier-home { width: min(100%, 420px); padding: var(--space-6); background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
-.cashier-home__brand { margin: 0 0 var(--space-5); color: var(--color-brand-green); font-size: var(--font-size-secondary); font-weight: 600; letter-spacing: .01em; }
+.cashier-home__brand { display: flex; align-items: center; flex-direction: column; gap: var(--space-2); margin: 0 0 var(--space-5); color: var(--color-brand-green); font-size: var(--font-size-secondary); font-weight: 600; letter-spacing: .01em; text-align: center; }
+.cashier-home__brand img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; }
+.cashier-home__brand p { margin: 0; }
 .cashier-home__heading { margin-bottom: var(--space-5); color: var(--color-brand-green); }
 .cashier-home__heading h1 { margin: 0; font-size: var(--font-size-page-title); font-weight: 700; }
 .cashier-home__heading p { margin: 2px 0 0; color: var(--color-text-secondary); font-size: var(--font-size-secondary); }

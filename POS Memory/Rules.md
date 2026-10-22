@@ -13,6 +13,17 @@
 - Refresh Graphify after major modules, schema changes, or large refactors. Do not treat generated graphs as runtime dependencies or business documentation.
 - After a major phase, update the canonical documents that changed, `HandOff.md`, the descriptive phase context, and the deferred register.
 
+### Phase 10.23UI — Profile and navigation rules
+
+- `users.role` remains the only system authorization boundary. Sidebar groups and displayed Privileges must not grant access or replace backend route guards.
+- `users.sex` is required as `male` or `female` and selects the matching repository-owned profile avatar. It has no authorization effect.
+- The navbar profile trigger shows avatar, name, and System Role. Email, Privileges, Station, My Profile, and Logout belong in its dropdown. My Profile uses a separated identity row, readable left-aligned details, and an Edit icon; do not add a separate User Settings menu item.
+- Every authenticated User may update only their own name, email, sex, and optional confirmed password through My Profile. System Role, Privileges, and Station remain read-only there and retain their existing Admin-controlled authorization paths.
+- The shared non-POS header shows the local HomeStay logo, fixed `University HomeStay POS` name, and right-edge profile menu. Do not restore dynamic page titles or a separate Logout control.
+- Every non-POS page uses the compact shared Central Mindanao University footer. Preserve the POS route's dedicated operational footer without adding a second footer.
+- Business Privileges in the profile dropdown are informational. Keep RBAC and Privilege-to-route decisions deferred to stakeholder review.
+- Keep Cashier login, POS exit, and Cashier Home behavior unchanged.
+
 ### Phase 10.22D — Excel export rules
 
 - Excel exports are Admin-only, authenticated, synchronous, and read-only. Business Privileges never grant access around `users.role`.
@@ -63,7 +74,7 @@
 
 - Admin lands on Dashboard and may open POS manually. Cashier with Cashier privilege and an assigned Station lands on POS; without both, show the minimal Cashier Home fallback. Cashier never sees the Admin Dashboard or sidebar.
 - Admin POS exit returns to Dashboard. Cashier POS exit returns to Cashier Home. A nonempty cart must show an Exit POS confirmation with Stay in POS and Exit POS actions before it is discarded.
-- Do not show an account or profile control in the header. The Admin sidebar retains the previous logo/profile box with compact Username, System Role, and Privileges details above navigation, plus Logout at the bottom. The Dashboard has no Quick Access or Current User cards.
+- Keep profile details in the shared navbar dropdown; the sidebar is reserved for navigation. The Dashboard has no Quick Access or Current User cards.
 - Dashboard monitoring and its API are Admin-only. Apply the selected Station scope consistently to today-only persisted Order KPIs, Today’s Sales, all-time Unremitted Cash, and stock counts. Use Asia/Manila day boundaries and the existing positive-balance low-stock threshold; do not recalculate Order totals or discounts.
 - Today’s Sales uses Admin pagination (10/20/50/100), read-only historical detail snapshots, and compact table styling. Cashier Home is not a KPI dashboard.
 - Keep the navigation-only sidebar at the compact 232px desktop width. Today’s Sales owns a dedicated 1100px table treatment and scrolls inside its panel; do not increase the shared Table minimum width.
@@ -71,8 +82,8 @@
 - Cashier Home remains centered in the workspace, compact, and limited to Open POS and Logout. Its card content is consistently left-aligned, uses text-only branding and actions, and presents only Full Name, Privilege, and Assigned Station under a subtle Cashier Information label.
 - Dashboard KPI cards remain text-only: label, value, and supporting context. Do not add decorative icons or badges to these cards.
 - Dashboard filters are limited to the page-level Station selector and Today’s Sales Payment Method selector. Searching belongs in O.R Transactions.
-- Keep account identity and Logout in the Admin sidebar; do not duplicate them in the header. Preserve accessible Logout and existing authentication behavior.
-- Keep Login branding text-only and use the consistent University HomeStay POS name. Keep the card compact, plain, centered, and limited to email, password, and Login. The password visibility control uses state-based icons: open Eye when the password is visible and EyeOff when it is masked, while its accessible label describes the available Show/Hide action. Preserve its tooltip, keyboard focus state, and submission behavior.
+- Keep account identity and accessible Logout in the shared navbar profile menu using the existing authentication behavior.
+- Center the local HomeStay logo and consistent University HomeStay POS name at the top of the Login card. Keep the card compact, plain, centered, and limited to email, password, and Login. The password visibility control uses state-based icons: open Eye when the password is visible and EyeOff when it is masked, while its accessible label describes the available Show/Hide action. Preserve its tooltip, keyboard focus state, and submission behavior.
 
 ### Current module boundary — Consignee removal
 

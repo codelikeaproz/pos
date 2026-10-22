@@ -65,8 +65,8 @@
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   /* Layout */
-  --sidebar-width: 232px;
-  --header-height: 56px;
+  --sidebar-width: 260px;
+  --header-height: 68px;
   --icon-size: 20px;
   --icon-size-nav: 20px;
   --icon-stroke: 2;

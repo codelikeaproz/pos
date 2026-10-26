@@ -34,6 +34,8 @@ Compact profile access and grouped Admin navigation, with sex-based local avatar
 - 260px navigation-only desktop sidebar keeps long module names such as Monthly End Inventory and Customer Management on one line.
 - POS masthead uses the same shared brand-green token and HomeStay logo beside CMU HomeStay.
 - Login centers the supplied HomeStay logo and University HomeStay POS name above the sign-in form.
+- Desktop Login uses a balanced 50/50 split with the supplied subdued office/POS background on the left and the existing card centered on the right.
+- Removed the unused legacy `pos-food-hero.png` asset; no live source referenced it.
 - Cashier Home centers the same logo and product name above the cashier details.
 - Five visible navigation groups using the existing modules and route rules.
 - User Management create/edit/list support for sex and a clean remigrated development schema.

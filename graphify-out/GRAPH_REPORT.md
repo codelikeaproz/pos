@@ -1,25 +1,26 @@
-# Graph Report - pos  (2026-10-22)
+# Graph Report - pos  (2026-10-26)
 
 ## Corpus Check
-- 293 files · ~297,319 words
+- 293 files · ~301,141 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 68 file(s) not represented in the graph (top: .css 46, (none) 18, .example 2)
 
 ## Summary
-- 2146 nodes · 5370 edges · 119 communities (70 shown, 49 thin omitted)
+- 2147 nodes · 5371 edges · 120 communities (73 shown, 47 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 92 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `26806496`
+- Built from commit: `563539a6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
+- DashboardController.php
 - TestCase
 - OrdersPage.tsx
 - composer.json
-- Button
+- PrivilegeAssignmentsPage.tsx
 - Illuminate\Database\Eloquent\Relations\BelongsTo
 - Development Handoff
 - StationItemController.php
@@ -28,12 +29,13 @@
 - package.json
 - Illuminate\Http\JsonResponse
 - StationItem
-- PosCheckoutController.php
 - Button
-- PrivilegeApiTest
+- Button
+- StationInventoryPage.tsx
 - PRD.md
-- Button
+- Alert
 - UserManagementApiTest
+- StationItem
 - PosCheckoutApiTest
 - AuthContext.tsx
 - MonthlyEndInventoryPage
@@ -41,19 +43,22 @@
 - StationsPage.tsx
 - useAuth
 - SpoilagesPage.tsx
-- .admin
+- CustomerController.php
 - User
 - Illuminate\Support\Facades\DB
 - compilerOptions
 - ItemController.php
+- SaleRemittanceController.php
 - SaleRemittancesPage.tsx
 - Development Rules
+- spoilageService.ts
 - Architecture
 - HandOff.md
 - ItemManagementApiTest
 - ItemDeliveryController.php
-- Illuminate\Http\JsonResponse
+- PriceController.php
 - Requirement.md
+- creditMonitoringService.ts
 - MonthlyEndReportApiTest
 - Illuminate\Database\Schema\Blueprint
 - PosItemApiTest
@@ -65,7 +70,6 @@
 - Station
 - EmployeeForm.tsx
 - SpoilageApiTest
-- AuthApiTest
 - StationController.php
 - UserFactory.php
 - OrderHistoryApiTest
@@ -113,10 +117,10 @@
 - tsconfig.json
 - Architecture.md
 - AGENTS.md
-- Phase 9 — Dashboard & Role-Aware Navigation Foundation
-- PricesPage.tsx
+- 18. Current Phase
+- priceService.ts
 - Phase 10.22C — Inventory Reconciliation
-- SaleRemittanceApiTest
+- Order
 - navigation.ts
 - SalesReportApiTest
 - Phase 10.23UI — Sidebar Profile and Navigation
@@ -142,37 +146,37 @@
   POS Memory/Architecture.md → frontend/src/features/auth/LoginPage.tsx
 - `Phase 10.19.3 58 mm HTML receipt preview (2026-10-06)` --references--> `PaymentReceipt()`  [INFERRED]
   POS Memory/Architecture.md → frontend/src/features/pos/PaymentReceipt.tsx
-- `14.1 API layer conventions` --references--> `ItemController`  [INFERRED]
-  POS Memory/Rules.md → backend/app/Http/Controllers/Api/ItemController.php
 - `14.1 API layer conventions` --references--> `OrderController`  [INFERRED]
   POS Memory/Rules.md → backend/app/Http/Controllers/Api/OrderController.php
 - `14.1 API layer conventions` --references--> `StationController`  [INFERRED]
   POS Memory/Rules.md → backend/app/Http/Controllers/Api/StationController.php
+- `Phase 10.1 verification — 2026-09-26` --references--> `EnsureUserIsAdmin`  [INFERRED]
+  POS Memory/HandOff.md → backend/app/Http/Middleware/EnsureUserIsAdmin.php
 
 ## Import Cycles
 - None detected.
 
-## Communities (119 total, 49 thin omitted)
+## Communities (120 total, 47 thin omitted)
 
 ### Community 1 - "TestCase"
-Cohesion: 0.09
-Nodes (5): HealthEndpointTest, MonthlyEndReconciliationApiTest, StationManagementApiTest, TaxSettingApiTest, TestCase
+Cohesion: 0.04
+Nodes (6): AuthApiTest, HealthEndpointTest, PrivilegeApiTest, StationManagementApiTest, TaxSettingApiTest, TestCase
 
 ### Community 2 - "OrdersPage.tsx"
 Cohesion: 0.06
-Nodes (63): Props, StockQuantity(), confirm(), CurrentOrderTable(), PaymentPanel(), Props, PaymentReceipt(), PosItemSearch() (+55 more)
+Nodes (65): Props, StockQuantity(), CashReceivedDialog(), confirm(), CurrentOrderTable(), PaymentPanel(), Props, PaymentReceipt() (+57 more)
 
 ### Community 3 - "composer.json"
 Cohesion: 0.04
 Nodes (46): pestphp/pest-plugin, php-http/discovery, autoload, autoload-dev, psr-4, psr-4, dev-master, config (+38 more)
 
-### Community 4 - "Button"
-Cohesion: 0.09
-Nodes (29): AlertProps, toneIcons, LoadingStateProps, ModalProps, ToastContext, ToastContextValue, ToastItem, ToastTone (+21 more)
+### Community 4 - "PrivilegeAssignmentsPage.tsx"
+Cohesion: 0.25
+Nodes (10): EMPTY, PrivilegeAssignmentsPage(), save(), loadPrivilegeAssignments(), PaginatedPrivileges, savePrivilegeAssignments(), AssignmentUser, Privilege (+2 more)
 
 ### Community 5 - "Illuminate\Database\Eloquent\Relations\BelongsTo"
-Cohesion: 0.05
-Nodes (11): {closure#10}(), {closure#11}(), ItemDelivery, ItemDeliveryItem, MonthlyEndReportItem, {closure#1}(), Order, OrderItem (+3 more)
+Cohesion: 0.06
+Nodes (12): TaxStatus, NonVat, VatRegistered, InventoryMovement, ItemDelivery, ItemDeliveryItem, MonthlyEndReportItem, OrderItem (+4 more)
 
 ### Community 6 - "Development Handoff"
 Cohesion: 0.06
@@ -195,59 +199,63 @@ Cohesion: 0.06
 Nodes (32): dependencies, lucide-react, react, react-dom, react-router-dom, description, devDependencies, electron (+24 more)
 
 ### Community 11 - "Illuminate\Http\JsonResponse"
-Cohesion: 0.08
-Nodes (9): CreditMonitoringController, CustomerController, DashboardController, HealthController, PosItemController, PriceController, PrivilegeAssignmentController, SaleRemittanceController (+1 more)
+Cohesion: 0.11
+Nodes (10): AuthController, CreditMonitoringController, DashboardController, HealthController, PosItemController, PrivilegeAssignmentController, SaleRemittanceController, UserController (+2 more)
 
 ### Community 12 - "StationItem"
-Cohesion: 0.07
-Nodes (4): InventoryMovement, Item, Price, StationItem
+Cohesion: 0.08
+Nodes (5): {closure#9}(), Item, Price, Station, Phase 10.14 current Spoilage architecture
 
-### Community 13 - "PosCheckoutController.php"
+### Community 13 - "Button"
 Cohesion: 0.14
-Nodes (4): {closure#1}(), PosCheckoutController, CheckoutOrderRequest, OrderResource
+Nodes (17): SidebarProfileMenu(), saveProfile(), SidebarProfileMenuProps, Badge(), BadgeProps, BadgeTone, Button, ButtonProps (+9 more)
 
 ### Community 14 - "Button"
-Cohesion: 0.08
-Nodes (53): CustomerSort, CustomerSortHeader(), AdminPageSize, Props, Table(), TableColumn, TableProps, OrderDetailView() (+45 more)
+Cohesion: 0.09
+Nodes (43): Modal(), AdminPageSize, Props, OrderDetailView(), EMPTY, formatManilaLongDateTime(), DashboardPage(), view() (+35 more)
+
+### Community 15 - "StationInventoryPage.tsx"
+Cohesion: 0.14
+Nodes (15): Select, SelectOption, SelectProps, EMPTY_LIST, EMPTY_OPTIONS, StationInventoryPage(), assignItemToStation(), loadStationInventory() (+7 more)
 
 ### Community 16 - "PRD.md"
 Cohesion: 0.06
 Nodes (30): 10. Consignee Requirements, 11. Consignment Requirements, 12. Orders / POS Requirements, 13. Payment Flow, 14. Hardware Requirements, 15. Initial Release Boundary, 16. Future Expansion, 1. Product Overview (+22 more)
 
-### Community 17 - "Button"
+### Community 17 - "Alert"
 Cohesion: 0.09
-Nodes (25): SidebarProfileMenu(), saveProfile(), SidebarProfileMenuProps, Button, ButtonProps, ButtonVariant, Input, InputProps (+17 more)
+Nodes (27): Alert(), useToast(), Input, InputProps, Label(), LabelProps, Panel(), PanelProps (+19 more)
 
 ### Community 21 - "AuthContext.tsx"
-Cohesion: 0.17
-Nodes (23): AlertTone, AuthContext, AuthContextValue, AuthNotice, AuthProvider(), bootstrap(), ApiError, extractLoginErrorMessage() (+15 more)
+Cohesion: 0.18
+Nodes (22): AlertTone, AuthContext, AuthContextValue, AuthNotice, AuthProvider(), bootstrap(), ApiError, extractLoginErrorMessage() (+14 more)
 
 ### Community 22 - "MonthlyEndInventoryPage"
 Cohesion: 0.13
-Nodes (32): view(), cents(), currentManila(), EMPTY, filterSelects(), MonthlyEndInventoryPage(), create(), exportExcel() (+24 more)
+Nodes (31): cents(), currentManila(), EMPTY, filterSelects(), MonthlyEndInventoryPage(), create(), exportExcel(), finalize() (+23 more)
 
 ### Community 23 - "MonthlyEndReportController.php"
 Cohesion: 0.05
 Nodes (11): {closure#5}(), {closure#6}(), {closure#7}(), {closure#8}(), MonthlyEndReportController, ReconcileMonthlyEndItemsRequest, StoreMonthlyEndReportRequest, UpdateMonthlyEndCountsRequest (+3 more)
 
 ### Community 24 - "StationsPage.tsx"
-Cohesion: 0.14
-Nodes (21): StationFieldErrors, StationForm(), StationFormProps, StationTable(), StationTableProps, EMPTY_LIST, fieldErrorsFrom(), FormDialog (+13 more)
+Cohesion: 0.09
+Nodes (32): LoadingStateProps, ModalProps, ToastContext, ToastContextValue, ToastItem, ToastTone, Props, StationFieldErrors (+24 more)
 
 ### Community 25 - "useAuth"
-Cohesion: 0.15
-Nodes (12): AppHeader(), AppSidebar(), useAuth(), PosRoute(), ProtectedRoute(), RoleRoute(), AppShell(), iconSizeNav (+4 more)
+Cohesion: 0.16
+Nodes (11): AppHeader(), AppSidebar(), useAuth(), PosRoute(), RoleRoute(), AppShell(), iconSizeNav, getNavGroupsForRole() (+3 more)
 
 ### Community 26 - "SpoilagesPage.tsx"
-Cohesion: 0.16
-Nodes (20): formatManilaDate(), CartLine, EMPTY, NO_OPTIONS, SpoilagesPage(), confirm(), openForm(), submitForm() (+12 more)
+Cohesion: 0.11
+Nodes (25): CustomerSort, CustomerSortHeader(), OrTransactionTable(), formatManilaDate(), formatManilaDateTime(), manilaDate, manilaDateTime, manilaLongDateTime (+17 more)
 
-### Community 27 - ".admin"
-Cohesion: 0.40
-Nodes (5): 9.1 Authentication (Phase 8), 14.1 API layer conventions, 14.2 Success response conventions, 14.3 Error response conventions, 14. URL / API Naming
+### Community 27 - "CustomerController.php"
+Cohesion: 0.16
+Nodes (3): CustomerController, StoreCustomerRequest, CustomerResource
 
 ### Community 28 - "User"
-Cohesion: 0.09
+Cohesion: 0.14
 Nodes (6): {closure#3}(), {closure#4}(), Privilege, User, Phase 10.17 Privilege and Privilege Assignment (2026-10-01), Phase 10.17 status — Complete (2026-10-01)
 
 ### Community 30 - "compilerOptions"
@@ -255,16 +263,20 @@ Cohesion: 0.11
 Nodes (17): compilerOptions, allowSyntheticDefaultImports, composite, esModuleInterop, isolatedModules, jsx, lib, module (+9 more)
 
 ### Community 31 - "ItemController.php"
-Cohesion: 0.13
-Nodes (5): ItemController, StoreItemRequest, UpdateItemRequest, ItemResource, 9.6 Item Management (Phase 10.4)
+Cohesion: 0.11
+Nodes (9): ItemController, StoreItemRequest, UpdateItemRequest, ItemResource, 9.6 Item Management (Phase 10.4), 14.1 API layer conventions, 14.2 Success response conventions, 14.3 Error response conventions (+1 more)
 
 ### Community 33 - "SaleRemittancesPage.tsx"
-Cohesion: 0.22
-Nodes (12): useToast(), StatusSort, StatusSortHeader(), cents(), EMPTY, money, SaleRemittancesPage(), submit() (+4 more)
+Cohesion: 0.24
+Nodes (11): StatusSort, StatusSortHeader(), cents(), EMPTY, money, SaleRemittancesPage(), submit(), loadSaleRemittances() (+3 more)
 
 ### Community 34 - "Development Rules"
 Cohesion: 0.07
 Nodes (30): API-only backend, Cash drawer integration POC, Current module boundary — Consignee removal, Current POS interaction rules (2026-10-01), Developer context architecture, Development Rules, Migration ownership, Phase 10.13 Item Delivery rules (+22 more)
+
+### Community 35 - "spoilageService.ts"
+Cohesion: 0.36
+Nodes (6): loadSpoilageOptions(), Spoilage, SpoilageItem, SpoilageList, SpoilageOption, SpoilageOptions
 
 ### Community 36 - "Architecture"
 Cohesion: 0.08
@@ -275,12 +287,12 @@ Cohesion: 0.08
 Nodes (24): 10. Consignment Screen Observed, 11. POS Screen Observed, 12. Hardware Scope, 13. Architecture Decision, 14. Database Direction, 15. Naming Decision, 16. Current Scope, 17. Future Idea — Customer Food Menu (+16 more)
 
 ### Community 39 - "ItemDeliveryController.php"
-Cohesion: 0.09
+Cohesion: 0.08
 Nodes (3): ItemDeliveryController, StoreItemDeliveryRequest, ItemDeliveryResource
 
-### Community 40 - "Illuminate\Http\JsonResponse"
-Cohesion: 0.06
-Nodes (7): AuthController, UserController, LoginRequest, UpdateProfileRequest, StoreUserRequest, UpdateUserRequest, UserResource
+### Community 40 - "PriceController.php"
+Cohesion: 0.11
+Nodes (3): PriceController, StorePriceRequest, PriceResource
 
 ### Community 41 - "Requirement.md"
 Cohesion: 0.10
@@ -295,7 +307,7 @@ Cohesion: 0.23
 Nodes (6): {closure#1}(), {closure#2}(), {closure#3}(), {closure#1}(), {closure#2}(), {closure#3}()
 
 ### Community 46 - "SpoilageController"
-Cohesion: 0.10
+Cohesion: 0.09
 Nodes (3): SpoilageController, StoreSpoilageRequest, SpoilageResource
 
 ### Community 47 - "Architecture.md"
@@ -307,16 +319,16 @@ Cohesion: 0.15
 Nodes (12): compilerOptions, allowSyntheticDefaultImports, composite, esModuleInterop, module, moduleResolution, noEmit, resolveJsonModule (+4 more)
 
 ### Community 49 - "Illuminate\Foundation\Http\FormRequest"
-Cohesion: 0.09
-Nodes (7): UserRole, Admin, EndUser, StoreCustomerRequest, StorePriceRequest, StoreSaleRemittanceRequest, SyncUserPrivilegesRequest
+Cohesion: 0.06
+Nodes (10): UserRole, Admin, EndUser, LoginRequest, UpdateProfileRequest, CheckoutOrderRequest, StoreSaleRemittanceRequest, StoreUserRequest (+2 more)
 
 ### Community 50 - "ItemsPage.tsx"
-Cohesion: 0.10
-Nodes (28): Badge(), BadgeProps, BadgeTone, EmployeeTable(), EmployeeTableProps, ItemFieldErrors, ItemForm(), Props (+20 more)
+Cohesion: 0.15
+Nodes (19): ItemFieldErrors, ItemForm(), Props, EMPTY_LIST, fieldErrorsFrom(), FormDialog, ItemsPage(), changeStatus() (+11 more)
 
 ### Community 51 - "Station"
-Cohesion: 0.09
-Nodes (6): {closure#9}(), Customer, Station, DashboardApiTest, ReportExcelExportApiTest, Phase 10.14 current Spoilage architecture
+Cohesion: 0.14
+Nodes (3): Customer, DashboardApiTest, ReportExcelExportApiTest
 
 ### Community 52 - "EmployeeForm.tsx"
 Cohesion: 0.12
@@ -327,16 +339,16 @@ Cohesion: 0.14
 Nodes (4): StationController, StoreStationRequest, UpdateStationRequest, StationResource
 
 ### Community 58 - "EnsureUserIsAdmin"
-Cohesion: 0.14
-Nodes (20): EnsureUserIsAdmin, 18. Current Phase, Architecture simplification — 2026-09-26, Deferred feature register carried forward, Phase 10.10 — Transaction History, Phase 10.1 deliverables, Phase 10.1 — Employee Management, Phase 10.1 verification — 2026-09-26 (+12 more)
+Cohesion: 0.17
+Nodes (17): EnsureUserIsAdmin, 9.1 Authentication (Phase 8), 9.3 Employee Management (Phase 10.1), Architecture simplification — 2026-09-26, Deferred feature register carried forward, Phase 10.1 deliverables, Phase 10.1 — Employee Management, Phase 10.1 verification — 2026-09-26 (+9 more)
 
 ### Community 64 - "PrivilegeController.php"
 Cohesion: 0.11
 Nodes (6): PrivilegeController, {closure#1}(), StorePrivilegeRequest, {closure#1}(), UpdatePrivilegeRequest, PrivilegeResource
 
 ### Community 65 - "Alert"
-Cohesion: 0.13
-Nodes (26): Alert(), LoadingState(), Modal(), Pagination(), SearchField(), CustomerSelector(), EMPTY, EMPTY (+18 more)
+Cohesion: 0.15
+Nodes (19): LoadingState(), Pagination(), SearchField(), ProtectedRoute(), CustomerSelector(), EMPTY, PosStationInventoryDialog(), PosTransactionsDialog() (+11 more)
 
 ### Community 66 - "Phase 10.22D — Excel Report Export"
 Cohesion: 0.33
@@ -359,16 +371,16 @@ Cohesion: 0.32
 Nodes (5): App(), router, ToastProvider(), appRoutes, react-dom
 
 ### Community 76 - "TaxSetting"
-Cohesion: 0.14
-Nodes (7): TaxStatus, NonVat, VatRegistered, {closure#1}(), TaxSettingController, UpdateTaxSettingRequest, TaxSetting
+Cohesion: 0.29
+Nodes (3): {closure#1}(), TaxSettingController, UpdateTaxSettingRequest
 
 ### Community 78 - "ItemDeliveriesPage.tsx"
-Cohesion: 0.18
-Nodes (16): CartLine, EMPTY, ItemDeliveriesPage(), confirm(), submitForm(), view(), NO_OPTIONS, validQuantity() (+8 more)
+Cohesion: 0.11
+Nodes (19): AlertProps, toneIcons, TableColumn, TableProps, Props, EMPTY, iconSizeStatus, CartLine (+11 more)
 
 ### Community 80 - "9.2 Role-Aware Application Navigation (Phase 9)"
-Cohesion: 0.22
-Nodes (9): 9.10 Orders / POS Foundation (Phase 10.8), 9.11 Payment and Order Finalization (Phase 10.9), 9.12 Transaction History (Phase 10.10), 9.2 Role-Aware Application Navigation (Phase 9), 9.3 Employee Management (Phase 10.1), 9.4 Station Management (Phase 10.2), 9.7 Consignee Management (Phase 10.5), 9.8 Consignment Account Management (Phase 10.6) (+1 more)
+Cohesion: 0.25
+Nodes (8): 9.10 Orders / POS Foundation (Phase 10.8), 9.11 Payment and Order Finalization (Phase 10.9), 9.12 Transaction History (Phase 10.10), 9.2 Role-Aware Application Navigation (Phase 9), 9.4 Station Management (Phase 10.2), 9.7 Consignee Management (Phase 10.5), 9.8 Consignment Account Management (Phase 10.6), 9.9 Station Inventory Foundation (Phase 10.7)
 
 ### Community 81 - "Deferred Work Register"
 Cohesion: 0.25
@@ -387,8 +399,8 @@ Cohesion: 0.29
 Nodes (6): Authority, Core sources, Documentation workflow, Graphify use, Task routing, University HomeStay POS Context Router
 
 ### Community 89 - "Illuminate\Http\Request"
-Cohesion: 0.09
-Nodes (9): OrderController, CreditMonitoringResource, CustomerResource, OrderDetailResource, OrderHistoryResource, PosItemResource, PosStationInventoryResource, PriceResource (+1 more)
+Cohesion: 0.07
+Nodes (7): OrderController, OrderDetailResource, OrderHistoryResource, OrderResource, PosItemResource, PosStationInventoryResource, SaleRemittanceResource
 
 ### Community 90 - "Phase 10.21 — Non-VAT / Tax Foundation"
 Cohesion: 0.29
@@ -407,24 +419,28 @@ Cohesion: 0.40
 Nodes (5): 3.1 Electron, 3.2 React + TypeScript, 3.3 Laravel, 3.4 MySQL, 3. Application Layers
 
 ### Community 102 - "apiClient.ts"
-Cohesion: 0.12
-Nodes (24): EMPTY, money, ApiErrorKind, apiRequest(), ApiRequestOptions, currentPricesFrom(), currentStockFrom(), downloadApiFile() (+16 more)
+Cohesion: 0.17
+Nodes (17): ApiErrorKind, apiRequest(), ApiRequestOptions, currentPricesFrom(), currentStockFrom(), downloadApiFile(), getApiBaseUrl(), messageForHttpStatus() (+9 more)
 
 ### Community 112 - "Architecture.md"
 Cohesion: 0.10
 Nodes (18): 10. Future Architecture, 11. Architecture Principle, 1. Project Overview, 2. Technology Architecture, 4. Initial Application Flow, 5. POS Order Flow, 6. Hardware Architecture, 7. Database Structure (+10 more)
 
-### Community 114 - "Phase 9 — Dashboard & Role-Aware Navigation Foundation"
-Cohesion: 0.67
-Nodes (3): Phase 9 — Dashboard & Role-Aware Navigation Foundation, Phase 9 deliverables, Phase 9 verification — 2026-09-26
+### Community 114 - "18. Current Phase"
+Cohesion: 0.25
+Nodes (8): 18. Current Phase, Phase 10.10 — Transaction History, Phase 10.6 — Consignment Account Management, Phase 10.7 — Station Inventory Foundation, Phase 10.8 — Orders / POS Foundation, Phase 9 — Dashboard & Role-Aware Navigation Foundation, Phase 9 deliverables, Phase 9 verification — 2026-09-26
 
-### Community 116 - "PricesPage.tsx"
-Cohesion: 0.22
-Nodes (12): EMPTY, money, PricesPage(), save(), activatePrice(), addPrice(), loadPriceItemOptions(), loadPrices() (+4 more)
+### Community 116 - "priceService.ts"
+Cohesion: 0.43
+Nodes (5): activatePrice(), PaginatedPrices, PriceItemOption, PriceList, PriceRecord
 
 ### Community 117 - "Phase 10.22C — Inventory Reconciliation"
 Cohesion: 0.33
 Nodes (6): Critical invariants, Goal, Inputs, Out of scope, Phase 10.22C — Inventory Reconciliation, Verification
+
+### Community 119 - "Order"
+Cohesion: 0.11
+Nodes (5): {closure#1}(), PosCheckoutController, {closure#1}(), Order, SaleRemittanceApiTest
 
 ### Community 122 - "navigation.ts"
 Cohesion: 0.22
@@ -436,23 +452,23 @@ Nodes (5): Goal, Inputs, Invariants, Outputs, Phase 10.23UI — Sidebar Profile 
 
 ## Knowledge Gaps
 - **9 isolated node(s):** `NonVat`, `VatRegistered`, `Admin`, `EndUser`, `@types/node` (+4 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 885 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **49 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 886 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **47 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `18. Current Phase` connect `EnsureUserIsAdmin` to `Alert`, `Illuminate\Database\Eloquent\Relations\BelongsTo`, `HandOff.md`, `Phase 9 — Dashboard & Role-Aware Navigation Foundation`, `Phase 8 — Simple Authentication / Login Foundation`?**
+- **Why does `18. Current Phase` connect `18. Current Phase` to `Alert`, `Illuminate\Database\Eloquent\Relations\BelongsTo`, `HandOff.md`, `EnsureUserIsAdmin`, `Phase 8 — Simple Authentication / Login Foundation`?**
   _High betweenness centrality (0.338) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `User` (e.g. with `9.3 Employee Management (Phase 10.1)` and `Phase 10.1 deliverables`) actually correct?**
   _`User` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `NonVat`, `VatRegistered`, `Admin` to the rest of the system?**
   _9 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `TestCase` be split into smaller, more focused modules?**
-  _Cohesion score 0.08712121212121213 - nodes in this community are weakly interconnected._
-- **Why does `Frontend UI cleanup — 2026-09-27` connect `Alert` to `EnsureUserIsAdmin`?**
+- **Should `DashboardController.php` be split into smaller, more focused modules?**
+  _Cohesion score 0.09090909090909091 - nodes in this community are weakly interconnected._
+- **Why does `Frontend UI cleanup — 2026-09-27` connect `Alert` to `18. Current Phase`?**
   _High betweenness centrality (0.318) - this node is a cross-community bridge._
-- **Should `OrdersPage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.06383619391749473 - nodes in this community are weakly interconnected._
-- **Why does `Phase 10.9 — Payment & Order Finalization` connect `Illuminate\Database\Eloquent\Relations\BelongsTo` to `EnsureUserIsAdmin`?**
+- **Should `TestCase` be split into smaller, more focused modules?**
+  _Cohesion score 0.04134697357203751 - nodes in this community are weakly interconnected._
+- **Why does `Phase 10.9 — Payment & Order Finalization` connect `Illuminate\Database\Eloquent\Relations\BelongsTo` to `18. Current Phase`, `Order`?**
   _High betweenness centrality (0.185) - this node is a cross-community bridge._

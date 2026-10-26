@@ -16,6 +16,10 @@ The POS masthead now uses the shared brand-green token instead of a separate har
 
 The Login card now centers the supplied HomeStay logo and `University HomeStay POS` name above the existing sign-in form. Authentication behavior is unchanged.
 
+Desktop Login now uses a responsive balanced 50/50 split: the supplied `login_bg.png` office/POS artwork fills the left with reduced opacity and a light brand-green overlay, while the existing card is centered on the right. Narrow screens retain the single-column card layout. Authenticated navbar and footer layouts are unchanged.
+
+Removed the unused 3.2 MB `pos-food-hero.png` asset after confirming it had no source references.
+
 Cashier Home uses the same centered logo and product-name treatment above its existing cashier details and Open POS action.
 
 The desktop Admin sidebar is 260px wide and keeps navigation labels on one line so long module names remain readable without reducing text size. The mobile layout remains responsive.

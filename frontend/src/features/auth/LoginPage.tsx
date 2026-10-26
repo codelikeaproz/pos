@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
 import logo from '../../assets/cmuhomestaylogo.jpg'
+import loginBackground from '../../assets/login_bg.png'
 import { AppIcons, iconStroke } from '../../lib/icons'
 import { useAuth } from './AuthContext'
 import './login-page.css'
@@ -39,7 +40,8 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-page__panel">
+      <main className="login-page__form-side">
+        <div className="login-page__panel">
         <div className="login-page__brand">
           <img src={logo} alt="CMU HomeStay" />
           <p>University HomeStay POS</p>
@@ -108,7 +110,11 @@ export function LoginPage() {
             {isBusy ? 'Signing in…' : 'Login'}
           </Button>
         </form>
-      </div>
+        </div>
+      </main>
+      <aside className="login-page__visual" aria-hidden="true">
+        <img src={loginBackground} alt="" />
+      </aside>
     </div>
   )
 }

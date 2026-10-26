@@ -53,7 +53,7 @@ Phase 10.20A.2 simplifies the Dashboard presentation without changing data behav
 
 The shared header contains fixed product identity and Logout. Admin profile access remains in the sidebar dropdown and centered My Profile modal. Cashier Home is a centered compact card with consistently left-aligned, text-only content and a lightweight three-row identity section.
 
-The Login surface is a centered 400px card with the local HomeStay logo and University HomeStay POS name centered above a Sign in heading, compact account-detail guidance, and existing shared form controls. Password visibility is controlled locally in `LoginPage`; its state-based icon is Eye for visible text and EyeOff for masked text, while its accessible label describes the Show/Hide action. Credentials, validation, submission, routing, and authentication services are unchanged.
+The Login surface uses a balanced 50/50 desktop split with the supplied subdued office/POS image on the left and the existing centered 400px card on the right. At narrower widths the image panel is hidden and the card returns to a single-column layout. The local HomeStay logo and University HomeStay POS name remain centered above the Sign in heading and existing shared form controls. Password visibility is controlled locally in `LoginPage`; its state-based icon is Eye for visible text and EyeOff for masked text, while its accessible label describes the Show/Hide action. Credentials, validation, submission, routing, and authentication services are unchanged.
 
 ### Current module boundary — Consignee removal (2026-10-09)
 

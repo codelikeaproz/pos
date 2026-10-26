@@ -4,7 +4,6 @@ export type Item = {
   name: string
   units_backup: string
   unit: string
-  reorder_point: string
   price: string | null
   is_active: boolean
 }

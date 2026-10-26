@@ -27,7 +27,6 @@ class StationItemResource extends JsonResource
                 'name' => $this->item->name,
                 'units_backup' => $this->item->units_backup,
                 'unit' => $this->item->unit,
-                'reorder_point' => $this->item->reorder_point,
             ],
         ];
     }

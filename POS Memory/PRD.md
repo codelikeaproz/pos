@@ -4,7 +4,7 @@
 # University HomeStay POS
 ## Product Requirements Document
 
-> Phase 10.23H.5 status (2026-10-26): The implemented POS protects quantity integrity with a two-decimal limit across inventory workflows, caps batch writes at 100 rows, and uses each Product's Reorder Point for Low Stock across Dashboard, Station Inventory, and POS. Password changes invalidate the affected User's sessions, desktop access tokens expire after 12 hours, the system prevents removal of the final Admin and preserves Users with history, Sales Excel export is memory-bounded, and the Login slideshow uses a flicker-free crossfade while respecting reduced motion.
+> Phase 10.23H.5 status (2026-10-26): The implemented POS protects quantity integrity with a two-decimal limit across inventory workflows, caps batch writes at 100 rows, and uses the internal Item Reorder Point for Low Stock across Dashboard, Station Inventory, and POS. Product Management neither displays nor accepts this threshold; editing belongs to a future dedicated Stock Threshold configuration UI. Password changes invalidate the affected User's sessions, desktop access tokens expire after 12 hours, the system prevents removal of the final Admin and preserves Users with history, Sales Excel export is memory-bounded, and the Login slideshow uses a flicker-free crossfade while respecting reduced motion.
 
 > User lifecycle status (2026-10-26): User Management no longer deletes accounts. Admins deactivate/reactivate Users, inactive accounts cannot authenticate, deactivation revokes sessions, and historical operational identity is preserved.
 

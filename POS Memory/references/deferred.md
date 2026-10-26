@@ -22,6 +22,7 @@ Current authority and status are maintained in [[Rules]], [[Requirement]], [[PRD
 - Generic/manual inventory adjustment workflow
 - Reconciliation reversal or unreconcile workflow
 - Automatic low-stock notifications and replenishment remain deferred; the Item-level reorder threshold and visual Low Stock status are active.
+- A dedicated Stock Threshold configuration UI for editing `items.reorder_point` remains deferred. Product Management must not expose the threshold.
 
 ## Reporting
 

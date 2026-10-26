@@ -26,7 +26,7 @@ class UpdateItemRequest extends FormRequest
             'quantity' => ['prohibited'],
             'units_backup' => ['required', 'string', 'max:50'],
             'unit' => ['required', 'string', 'max:20'],
-            'reorder_point' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,2})?$/'],
+            'reorder_point' => ['prohibited'],
             'price' => ['prohibited'],
             'is_active' => ['sometimes', 'boolean'],
         ];

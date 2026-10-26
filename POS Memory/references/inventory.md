@@ -16,4 +16,4 @@
 - Finalized Monthly End discrepancies can be reconciled once. The server derives `physical_count - system_count`, applies that signed variance to locked current Station stock, and records a traceable ADJUSTMENT movement.
 - Reconciliation never rewrites historical counts, never sets live stock directly to the physical count, and rejects any batch that would produce negative stock.
 - All active quantity inputs, storage, movement records, and report counts use at most two decimal places; a third fractional digit is rejected.
-- Batch inventory writes accept at most 100 rows. Product Management owns the required Item reorder point, default `10.00`, while each Station assignment owns only its quantity.
+- Batch inventory writes accept at most 100 rows. The Item reorder point is internal with default `10.00`; Product Management does not expose it, while each Station assignment owns only its quantity.

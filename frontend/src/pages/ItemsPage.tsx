@@ -19,7 +19,7 @@ const EMPTY_LIST: ItemList = { items: [], currentPage: 1, lastPage: 1, total: 0 
 
 function fieldErrorsFrom(error: unknown): ItemFieldErrors {
   if (!(error instanceof ApiError)) return {}
-  return { item_code: error.errors.item_code?.[0], name: error.errors.name?.[0], units_backup: error.errors.units_backup?.[0], unit: error.errors.unit?.[0], reorder_point: error.errors.reorder_point?.[0], price: error.errors.price?.[0] }
+  return { item_code: error.errors.item_code?.[0], name: error.errors.name?.[0], units_backup: error.errors.units_backup?.[0], unit: error.errors.unit?.[0], price: error.errors.price?.[0] }
 }
 
 export function ItemsPage() {

@@ -3,7 +3,7 @@
 
 ### Phase 10.23H — Security, Data Integrity, and Code Health (2026-10-26)
 
-Inventory quantities now have one end-to-end two-decimal contract across validation, fixed-point calculations, model serialization, API resources, frontend inputs, reports, and tests. Values with a third fractional digit are rejected instead of being silently rounded by MySQL. Batch write endpoints cap submitted rows at 100. Phase 10.23H.5 supersedes the earlier reorder-point removal: `items.reorder_point` is active with a default of `10.00`, and each Product defines its shared Low Stock threshold across Stations.
+Inventory quantities now have one end-to-end two-decimal contract across validation, fixed-point calculations, model serialization, API resources, frontend inputs, reports, and tests. Values with a third fractional digit are rejected instead of being silently rounded by MySQL. Batch write endpoints cap submitted rows at 100. `items.reorder_point` remains active internally with default `10.00`; Product Management does not expose it, while backend Low Stock classification uses it across Stations.
 
 Sanctum desktop tokens expire after 720 minutes. Any self-service or Admin password change revokes every token for the affected User and the frontend returns a self-updating User to Login. Final-Admin demotion/deletion is serialized with database row locks, and Users referenced by historical transactions or audit records return HTTP 409 instead of a foreign-key server error.
 
@@ -792,7 +792,7 @@ The boundaries are explicit: Item stores Product identity, unit metadata, Price 
 
 Item currently has no Consignee, Consignment, Station, Inventory, Order, or user relationship. Management routes are Admin-only; future End User read access for ordering must be introduced deliberately with the Orders/POS requirements.
 
-The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/unit-name search, and 10-record pagination. Item Management keeps Item Code, Item Name, Unit, Reorder Point, Price, and active state. The visible Unit edits `units_backup`; the legacy `unit` code remains an internal compatibility field.
+The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/unit-name search, and 10-record pagination. Item Management keeps Item Code, Item Name, Unit, Price, and active state. The visible Unit edits `units_backup`; the legacy `unit` code and backend reorder point remain internal compatibility fields. Product create/update rejects submitted reorder points.
 
 ## 9.7 Consignee Management (Phase 10.5)
 

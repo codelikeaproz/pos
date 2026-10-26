@@ -14,7 +14,7 @@
 ## Phase 10.23H.5 — Reorder Point Activation and Low-Stock Threshold (2026-10-26)
 
 - Restored `items.reorder_point` directly in the original Items creation migration as `DECIMAL(12,2) NOT NULL DEFAULT 10.00`; removed the uncommitted drop migration and rebuilt/seeded the development database from the clean migration history.
-- Added the required Reorder Point field and Product table column. Values accept zero and at most two decimals.
+- Kept Reorder Point internal with database default `10.00`; Product Management has no threshold input or column and rejects submitted threshold values. Editing is reserved for a future dedicated Stock Threshold configuration UI.
 - Dashboard, Station Inventory, POS Available Items, and POS Station Inventory now share the Item-level threshold: zero or less remains red Out of Stock; positive stock at or below the threshold remains soft-yellow Low Stock.
 - Inventory quantities, movement behavior, checkout validation, reconciliation, exports, taxes, authentication, and User Management are otherwise unchanged.
 

@@ -35,7 +35,6 @@ class ItemManagementApiTest extends TestCase
             'name' => 'Cheeseburger',
             'units_backup' => 'SERVING',
             'unit' => '7',
-            'reorder_point' => '10.00',
             'price' => '85.00',
         ])->assertCreated()
             ->assertJsonPath('message', 'Item added successfully.')
@@ -43,7 +42,7 @@ class ItemManagementApiTest extends TestCase
             ->assertJsonPath('item.name', 'Cheeseburger')
             ->assertJsonPath('item.units_backup', 'SERVING')
             ->assertJsonPath('item.unit', '7')
-            ->assertJsonPath('item.reorder_point', '10.00')
+            ->assertJsonMissingPath('item.reorder_point')
             ->assertJsonMissingPath('item.quantity')
             ->assertJsonPath('item.is_active', true)
             ->assertJsonPath('item.price', '85.00');
@@ -55,9 +54,8 @@ class ItemManagementApiTest extends TestCase
         $this->putJson("/api/items/{$itemId}", [
             'item_code' => 'FD-001', 'name' => 'Cheeseburger',
             'units_backup' => 'SERVING', 'unit' => '7',
-            'reorder_point' => '5.50',
             'is_active' => false,
-        ])->assertOk()->assertJsonPath('item.is_active', false)->assertJsonPath('item.reorder_point', '5.50');
+        ])->assertOk()->assertJsonPath('item.is_active', false)->assertJsonMissingPath('item.reorder_point');
         $this->assertDatabaseHas('prices', ['item_id' => $itemId, 'amount' => '85.00', 'is_active' => true]);
     }
 
@@ -75,22 +73,19 @@ class ItemManagementApiTest extends TestCase
     {
         Sanctum::actingAs(User::factory()->admin()->create());
         $this->postJson('/api/items', [])->assertUnprocessable()
-            ->assertJsonValidationErrors(['item_code', 'name', 'units_backup', 'unit', 'reorder_point', 'price']);
+            ->assertJsonValidationErrors(['item_code', 'name', 'units_backup', 'unit', 'price']);
     }
 
-    public function test_reorder_point_accepts_zero_and_two_decimals_and_rejects_invalid_values(): void
+    public function test_product_management_does_not_accept_reorder_point(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        foreach (['0', '10', '10.50'] as $index => $reorderPoint) {
-            $this->postJson('/api/items', $this->validItem(['item_code' => "REORDER-{$index}", 'reorder_point' => $reorderPoint]))
-                ->assertCreated();
-        }
+        $this->postJson('/api/items', $this->validItem(['reorder_point' => '5.00']))
+            ->assertUnprocessable()->assertJsonValidationErrors('reorder_point');
 
-        foreach (['-1', '10.125'] as $reorderPoint) {
-            $this->postJson('/api/items', $this->validItem(['item_code' => 'INVALID-'.md5($reorderPoint), 'reorder_point' => $reorderPoint]))
-                ->assertUnprocessable()->assertJsonValidationErrors('reorder_point');
-        }
+        $item = Item::query()->create($this->validItem());
+        $this->putJson("/api/items/{$item->id}", [...$this->validUpdate(), 'reorder_point' => '5.00'])
+            ->assertUnprocessable()->assertJsonValidationErrors('reorder_point');
     }
 
     public function test_price_validation_accepts_two_decimals_and_rejects_invalid_values(): void
@@ -194,7 +189,6 @@ class ItemManagementApiTest extends TestCase
             'name' => 'Test Item',
             'units_backup' => 'PIECE',
             'unit' => '1',
-            'reorder_point' => '10.00',
             'price' => '20.00',
         ], $overrides);
     }

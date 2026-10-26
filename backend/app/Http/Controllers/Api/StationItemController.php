@@ -42,7 +42,7 @@ class StationItemController extends Controller
             'items' => Item::query()
                 ->when($searchTerm !== '', fn ($query) => $query->where(fn ($search) => $search
                     ->where('name', 'like', "%{$searchTerm}%")->orWhere('item_code', 'like', "%{$searchTerm}%")))
-                ->orderBy('name')->limit(50)->get(['id', 'item_code', 'name', 'units_backup', 'unit', 'reorder_point']),
+                ->orderBy('name')->limit(50)->get(['id', 'item_code', 'name', 'units_backup', 'unit']),
         ]);
     }
 

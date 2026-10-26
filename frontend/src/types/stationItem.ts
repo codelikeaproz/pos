@@ -1,5 +1,5 @@
 export type InventoryOption = { id: number; name: string }
-export type InventoryItemOption = { id: number; item_code: string; name: string; units_backup: string; unit: string; reorder_point: string }
+export type InventoryItemOption = { id: number; item_code: string; name: string; units_backup: string; unit: string }
 export type StationItem = {
   id: number
   quantity: string

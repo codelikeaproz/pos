@@ -57,7 +57,7 @@
 
 - Low Stock is Item-specific: a positive Station balance at or below `items.reorder_point`. A zero or negative balance is Out of Stock.
 - Dashboard counts, Station Inventory, POS Available Items, and the POS Station Inventory dialog must consume the same backend status. Use a yellow row for Low Stock and a red row for Out of Stock; neither presentation changes checkout stock validation.
-- Product Management owns the Item-level Reorder Point and displays it in the Product table. The value is required, non-negative, accepts at most two decimals, and defaults to `10.00`.
+- `items.reorder_point` remains an internal backend value with database default `10.00`. Product Management must not request, return, edit, or display it. A future dedicated Stock Threshold configuration UI may manage it when explicitly scoped.
 
 ### Phase 10.21 — Non-VAT and tax snapshot rules
 

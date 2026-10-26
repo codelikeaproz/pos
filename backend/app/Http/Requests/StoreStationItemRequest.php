@@ -20,7 +20,7 @@ class StoreStationItemRequest extends FormRequest
                 'required', 'integer', 'exists:items,id',
                 Rule::unique('station_items', 'item_id')->where('station_id', $this->integer('station_id')),
             ],
-            'quantity' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],
+            'quantity' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,2})?$/'],
         ];
     }
 

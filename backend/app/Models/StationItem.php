@@ -17,11 +17,11 @@ class StationItem extends Model
     protected function casts(): array
     {
         return [
-            'quantity' => 'decimal:3',
-            'recorded_delivered_quantity' => 'decimal:3',
-            'recorded_sold_quantity' => 'decimal:3',
-            'recorded_spoilage_quantity' => 'decimal:3',
-            'reconciled_quantity' => 'decimal:3',
+            'quantity' => 'decimal:2',
+            'recorded_delivered_quantity' => 'decimal:2',
+            'recorded_sold_quantity' => 'decimal:2',
+            'recorded_spoilage_quantity' => 'decimal:2',
+            'reconciled_quantity' => 'decimal:2',
         ];
     }
 

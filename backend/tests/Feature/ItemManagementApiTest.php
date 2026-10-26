@@ -35,7 +35,7 @@ class ItemManagementApiTest extends TestCase
             'name' => 'Cheeseburger',
             'units_backup' => 'SERVING',
             'unit' => '7',
-            'reorder_point' => '3.000',
+            'reorder_point' => '10.00',
             'price' => '85.00',
         ])->assertCreated()
             ->assertJsonPath('message', 'Item added successfully.')
@@ -43,7 +43,7 @@ class ItemManagementApiTest extends TestCase
             ->assertJsonPath('item.name', 'Cheeseburger')
             ->assertJsonPath('item.units_backup', 'SERVING')
             ->assertJsonPath('item.unit', '7')
-            ->assertJsonPath('item.reorder_point', '3.000')
+            ->assertJsonPath('item.reorder_point', '10.00')
             ->assertJsonMissingPath('item.quantity')
             ->assertJsonPath('item.is_active', true)
             ->assertJsonPath('item.price', '85.00');
@@ -54,9 +54,10 @@ class ItemManagementApiTest extends TestCase
         $this->deleteJson("/api/items/{$itemId}")->assertConflict();
         $this->putJson("/api/items/{$itemId}", [
             'item_code' => 'FD-001', 'name' => 'Cheeseburger',
-            'units_backup' => 'SERVING', 'unit' => '7', 'reorder_point' => '3.000',
+            'units_backup' => 'SERVING', 'unit' => '7',
+            'reorder_point' => '5.50',
             'is_active' => false,
-        ])->assertOk()->assertJsonPath('item.is_active', false);
+        ])->assertOk()->assertJsonPath('item.is_active', false)->assertJsonPath('item.reorder_point', '5.50');
         $this->assertDatabaseHas('prices', ['item_id' => $itemId, 'amount' => '85.00', 'is_active' => true]);
     }
 
@@ -75,6 +76,21 @@ class ItemManagementApiTest extends TestCase
         Sanctum::actingAs(User::factory()->admin()->create());
         $this->postJson('/api/items', [])->assertUnprocessable()
             ->assertJsonValidationErrors(['item_code', 'name', 'units_backup', 'unit', 'reorder_point', 'price']);
+    }
+
+    public function test_reorder_point_accepts_zero_and_two_decimals_and_rejects_invalid_values(): void
+    {
+        Sanctum::actingAs(User::factory()->admin()->create());
+
+        foreach (['0', '10', '10.50'] as $index => $reorderPoint) {
+            $this->postJson('/api/items', $this->validItem(['item_code' => "REORDER-{$index}", 'reorder_point' => $reorderPoint]))
+                ->assertCreated();
+        }
+
+        foreach (['-1', '10.125'] as $reorderPoint) {
+            $this->postJson('/api/items', $this->validItem(['item_code' => 'INVALID-'.md5($reorderPoint), 'reorder_point' => $reorderPoint]))
+                ->assertUnprocessable()->assertJsonValidationErrors('reorder_point');
+        }
     }
 
     public function test_price_validation_accepts_two_decimals_and_rejects_invalid_values(): void
@@ -101,9 +117,6 @@ class ItemManagementApiTest extends TestCase
             ->assertUnprocessable()->assertJsonValidationErrors('unit');
         $this->postJson('/api/items', $this->validItem(['units_backup' => '']))
             ->assertUnprocessable()->assertJsonValidationErrors('units_backup');
-        $this->postJson('/api/items', $this->validItem(['reorder_point' => '-1']))
-            ->assertUnprocessable()->assertJsonValidationErrors('reorder_point');
-
         $this->postJson('/api/items', $this->validItem(['item_code' => 'CUSTOM-UNIT', 'units_backup' => 'TRAY', 'unit' => '18']))
             ->assertCreated()->assertJsonPath('item.units_backup', 'TRAY')->assertJsonPath('item.unit', '18');
 
@@ -118,7 +131,7 @@ class ItemManagementApiTest extends TestCase
         $item->prices()->create(['amount' => '10.00', 'is_active' => true]);
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->putJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Updated', 'units_backup' => 'KILOGRAM', 'unit' => '9', 'reorder_point' => '2.000']))
+        $this->putJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Updated', 'units_backup' => 'KILOGRAM', 'unit' => '9']))
             ->assertOk()->assertJsonPath('item.price', '10.00');
         $this->patchJson("/api/items/{$item->id}", $this->validUpdate(['item_code' => 'EDIT-001', 'name' => 'Patched', 'units_backup' => 'BOX', 'unit' => '3']))
             ->assertOk()->assertJsonPath('item.name', 'Patched')->assertJsonPath('item.price', '10.00');
@@ -181,7 +194,7 @@ class ItemManagementApiTest extends TestCase
             'name' => 'Test Item',
             'units_backup' => 'PIECE',
             'unit' => '1',
-            'reorder_point' => '2.000',
+            'reorder_point' => '10.00',
             'price' => '20.00',
         ], $overrides);
     }

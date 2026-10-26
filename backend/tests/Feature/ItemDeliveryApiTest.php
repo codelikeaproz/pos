@@ -38,26 +38,26 @@ class ItemDeliveryApiTest extends TestCase
     {
         [$station, $receiver, $admin, $first] = $this->setupDelivery();
         $second = $this->item('B', 'Bread');
-        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $first->id, 'quantity' => '100.000']);
+        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $first->id, 'quantity' => '100.00']);
         Sanctum::actingAs($admin);
 
         $delivery = $this->postJson('/api/item-deliveries', [
             'stationId' => $station->id, 'receivedById' => $receiver->id,
             'deliveredById' => $receiver->id, 'deliveryNumber' => 'FAKE',
-            'items' => [['itemId' => $first->id, 'quantity' => '20.250'], ['itemId' => $second->id, 'quantity' => '2.500']],
+            'items' => [['itemId' => $first->id, 'quantity' => '20.25'], ['itemId' => $second->id, 'quantity' => '2.50']],
         ])->assertCreated()->json('delivery');
 
         $this->assertMatchesRegularExpression('/^DEL\d{14}$/', $delivery['deliveryNumber']);
         $this->assertSame($admin->id, ItemDelivery::query()->firstOrFail()->delivered_by_id);
         $this->assertSame($receiver->id, ItemDelivery::query()->firstOrFail()->received_by_id);
-        $this->assertSame('120.250', $stock->fresh()->quantity);
-        $this->assertDatabaseHas('station_items', ['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '2.500']);
+        $this->assertSame('120.25', $stock->fresh()->quantity);
+        $this->assertDatabaseHas('station_items', ['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '2.50']);
         $this->assertDatabaseCount('item_delivery_items', 2);
-        $this->assertSame(['20.250', '2.500'], InventoryMovement::query()->orderBy('item_id')->pluck('quantity_change')->all());
+        $this->assertSame(['20.25', '2.50'], InventoryMovement::query()->orderBy('item_id')->pluck('quantity_change')->all());
         $this->assertSame(2, InventoryMovement::query()->where('type', 'DELIVERY')->count());
         $this->assertSame($admin->id, InventoryMovement::query()->firstOrFail()->actor_id);
         $this->assertSame('item_delivery_item', InventoryMovement::query()->firstOrFail()->reference_type);
-        $this->assertDatabaseHas('item_delivery_items', ['item_delivery_id' => $delivery['id'], 'item_id' => $first->id, 'quantity' => '20.250']);
+        $this->assertDatabaseHas('item_delivery_items', ['item_delivery_id' => $delivery['id'], 'item_id' => $first->id, 'quantity' => '20.25']);
 
         $record = ItemDelivery::query()->firstOrFail();
         $this->assertSame($station->id, $record->station->id);
@@ -73,7 +73,7 @@ class ItemDeliveryApiTest extends TestCase
     {
         [$station, $receiver, $admin, $item] = $this->setupDelivery();
         Sanctum::actingAs($admin);
-        $base = ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.000']]];
+        $base = ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.00']]];
         $this->postJson('/api/item-deliveries', array_merge($base, ['stationId' => 999]))->assertUnprocessable();
         $this->postJson('/api/item-deliveries', array_merge($base, ['receivedById' => 999]))->assertUnprocessable();
         $this->postJson('/api/item-deliveries', array_merge($base, ['receivedById' => $admin->id]))->assertUnprocessable();
@@ -81,7 +81,7 @@ class ItemDeliveryApiTest extends TestCase
         $this->postJson('/api/item-deliveries', array_merge($base, ['receivedById' => $other->id]))->assertUnprocessable();
         $this->postJson('/api/item-deliveries', array_merge($base, ['items' => []]))->assertUnprocessable();
         $this->postJson('/api/item-deliveries', array_merge($base, ['items' => [['itemId' => 999, 'quantity' => '1']]]))->assertUnprocessable();
-        foreach (['0', '-1', '1.0001', '1000000000'] as $quantity) {
+        foreach (['0', '-1', '1.125', '1.0001', '1000000000'] as $quantity) {
             $this->postJson('/api/item-deliveries', array_merge($base, ['items' => [['itemId' => $item->id, 'quantity' => $quantity]]]))->assertUnprocessable();
         }
         $this->postJson('/api/item-deliveries', array_merge($base, ['items' => [$base['items'][0], $base['items'][0]]]))->assertUnprocessable();
@@ -94,11 +94,11 @@ class ItemDeliveryApiTest extends TestCase
     public function test_movement_failure_rolls_back_delivery_details_and_stock(): void
     {
         [$station, $receiver, $admin, $item] = $this->setupDelivery();
-        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.000']);
+        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.00']);
         Sanctum::actingAs($admin);
         Event::listen('eloquent.creating: '.InventoryMovement::class, fn () => throw new \RuntimeException('Movement failed'));
         try {
-            $this->withoutExceptionHandling()->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.000']]]);
+            $this->withoutExceptionHandling()->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.00']]]);
             $this->fail('Expected failure');
         } catch (\RuntimeException $exception) {
             $this->assertSame('Movement failed', $exception->getMessage());
@@ -108,7 +108,7 @@ class ItemDeliveryApiTest extends TestCase
         $this->assertDatabaseCount('item_deliveries', 0);
         $this->assertDatabaseCount('item_delivery_items', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
-        $this->assertSame('5.000', $stock->fresh()->quantity);
+        $this->assertSame('5.00', $stock->fresh()->quantity);
     }
 
     public function test_detail_failure_rolls_back_header_and_first_time_balance(): void
@@ -117,7 +117,7 @@ class ItemDeliveryApiTest extends TestCase
         Sanctum::actingAs($admin);
         Event::listen('eloquent.creating: '.ItemDeliveryItem::class, fn () => throw new \RuntimeException('Detail failed'));
         try {
-            $this->withoutExceptionHandling()->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.000']]]);
+            $this->withoutExceptionHandling()->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.00']]]);
             $this->fail('Expected failure');
         } catch (\RuntimeException $exception) {
             $this->assertSame('Detail failed', $exception->getMessage());
@@ -140,9 +140,9 @@ class ItemDeliveryApiTest extends TestCase
         } catch (QueryException) {
             $this->assertDatabaseCount('item_deliveries', 1);
         }
-        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '1.000']);
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '1.00']);
         try {
-            StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '1.000']);
+            StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '1.00']);
             $this->fail('Expected unique StationItem constraint');
         } catch (QueryException) {
             $this->assertDatabaseCount('station_items', 1);
@@ -155,14 +155,14 @@ class ItemDeliveryApiTest extends TestCase
         Sanctum::actingAs($admin);
         $this->getJson('/api/item-delivery-options?station_id='.$station->id)->assertOk()->assertJsonCount(1, 'receivers')->assertJsonPath('receivers.0.id', $receiver->id);
         for ($i = 0; $i < 11; $i++) {
-            $this->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.000']]])->assertCreated();
+            $this->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $receiver->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.00']]])->assertCreated();
         }
         $this->getJson('/api/item-deliveries')->assertOk()->assertJsonCount(10, 'data')->assertJsonPath('meta.total', 11);
         $this->getJson('/api/item-deliveries?search='.$station->name)->assertOk()->assertJsonPath('meta.total', 11);
         $this->getJson('/api/item-deliveries?station_id='.$station->id)->assertOk()->assertJsonPath('meta.total', 11);
         $this->assertSame(11, ItemDelivery::query()->distinct()->count('delivery_number'));
         $this->assertDatabaseCount('station_items', 1);
-        $this->assertSame('11.000', StationItem::query()->firstOrFail()->quantity);
+        $this->assertSame('11.00', StationItem::query()->firstOrFail()->quantity);
     }
 
     private function setupDelivery(): array
@@ -176,6 +176,6 @@ class ItemDeliveryApiTest extends TestCase
 
     private function item(string $code, string $name): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'price' => '10.00']);
     }
 }

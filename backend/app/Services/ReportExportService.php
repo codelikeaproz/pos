@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\MonthlyEndReport;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
@@ -19,7 +18,7 @@ class ReportExportService
 
     private const QUANTITY_FORMAT = '#,##0.00';
 
-    public function sales(Collection $orders, object $summary, array $context): string
+    public function sales(iterable $orders, object $summary, array $context, int $orderCount): string
     {
         $path = $this->path('sales-report');
         $options = new Options;
@@ -59,7 +58,9 @@ class ReportExportService
         $writer->addRow(Row::fromValues([]));
         $headerRow = 15 + ($context['search'] === '' ? 0 : 1);
         $writer->addRow(Row::fromValues(['Date', 'Time', 'Order Number', 'Customer', 'Payment Method', 'Station', 'Cashier', 'Senior Discount', 'Total Amount'], $this->headerStyle()));
+        $hasOrders = false;
         foreach ($orders as $order) {
+            $hasOrders = true;
             $orderedAt = CarbonImmutable::instance($order->ordered_at)->setTimezone('Asia/Manila');
             $writer->addRow(Row::fromValuesWithStyles([
                 $orderedAt, $orderedAt, $order->order_number, $order->customer?->name ?? 'Walk-in',
@@ -67,10 +68,10 @@ class ReportExportService
                 $order->cashier->name, (float) $order->discount_amount, (float) $order->total_amount,
             ], null, [0 => $this->dateStyle(), 1 => $this->timeStyle(), 7 => $money, 8 => $money]));
         }
-        if ($orders->isEmpty()) {
+        if (! $hasOrders) {
             $writer->addRow(Row::fromValues(['No sales transactions found for the selected filters.']));
         }
-        $sheet->setAutoFilter(new AutoFilter(0, $headerRow, 8, max($headerRow, $headerRow + $orders->count())));
+        $sheet->setAutoFilter(new AutoFilter(0, $headerRow, 8, max($headerRow, $headerRow + $orderCount)));
         $sheet->setSheetView((new SheetView)->setFreezeRow($headerRow + 1));
         $writer->close();
 

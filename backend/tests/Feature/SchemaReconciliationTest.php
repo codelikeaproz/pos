@@ -12,6 +12,7 @@ use App\Models\StationItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\Sanctum;
 use LogicException;
 use Tests\TestCase;
@@ -19,6 +20,13 @@ use Tests\TestCase;
 class SchemaReconciliationTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_items_have_a_two_decimal_reorder_point_with_a_ten_unit_default(): void
+    {
+        $this->assertTrue(Schema::hasColumn('items', 'reorder_point'));
+        $item = $this->item();
+        $this->assertSame('10.00', $item->fresh()->reorder_point);
+    }
 
     public function test_backfill_is_repeatable_and_uses_item_ids_even_for_duplicate_names(): void
     {
@@ -72,11 +80,11 @@ class SchemaReconciliationTest extends TestCase
         $this->postJson('/api/pos/checkout', $this->checkout($item->id))->assertCreated();
         $movement = InventoryMovement::query()->firstOrFail();
         $this->assertSame('SALE', $movement->type);
-        $this->assertSame('-1.000', $movement->quantity_change);
+        $this->assertSame('-1.00', $movement->quantity_change);
         $this->assertSame('order_item', $movement->reference_type);
         $this->assertSame(OrderItem::query()->firstOrFail()->id, $movement->reference_id);
         $this->assertSame(OrderItem::query()->firstOrFail()->id, $movement->order_item_id);
-        $this->assertSame('4.000', $stock->fresh()->quantity);
+        $this->assertSame('4.00', $stock->fresh()->quantity);
 
         Event::listen('eloquent.creating: '.InventoryMovement::class, fn () => throw new \RuntimeException('Forced movement failure'));
         try {
@@ -90,7 +98,7 @@ class SchemaReconciliationTest extends TestCase
         $this->assertDatabaseCount('orders', 1);
         $this->assertDatabaseCount('order_items', 1);
         $this->assertDatabaseCount('inventory_movements', 1);
-        $this->assertSame('4.000', $stock->fresh()->quantity);
+        $this->assertSame('4.00', $stock->fresh()->quantity);
     }
 
     public function test_adjustments_are_signed_skip_noop_and_roll_back_on_failure(): void
@@ -98,27 +106,27 @@ class SchemaReconciliationTest extends TestCase
         [$user, , $stock] = $this->stock();
         Sanctum::actingAs(User::factory()->admin()->create(['station_id' => $user->station_id]));
         $url = '/api/station-items/'.$stock->id;
-        $this->putJson($url, ['quantity' => '7.000'])->assertOk();
-        $this->putJson($url, ['quantity' => '7.000'])->assertOk();
-        $this->putJson($url, ['quantity' => '6.500'])->assertOk();
-        $this->assertSame(['2.000', '-0.500'], InventoryMovement::query()->orderBy('id')->pluck('quantity_change')->all());
+        $this->putJson($url, ['quantity' => '7.00'])->assertOk();
+        $this->putJson($url, ['quantity' => '7.00'])->assertOk();
+        $this->putJson($url, ['quantity' => '6.50'])->assertOk();
+        $this->assertSame(['2.00', '-0.50'], InventoryMovement::query()->orderBy('id')->pluck('quantity_change')->all());
 
         Event::listen('eloquent.creating: '.InventoryMovement::class, fn () => throw new \RuntimeException('Forced movement failure'));
         try {
-            $this->withoutExceptionHandling()->putJson($url, ['quantity' => '8.000']);
+            $this->withoutExceptionHandling()->putJson($url, ['quantity' => '8.00']);
             $this->fail('Expected failure.');
         } catch (\RuntimeException $exception) {
             $this->assertSame('Forced movement failure', $exception->getMessage());
         } finally {
             Event::forget('eloquent.creating: '.InventoryMovement::class);
         }
-        $this->assertSame('6.500', $stock->fresh()->quantity);
+        $this->assertSame('6.50', $stock->fresh()->quantity);
         $this->assertDatabaseCount('inventory_movements', 2);
     }
 
     private function item(string $code = 'ONE', string $name = 'Item', string $price = '20.00'): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'price' => $price]);
     }
 
     private function stock(): array
@@ -127,13 +135,13 @@ class SchemaReconciliationTest extends TestCase
         $user = User::factory()->endUser()->create(['station_id' => $station->id]);
         $item = $this->item();
         Price::query()->create(['item_id' => $item->id, 'amount' => '20.00', 'is_active' => true]);
-        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.000']);
+        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.00']);
 
         return [$user, $item, $stock];
     }
 
     private function checkout(int $itemId): array
     {
-        return ['items' => [['itemId' => $itemId, 'quantity' => '1.000', 'expectedUnitPrice' => '20.00', 'unitPrice' => '0.01']], 'paymentMethod' => 'cash', 'cashReceived' => '100.00'];
+        return ['items' => [['itemId' => $itemId, 'quantity' => '1.00', 'expectedUnitPrice' => '20.00', 'unitPrice' => '0.01']], 'paymentMethod' => 'cash', 'cashReceived' => '100.00'];
     }
 }

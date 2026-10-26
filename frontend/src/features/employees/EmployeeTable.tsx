@@ -9,14 +9,14 @@ type EmployeeTableProps = {
   employees: Employee[]
   currentUserId: number
   onEdit: (employee: Employee) => void
-  onDelete: (employee: Employee) => void
+  onStatusChange: (employee: Employee) => void
 }
 
 export function EmployeeTable({
   employees,
   currentUserId,
   onEdit,
-  onDelete
+  onStatusChange
 }: EmployeeTableProps) {
   const columns: TableColumn<Employee>[] = [
     {
@@ -43,6 +43,7 @@ export function EmployeeTable({
         </Badge>
       )
     },
+    { key: 'status', header: 'Status', render: (employee) => <Badge tone={employee.is_active ? 'success' : 'error'}>{employee.is_active ? 'Active' : 'Inactive'}</Badge> },
     {
       key: 'actions',
       header: 'Actions',
@@ -57,16 +58,16 @@ export function EmployeeTable({
             icon={<AppIcons.edit size={iconSize} strokeWidth={iconStroke} />}
           />
           <Button className="table-icon-action"
-            variant="danger"
-            aria-label={`Delete ${employee.name}`}
-            onClick={() => onDelete(employee)}
+            variant="outline"
+            aria-label={`${employee.is_active ? 'Deactivate' : 'Reactivate'} ${employee.name}`}
+            onClick={() => onStatusChange(employee)}
             disabled={employee.id === currentUserId}
             title={
               employee.id === currentUserId
-                ? 'You cannot delete your own signed-in account.'
-                : `Delete ${employee.name}`
+                ? 'You cannot deactivate your own signed-in account.'
+                : `${employee.is_active ? 'Deactivate' : 'Reactivate'} ${employee.name}`
             }
-            icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}
+            icon={employee.is_active ? <AppIcons.deactivate size={iconSize} strokeWidth={iconStroke} /> : <AppIcons.activate size={iconSize} strokeWidth={iconStroke} />}
           />
         </div>
       )

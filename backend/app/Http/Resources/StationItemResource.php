@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,11 +13,11 @@ class StationItemResource extends JsonResource
             'id' => $this->id,
             'quantity' => $this->quantity,
             'current_quantity' => $this->quantity,
-            'recorded_delivered_quantity' => $this->recorded_delivered_quantity ?? '0.000',
-            'recorded_sold_quantity' => $this->recorded_sold_quantity ?? '0.000',
-            'recorded_spoilage_quantity' => $this->recorded_spoilage_quantity ?? '0.000',
+            'recorded_delivered_quantity' => $this->recorded_delivered_quantity ?? '0.00',
+            'recorded_sold_quantity' => $this->recorded_sold_quantity ?? '0.00',
+            'recorded_spoilage_quantity' => $this->recorded_spoilage_quantity ?? '0.00',
             'reconciled_quantity' => $this->reconciled_quantity ?? $this->quantity,
-            'is_low_stock' => (float) $this->quantity <= Item::LOW_STOCK_QUANTITY,
+            'is_low_stock' => $this->item->isLowStock($this->quantity),
             'stock_status' => (float) $this->quantity > 0 ? 'in_stock' : 'out_of_stock',
             'has_movement_history' => (bool) ($this->movements_exists ?? false),
             'station' => ['id' => $this->station->id, 'name' => $this->station->name],

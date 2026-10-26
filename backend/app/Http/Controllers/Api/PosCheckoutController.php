@@ -79,9 +79,9 @@ class PosCheckoutController extends Controller
                     throw ValidationException::withMessages(['items' => ['An inactive item cannot be sold.']]);
                 }
 
-                $quantityMilli = $this->parseFixed($requestLine['quantity'], 3);
-                $availableMilli = $this->parseFixed($stationItem->quantity, 3);
-                if ($quantityMilli > $availableMilli) {
+                $quantityCents = $this->parseFixed($requestLine['quantity'], 2);
+                $availableCents = $this->parseFixed($stationItem->quantity, 2);
+                if ($quantityCents > $availableCents) {
                     throw ValidationException::withMessages([
                         'items' => ["Only {$stationItem->quantity} units of {$stationItem->item->name} are available at this station."],
                     ]);
@@ -95,16 +95,16 @@ class PosCheckoutController extends Controller
                 if ($priceCents !== $this->parseFixed($requestLine['expectedUnitPrice'], 2)) {
                     $changedPrices[] = ['itemId' => (int) $itemId, 'price' => $itemPrices->first()->amount];
                 }
-                if ($quantityMilli !== 0 && $priceCents > intdiv(PHP_INT_MAX, $quantityMilli)) {
+                if ($quantityCents !== 0 && $priceCents > intdiv(PHP_INT_MAX, $quantityCents)) {
                     throw ValidationException::withMessages(['items' => ['The calculated order amount is too large.']]);
                 }
-                $subtotalCents = intdiv(($priceCents * $quantityMilli) + 500, 1000);
+                $subtotalCents = intdiv(($priceCents * $quantityCents) + 50, 100);
                 $totalCents += $subtotalCents;
                 if ($totalCents > 999999999999) {
                     throw ValidationException::withMessages(['items' => ['The calculated order total is too large.']]);
                 }
 
-                $lines[] = compact('stationItem', 'quantityMilli', 'priceCents', 'subtotalCents');
+                $lines[] = compact('stationItem', 'quantityCents', 'priceCents', 'subtotalCents');
             }
 
             if ($changedPrices !== []) {
@@ -155,18 +155,18 @@ class PosCheckoutController extends Controller
                     'item_code' => $stationItem->item->item_code,
                     'item_name' => $stationItem->item->name,
                     'unit' => $stationItem->item->units_backup,
-                    'quantity' => $this->formatFixed($line['quantityMilli'], 3),
+                    'quantity' => $this->formatFixed($line['quantityCents'], 2),
                     'unit_price' => $this->formatFixed($line['priceCents'], 2),
                     'subtotal' => $this->formatFixed($line['subtotalCents'], 2),
                 ]);
                 $stationItem->update([
-                    'quantity' => $this->formatFixed($this->parseFixed($stationItem->quantity, 3) - $line['quantityMilli'], 3),
+                    'quantity' => $this->formatFixed($this->parseFixed($stationItem->quantity, 2) - $line['quantityCents'], 2),
                 ]);
                 InventoryMovement::query()->create([
                     'station_item_id' => $stationItem->id,
                     'item_id' => $stationItem->item_id,
                     'order_item_id' => $orderItem->id,
-                    'quantity_change' => '-'.$this->formatFixed($line['quantityMilli'], 3),
+                    'quantity_change' => '-'.$this->formatFixed($line['quantityCents'], 2),
                     'type' => 'SALE',
                     'reference_type' => 'order_item',
                     'reference_id' => $orderItem->id,

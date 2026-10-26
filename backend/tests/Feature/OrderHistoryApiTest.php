@@ -108,7 +108,7 @@ class OrderHistoryApiTest extends TestCase
         $this->getJson("/api/orders/{$order->id}")->assertOk()
             ->assertJsonPath('order.items.0.itemCode', 'OLD-CODE')->assertJsonPath('order.items.0.itemName', 'Old Name')
             ->assertJsonPath('order.items.0.unit', 'PACK')->assertJsonPath('order.items.0.unitPrice', '25.00')
-            ->assertJsonPath('order.items.0.quantity', '2.000')->assertJsonPath('order.items.0.subtotal', '50.00')
+            ->assertJsonPath('order.items.0.quantity', '2.00')->assertJsonPath('order.items.0.subtotal', '50.00')
             ->assertJsonPath('order.cashReceived', '100.00')->assertJsonPath('order.changeAmount', '50.00')
             ->assertJsonMissingPath('order.cashier.password')->assertJsonMissingPath('order.cashier.remember_token');
     }
@@ -123,9 +123,9 @@ class OrderHistoryApiTest extends TestCase
 
     private function order(Station $station, User $cashier, string $number, string $orderedAt): Order
     {
-        $item = Item::query()->firstOrCreate(['item_code' => 'MASTER'], ['name' => 'Master', 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
+        $item = Item::query()->firstOrCreate(['item_code' => 'MASTER'], ['name' => 'Master', 'units_backup' => 'PACK', 'unit' => '1', 'price' => '10.00']);
         $order = Order::query()->create(['order_number' => $number, 'ordered_at' => $orderedAt, 'station_id' => $station->id, 'cashier_id' => $cashier->id, 'payment_method' => 'cash', 'total_amount' => '50.00', 'cash_received' => '100.00', 'change_amount' => '50.00']);
-        $order->orderItems()->create(['item_id' => $item->id, 'item_code' => 'OLD-CODE', 'item_name' => 'Old Name', 'unit' => 'PACK', 'quantity' => '2.000', 'unit_price' => '25.00', 'subtotal' => '50.00']);
+        $order->orderItems()->create(['item_id' => $item->id, 'item_code' => 'OLD-CODE', 'item_name' => 'Old Name', 'unit' => 'PACK', 'quantity' => '2.00', 'unit_price' => '25.00', 'subtotal' => '50.00']);
 
         return $order;
     }

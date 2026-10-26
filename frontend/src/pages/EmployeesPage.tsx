@@ -16,10 +16,10 @@ import { AppIcons, iconSize, iconStroke } from '../lib/icons'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
 import {
   createEmployee,
-  deleteEmployee,
   loadEmployees,
   loadEmployeeOptions,
-  updateEmployee
+  updateEmployee,
+  updateEmployeeStatus
 } from '../services/userService'
 import type { Employee, EmployeeInput, EmployeeList, EmployeeOptions } from '../types/user'
 import './employees-page.css'
@@ -60,7 +60,7 @@ export function EmployeesPage() {
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [formDialog, setFormDialog] = useState<FormDialog | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
+  const [statusTarget, setStatusTarget] = useState<Employee | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<EmployeeFieldErrors>({})
@@ -159,8 +159,8 @@ export function EmployeesPage() {
     }
   }
 
-  async function handleDelete(): Promise<void> {
-    if (!deleteTarget) {
+  async function handleStatusChange(): Promise<void> {
+    if (!statusTarget) {
       return
     }
 
@@ -168,14 +168,10 @@ export function EmployeesPage() {
     setFormError(null)
 
     try {
-      const response = await deleteEmployee(deleteTarget.id)
-      setDeleteTarget(null)
+      const response = await updateEmployeeStatus(statusTarget.id, !statusTarget.is_active)
+      setStatusTarget(null)
       showToast(response.message)
-      if (employeeList.employees.length === 1 && page > 1) {
-        setPage((currentPage) => currentPage - 1)
-      } else {
-        await refreshEmployees()
-      }
+      await refreshEmployees()
     } catch (error) {
       setFormError(getUserFacingApiMessage(error))
     } finally {
@@ -228,9 +224,9 @@ export function EmployeesPage() {
             employees={employeeList.employees}
             currentUserId={currentUser?.id ?? 0}
             onEdit={openEditDialog}
-            onDelete={(employee) => {
+            onStatusChange={(employee) => {
               setFormError(null)
-              setDeleteTarget(employee)
+              setStatusTarget(employee)
             }}
           />
           <Pagination currentPage={employeeList.currentPage} lastPage={employeeList.lastPage} label="Employee" onPageChange={setPage} pageSize={pageSize} onPageSizeChange={(value) => { setPageSize(value); setPage(1) }} />
@@ -271,27 +267,27 @@ export function EmployeesPage() {
       </Modal>
 
       <Modal
-        open={deleteTarget !== null}
-        title="Delete Employee?"
+        open={statusTarget !== null}
+        title={`${statusTarget?.is_active ? 'Deactivate' : 'Reactivate'} Employee?`}
         onClose={() => {
           if (!submitting) {
-            setDeleteTarget(null)
+            setStatusTarget(null)
             setFormError(null)
           }
         }}
         actions={
             <Button
-              variant="danger"
+              variant={statusTarget?.is_active ? 'danger' : 'primary'}
               disabled={submitting}
-              onClick={() => void handleDelete()}
-              icon={<AppIcons.delete size={iconSize} strokeWidth={iconStroke} />}
+              onClick={() => void handleStatusChange()}
+              icon={statusTarget?.is_active ? <AppIcons.deactivate size={iconSize} strokeWidth={iconStroke} /> : <AppIcons.activate size={iconSize} strokeWidth={iconStroke} />}
             >
-              {submitting ? 'Deleting…' : 'Delete Employee'}
+              {submitting ? 'Saving…' : `${statusTarget?.is_active ? 'Deactivate' : 'Reactivate'} Employee`}
             </Button>
         }
       >
         {formError ? (
-          <Alert tone="error" title="Employee could not be deleted">
+          <Alert tone="error" title="Employee status could not be changed">
             {formError}
           </Alert>
         ) : null}
@@ -304,9 +300,9 @@ export function EmployeesPage() {
           />
           <div>
             <p>
-              Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?
+              Are you sure you want to {statusTarget?.is_active ? 'deactivate' : 'reactivate'} <strong>{statusTarget?.name}</strong>?
             </p>
-            <p>This action cannot be undone.</p>
+            <p>{statusTarget?.is_active ? 'They will be signed out and unable to log in. Historical records will remain.' : 'They will be allowed to log in again.'}</p>
           </div>
         </div>
       </Modal>

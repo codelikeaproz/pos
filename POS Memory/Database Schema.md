@@ -1,6 +1,10 @@
 # Database Schema — legacy field notes
 
+> Phase 10.23H.5 schema (2026-10-26): active inventory quantity columns use `DECIMAL(12,2)` and runtime validation rejects a third fractional digit. `items.reorder_point` is defined directly in the original Items creation migration as `DECIMAL(12,2) NOT NULL DEFAULT 10.00`; the temporary forward-drop migration was removed before commit and the development database was rebuilt from the clean migration history. Historical User foreign keys remain restrictive and User deletion checks them before attempting a delete.
+
 > Phase 10.23UI schema (2026-10-22): the original `users` creation migration defines required `sex VARCHAR(16)`. User Management validates the current values `male` and `female`; the field chooses local profile artwork and has no authorization meaning. The development database was rebuilt and seeded from the clean migration set.
+
+> User lifecycle update (2026-10-26): `users.is_active BOOLEAN NOT NULL DEFAULT TRUE` is defined directly in the original Users creation migration and supports deactivation without deleting operational identity or orphaning history. The development database was rebuilt and seeded from the clean migration set.
 
 > Phase 10.22B schema (2026-10-21): `monthly_end_reports` stores `station_id`, `created_by_id`, month, year, Draft/Finalized status, nullable finalizer and finalization time, timestamps, and a unique Station/month/year key. `monthly_end_report_items` belongs to a report and stores `item_id`, Item code/name/unit snapshots, `system_count DECIMAL(12,2)`, nullable `physical_count DECIMAL(12,2)`, timestamps, and a unique report/Item key. Header actors and Station use restrictive foreign keys; report items cascade only when their parent report is removed. These tables are historical count records and do not replace or update `station_items` or `inventory_movements`.
 

@@ -19,15 +19,20 @@ const SLIDES: LoginSlide[] = [
 export function LoginSlideshow() {
   const [activeSlide, setActiveSlide] = useState(0)
   const [cycle, setCycle] = useState(0)
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
 
   useEffect(() => {
-    SLIDES.forEach(({ image }) => { const preload = new Image(); preload.src = image })
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const updatePreference = () => setReducedMotion(media.matches)
+    media.addEventListener('change', updatePreference)
+    return () => media.removeEventListener('change', updatePreference)
   }, [])
 
   useEffect(() => {
+    if (reducedMotion) return
     const timer = window.setTimeout(() => setActiveSlide((current) => (current + 1) % SLIDES.length), 5_000)
     return () => window.clearTimeout(timer)
-  }, [activeSlide, cycle])
+  }, [activeSlide, cycle, reducedMotion])
 
   function selectSlide(index: number): void {
     setActiveSlide(index)
@@ -40,7 +45,7 @@ export function LoginSlideshow() {
         {SLIDES.map((slide, index) => <img key={slide.image} src={slide.image} alt="" className={index === activeSlide ? 'is-active' : ''} />)}
       </div>
       <div className="login-slideshow__shade" />
-      <div className="login-slideshow__caption" aria-live="polite">
+      <div className="login-slideshow__caption">
         <h2>{SLIDES[activeSlide].title}</h2>
         <p>{SLIDES[activeSlide].subtitle}</p>
         <div className="login-slideshow__dots" aria-label="Choose slideshow image">

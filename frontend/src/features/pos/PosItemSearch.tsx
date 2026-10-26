@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button'
 import { Table, type TableColumn } from '../../components/ui/Table'
 import { StockQuantity } from '../../components/ui/StockQuantity'
 import { AppIcons, iconSize, iconStroke } from '../../lib/icons'
-import { formatPrice, quantityToThousandths } from '../../lib/posCalculations'
+import { formatPrice, quantityToHundredths } from '../../lib/posCalculations'
 import { getUserFacingApiMessage } from '../../services/apiClient'
 import { loadPosItems } from '../../services/posService'
 import type { PosItem, PosItemList } from '../../types/pos'
@@ -87,7 +87,7 @@ export function PosItemSearch({ value, search, list, loading, error, suspended, 
     { key: 'available', header: 'Available', render: (item) => <StockQuantity quantity={item.available_quantity} unit={item.unit} isLowStock={item.is_low_stock} /> },
     { key: 'price', header: 'Unit Price', align: 'right', render: (item) => formatPrice(item.price) },
     { key: 'action', header: 'Action', align: 'center', render: (item) => {
-      const outOfStock = (quantityToThousandths(item.available_quantity) ?? 0n) <= 0n
+      const outOfStock = (quantityToHundredths(item.available_quantity) ?? 0n) <= 0n
       return <span title={outOfStock ? `${item.name} is out of stock` : `Add ${item.name} to the order`}>
         <Button className="table-icon-action" disabled={outOfStock} aria-label={outOfStock ? `${item.name} is out of stock` : `Add ${item.name} to the order`} onClick={() => add(item)} icon={<AppIcons.add size={iconSize} strokeWidth={iconStroke} />} />
       </span>
@@ -99,7 +99,7 @@ export function PosItemSearch({ value, search, list, loading, error, suspended, 
     {error ? <Alert tone="warning">{error}</Alert> : null}
     {(open || inline) ? <div className="pos-item-search__results" role="region" aria-label="Available item results">
       {checkingCode || !resultsReady ? <LoadingState label="Searching items…" /> : <>
-        <Table columns={columns} rows={list.items} rowKey={(item) => String(item.id)} rowClassName={(item) => (quantityToThousandths(item.available_quantity) ?? 0n) <= 0n ? 'ui-table__row--danger' : item.is_low_stock ? 'ui-table__row--warning' : undefined} emptyMessage="No sellable items found for this Station." />
+        <Table columns={columns} rows={list.items} rowKey={(item) => String(item.id)} rowClassName={(item) => (quantityToHundredths(item.available_quantity) ?? 0n) <= 0n ? 'ui-table__row--danger' : item.is_low_stock ? 'ui-table__row--warning' : undefined} emptyMessage="No sellable items found for this Station." />
         <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Available Item" onPageChange={onPageChange} />
       </>}
       {notice ? <p className="pos-item-search__notice" role="status">{notice}</p> : null}

@@ -3,7 +3,11 @@
 # University HomeStay POS
 ## Requirements
 
+> Phase 10.23H.5 status (2026-10-26): Inventory quantities accept at most two decimal places; write batches are capped at 100 rows; every Product has a required two-decimal Reorder Point defaulting to `10.00`, and all stock views use it for Low Stock. Desktop tokens expire after 12 hours and all sessions for a User are revoked when that User's password changes. Final-Admin changes are serialized, User Management preserves all accounts through deactivation instead of deletion, large Sales exports are memory-bounded, and the optimized Login slideshow respects reduced motion.
+
 > Phase 10.23UI status (2026-10-22): User Management records required Male/Female sex for each User and the shared navbar selects the matching supplied profile image. Its compact profile menu presents identity, System Role, informational Privileges, Station, editable My Profile, and Logout with consistent action sizing. Admin and Cashier users may update their own name, unique email, sex, and optional password with matching confirmation. My Profile cannot change System Role, Privileges, or Station. The non-POS navbar uses the HomeStay logo, fixed product name, and right-edge profile menu, while non-POS pages share a compact institutional footer. The navigation-only Admin sidebar groups existing modules into Main, Inventory & Products, Sales & Transactions, Reports, and Administration. `users.role` and current route/API guards remain authoritative.
+
+> User lifecycle update (2026-10-26): User Management uses Active/Inactive status instead of deletion. Deactivation immediately revokes the User's tokens and blocks login while preserving sales, inventory, report, tax, remittance, and delivery history. Reactivation restores login eligibility. The signed-in User and final active Admin are protected.
 
 > Phase 10.22D status (2026-10-22): Admin can download valid `.xlsx` files for the current filtered Sales Report and for Finalized Monthly End Inventory/Reconciliation. Sales export contains the complete filtered dataset and persisted financial values, independent of page size. Monthly End export preserves snapshot identity, counts, variance, result, and reconciliation audit fields. Both exports are authenticated and read-only; PDF, CSV, and formal report printing remain deferred.
 

@@ -18,9 +18,9 @@ class StoreSpoilageRequest extends FormRequest
             'stationId' => ['required', 'integer', 'exists:stations,id'],
             'incidentDate' => ['sometimes', 'date_format:Y-m-d', 'before_or_equal:'.CarbonImmutable::now('Asia/Manila')->toDateString()],
             'reason' => ['nullable', 'string', 'max:500'],
-            'items' => ['required', 'array', 'min:1'],
+            'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.itemId' => ['required', 'integer', 'distinct', 'exists:items,id'],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],
+            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'regex:/^\d{1,9}(\.\d{1,2})?$/'],
         ];
     }
 

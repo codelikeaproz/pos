@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('role', 32)->default('end_user');
             $table->string('sex', 16);
             $table->foreignId('station_id')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

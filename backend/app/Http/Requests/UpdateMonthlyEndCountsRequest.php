@@ -14,7 +14,7 @@ class UpdateMonthlyEndCountsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'counts' => ['required', 'array', 'min:1'],
+            'counts' => ['required', 'array', 'min:1', 'max:100'],
             'counts.*.id' => ['required', 'integer', 'distinct'],
             'counts.*.physicalCount' => ['nullable', 'numeric', 'min:0', 'regex:/^\d{1,10}(\.\d{1,2})?$/'],
         ];

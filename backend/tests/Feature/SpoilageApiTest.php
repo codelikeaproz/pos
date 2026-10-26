@@ -41,23 +41,23 @@ class SpoilageApiTest extends TestCase
     public function test_spoilage_deducts_exact_stock_and_records_negative_movements_for_multiple_items(): void
     {
         [$station, $admin] = $this->setupStation();
-        [$beef, $beefStock] = $this->stock($station, 'BEEF', 'Beef', '20.000');
-        [$milk, $milkStock] = $this->stock($station, 'MILK', 'Milk', '10.000');
+        [$beef, $beefStock] = $this->stock($station, 'BEEF', 'Beef', '20.00');
+        [$milk, $milkStock] = $this->stock($station, 'MILK', 'Milk', '10.00');
         Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/spoilages', [
             'stationId' => $station->id, 'reason' => 'Power interruption', 'recordedById' => 999,
             'spoilageNumber' => 'FAKE', 'items' => [
-                ['itemId' => $beef->id, 'quantity' => '2.500', 'itemName' => 'Fake'],
-                ['itemId' => $milk->id, 'quantity' => '1.125'],
+                ['itemId' => $beef->id, 'quantity' => '2.50', 'itemName' => 'Fake'],
+                ['itemId' => $milk->id, 'quantity' => '1.25'],
             ],
         ])->assertCreated()->assertJsonPath('spoilage.recordedBy.id', $admin->id);
         $id = $response->json('spoilage.id');
         $this->assertMatchesRegularExpression('/^SPL\d{14}$/', $response->json('spoilage.spoilageNumber'));
-        $this->assertSame('17.500', $beefStock->fresh()->quantity);
-        $this->assertSame('8.875', $milkStock->fresh()->quantity);
+        $this->assertSame('17.50', $beefStock->fresh()->quantity);
+        $this->assertSame('8.75', $milkStock->fresh()->quantity);
         $this->assertDatabaseCount('spoilage_items', 2);
-        $this->assertSame(['-2.500', '-1.125'], InventoryMovement::query()->orderBy('item_id')->pluck('quantity_change')->all());
+        $this->assertSame(['-2.50', '-1.25'], InventoryMovement::query()->orderBy('item_id')->pluck('quantity_change')->all());
         $this->assertSame(2, InventoryMovement::query()->where('type', 'SPOILAGE')->count());
         $movement = InventoryMovement::query()->firstOrFail();
         $this->assertSame($beefStock->id, $movement->station_item_id);
@@ -77,16 +77,16 @@ class SpoilageApiTest extends TestCase
     public function test_station_scoped_options_allow_inactive_items_with_stock_and_no_price(): void
     {
         [$station, $admin] = $this->setupStation();
-        [$item, $balance] = $this->stock($station, 'OLD', 'Old Stock', '3.000');
+        [$item, $balance] = $this->stock($station, 'OLD', 'Old Stock', '3.00');
         $item->update(['is_active' => false]);
         $otherStation = Station::query()->create(['name' => 'Other', 'location' => 'Other']);
-        $this->stock($otherStation, 'OTHER', 'Other Stock', '4.000');
-        $this->stock($station, 'ZERO', 'Zero Stock', '0.000');
+        $this->stock($otherStation, 'OTHER', 'Other Stock', '4.00');
+        $this->stock($station, 'ZERO', 'Zero Stock', '0.00');
         Sanctum::actingAs($admin);
-        $this->getJson('/api/spoilage-options?station_id='.$station->id)->assertOk()->assertJsonCount(1, 'items')->assertJsonPath('items.0.id', $item->id)->assertJsonPath('items.0.available', '3.000');
+        $this->getJson('/api/spoilage-options?station_id='.$station->id)->assertOk()->assertJsonCount(1, 'items')->assertJsonPath('items.0.id', $item->id)->assertJsonPath('items.0.available', '3.00');
         $this->getJson('/api/spoilage-options?station_id='.$station->id.'&item_search=OLD')->assertOk()->assertJsonCount(1, 'items');
-        $this->postJson('/api/spoilages', ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.000']]])->assertCreated();
-        $this->assertSame('2.000', $balance->fresh()->quantity);
+        $this->postJson('/api/spoilages', ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.00']]])->assertCreated();
+        $this->assertSame('2.00', $balance->fresh()->quantity);
         $this->assertSame(0, Price::query()->count());
     }
 
@@ -94,13 +94,13 @@ class SpoilageApiTest extends TestCase
     {
         $this->travelTo(CarbonImmutable::parse('2026-10-01 04:00:00', 'UTC'));
         [$station, $admin] = $this->setupStation();
-        [$item] = $this->stock($station, 'A', 'Apple', '5.000');
+        [$item] = $this->stock($station, 'A', 'Apple', '5.00');
         Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/spoilages', [
             'stationId' => $station->id,
             'incidentDate' => '2026-09-25',
-            'items' => [['itemId' => $item->id, 'quantity' => '1.000']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.00']],
         ])->assertCreated();
 
         $this->assertStringStartsWith('SPL20260925', $response->json('spoilage.spoilageNumber'));
@@ -109,41 +109,41 @@ class SpoilageApiTest extends TestCase
         $this->postJson('/api/spoilages', [
             'stationId' => $station->id,
             'incidentDate' => '2026-10-02',
-            'items' => [['itemId' => $item->id, 'quantity' => '1.000']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.00']],
         ])->assertUnprocessable()->assertJsonValidationErrors('incidentDate');
     }
 
     public function test_validation_and_stale_stock_reject_without_partial_writes(): void
     {
         [$station, $admin] = $this->setupStation();
-        [$item, $stock] = $this->stock($station, 'A', 'Apple', '5.000');
+        [$item, $stock] = $this->stock($station, 'A', 'Apple', '5.00');
         $unassigned = $this->item('B', 'Bread');
         Sanctum::actingAs($admin);
-        $base = ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.000']]];
+        $base = ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '1.00']]];
         $this->postJson('/api/spoilages', array_merge($base, ['stationId' => 999]))->assertUnprocessable();
         $this->postJson('/api/spoilages', array_merge($base, ['items' => []]))->assertUnprocessable();
         $this->postJson('/api/spoilages', array_merge($base, ['items' => [['itemId' => 999, 'quantity' => '1']]]))->assertUnprocessable();
         $this->postJson('/api/spoilages', array_merge($base, ['items' => [['itemId' => $unassigned->id, 'quantity' => '1']]]))->assertUnprocessable();
         $this->postJson('/api/spoilages', array_merge($base, ['items' => [$base['items'][0], $base['items'][0]]]))->assertUnprocessable();
-        foreach (['0', '-1', '1.0001', '1000000000'] as $quantity) {
+        foreach (['0', '-1', '1.125', '1.0001', '1000000000'] as $quantity) {
             $this->postJson('/api/spoilages', array_merge($base, ['items' => [['itemId' => $item->id, 'quantity' => $quantity]]]))->assertUnprocessable();
         }
-        $this->postJson('/api/spoilages', array_merge($base, ['items' => [['itemId' => $item->id, 'quantity' => '6.000']]]))
-            ->assertConflict()->assertJsonPath('currentStock.0.itemId', $item->id)->assertJsonPath('currentStock.0.available', '5.000');
-        $stock->update(['quantity' => '2.000']);
-        $this->postJson('/api/spoilages', array_merge($base, ['items' => [['itemId' => $item->id, 'quantity' => '3.000']]]))
-            ->assertConflict()->assertJsonPath('currentStock.0.available', '2.000');
+        $this->postJson('/api/spoilages', array_merge($base, ['items' => [['itemId' => $item->id, 'quantity' => '6.00']]]))
+            ->assertConflict()->assertJsonPath('currentStock.0.itemId', $item->id)->assertJsonPath('currentStock.0.available', '5.00');
+        $stock->update(['quantity' => '2.00']);
+        $this->postJson('/api/spoilages', array_merge($base, ['items' => [['itemId' => $item->id, 'quantity' => '3.00']]]))
+            ->assertConflict()->assertJsonPath('currentStock.0.available', '2.00');
         $this->assertDatabaseCount('spoilages', 0);
         $this->assertDatabaseCount('spoilage_items', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
-        $this->assertSame('2.000', $stock->fresh()->quantity);
+        $this->assertSame('2.00', $stock->fresh()->quantity);
     }
 
     public function test_second_item_movement_failure_rolls_back_all_spoilage_and_stock(): void
     {
         [$station, $admin] = $this->setupStation();
-        [$first, $firstStock] = $this->stock($station, 'A', 'Apple', '10.000');
-        [$second, $secondStock] = $this->stock($station, 'B', 'Bread', '20.000');
+        [$first, $firstStock] = $this->stock($station, 'A', 'Apple', '10.00');
+        [$second, $secondStock] = $this->stock($station, 'B', 'Bread', '20.00');
         Sanctum::actingAs($admin);
         $count = 0;
         Event::listen('eloquent.creating: '.InventoryMovement::class, function () use (&$count) {
@@ -154,7 +154,7 @@ class SpoilageApiTest extends TestCase
         try {
             $this->withoutExceptionHandling()->postJson('/api/spoilages', [
                 'stationId' => $station->id,
-                'items' => [['itemId' => $first->id, 'quantity' => '2.000'], ['itemId' => $second->id, 'quantity' => '5.000']],
+                'items' => [['itemId' => $first->id, 'quantity' => '2.00'], ['itemId' => $second->id, 'quantity' => '5.00']],
             ]);
             $this->fail('Expected failure');
         } catch (\RuntimeException $exception) {
@@ -165,17 +165,17 @@ class SpoilageApiTest extends TestCase
         $this->assertDatabaseCount('spoilages', 0);
         $this->assertDatabaseCount('spoilage_items', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
-        $this->assertSame('10.000', $firstStock->fresh()->quantity);
-        $this->assertSame('20.000', $secondStock->fresh()->quantity);
+        $this->assertSame('10.00', $firstStock->fresh()->quantity);
+        $this->assertSame('20.00', $secondStock->fresh()->quantity);
     }
 
     public function test_search_pagination_and_unique_number_constraint(): void
     {
         [$station, $admin] = $this->setupStation();
-        [$item] = $this->stock($station, 'A', 'Apple', '20.000');
+        [$item] = $this->stock($station, 'A', 'Apple', '20.00');
         Sanctum::actingAs($admin);
         for ($i = 0; $i < 11; $i++) {
-            $this->postJson('/api/spoilages', ['stationId' => $station->id, 'reason' => 'Damage', 'items' => [['itemId' => $item->id, 'quantity' => '1.000']]])->assertCreated();
+            $this->postJson('/api/spoilages', ['stationId' => $station->id, 'reason' => 'Damage', 'items' => [['itemId' => $item->id, 'quantity' => '1.00']]])->assertCreated();
         }
         $this->getJson('/api/spoilages')->assertOk()->assertJsonCount(10, 'data')->assertJsonPath('meta.total', 11);
         $this->getJson('/api/spoilages?search=Damage')->assertOk()->assertJsonPath('meta.total', 11);
@@ -193,22 +193,22 @@ class SpoilageApiTest extends TestCase
     public function test_sale_delivery_spoilage_and_adjustment_share_the_same_station_balance(): void
     {
         [$station, $admin] = $this->setupStation();
-        [$item, $stock] = $this->stock($station, 'A', 'Apple', '10.000');
+        [$item, $stock] = $this->stock($station, 'A', 'Apple', '10.00');
         $item->prices()->create(['amount' => '10.00', 'is_active' => true]);
         $cashier = User::factory()->endUser()->create(['station_id' => $station->id]);
 
         Sanctum::actingAs($cashier);
-        $this->postJson('/api/pos/checkout', ['items' => [['itemId' => $item->id, 'quantity' => '3.000', 'expectedUnitPrice' => '10.00']], 'paymentMethod' => 'cash', 'cashReceived' => '30.00'])->assertCreated();
-        $this->assertSame('7.000', $stock->fresh()->quantity);
+        $this->postJson('/api/pos/checkout', ['items' => [['itemId' => $item->id, 'quantity' => '3.00', 'expectedUnitPrice' => '10.00']], 'paymentMethod' => 'cash', 'cashReceived' => '30.00'])->assertCreated();
+        $this->assertSame('7.00', $stock->fresh()->quantity);
 
         Sanctum::actingAs($admin);
-        $this->postJson('/api/spoilages', ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '8.000']]])
-            ->assertConflict()->assertJsonPath('currentStock.0.available', '7.000');
-        $this->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $cashier->id, 'items' => [['itemId' => $item->id, 'quantity' => '5.000']]])->assertCreated();
-        $this->assertSame('12.000', $stock->fresh()->quantity);
-        $this->postJson('/api/spoilages', ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.000']]])->assertCreated();
-        $this->putJson('/api/station-items/'.$stock->id, ['quantity' => '11.000'])->assertOk();
-        $this->assertSame('11.000', $stock->fresh()->quantity);
+        $this->postJson('/api/spoilages', ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '8.00']]])
+            ->assertConflict()->assertJsonPath('currentStock.0.available', '7.00');
+        $this->postJson('/api/item-deliveries', ['stationId' => $station->id, 'receivedById' => $cashier->id, 'items' => [['itemId' => $item->id, 'quantity' => '5.00']]])->assertCreated();
+        $this->assertSame('12.00', $stock->fresh()->quantity);
+        $this->postJson('/api/spoilages', ['stationId' => $station->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.00']]])->assertCreated();
+        $this->putJson('/api/station-items/'.$stock->id, ['quantity' => '11.00'])->assertOk();
+        $this->assertSame('11.00', $stock->fresh()->quantity);
         $this->assertSame(['SALE', 'DELIVERY', 'SPOILAGE', 'ADJUSTMENT'], InventoryMovement::query()->orderBy('id')->pluck('type')->all());
         $this->assertSame('10.00', $item->activePriceAmount());
     }
@@ -224,17 +224,17 @@ class SpoilageApiTest extends TestCase
         $item->prices()->create(['amount' => '10.00', 'is_active' => true]);
 
         Sanctum::actingAs($admin);
-        $this->postJson('/api/item-deliveries', ['stationId' => $stationA->id, 'receivedById' => $cashierA->id, 'items' => [['itemId' => $item->id, 'quantity' => '20.000']]])->assertCreated();
-        $this->postJson('/api/item-deliveries', ['stationId' => $stationB->id, 'receivedById' => $cashierB->id, 'items' => [['itemId' => $item->id, 'quantity' => '10.000']]])->assertCreated();
+        $this->postJson('/api/item-deliveries', ['stationId' => $stationA->id, 'receivedById' => $cashierA->id, 'items' => [['itemId' => $item->id, 'quantity' => '20.00']]])->assertCreated();
+        $this->postJson('/api/item-deliveries', ['stationId' => $stationB->id, 'receivedById' => $cashierB->id, 'items' => [['itemId' => $item->id, 'quantity' => '10.00']]])->assertCreated();
 
         Sanctum::actingAs($cashierA);
-        $this->postJson('/api/pos/checkout', ['items' => [['itemId' => $item->id, 'quantity' => '3.000', 'expectedUnitPrice' => '10.00']], 'paymentMethod' => 'cash', 'cashReceived' => '30.00'])->assertCreated();
+        $this->postJson('/api/pos/checkout', ['items' => [['itemId' => $item->id, 'quantity' => '3.00', 'expectedUnitPrice' => '10.00']], 'paymentMethod' => 'cash', 'cashReceived' => '30.00'])->assertCreated();
 
         Sanctum::actingAs($admin);
-        $this->postJson('/api/spoilages', ['stationId' => $stationB->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.000']]])->assertCreated();
+        $this->postJson('/api/spoilages', ['stationId' => $stationB->id, 'items' => [['itemId' => $item->id, 'quantity' => '2.00']]])->assertCreated();
 
-        $this->assertSame('17.000', StationItem::query()->where('station_id', $stationA->id)->where('item_id', $item->id)->firstOrFail()->quantity);
-        $this->assertSame('8.000', StationItem::query()->where('station_id', $stationB->id)->where('item_id', $item->id)->firstOrFail()->quantity);
+        $this->assertSame('17.00', StationItem::query()->where('station_id', $stationA->id)->where('item_id', $item->id)->firstOrFail()->quantity);
+        $this->assertSame('8.00', StationItem::query()->where('station_id', $stationB->id)->where('item_id', $item->id)->firstOrFail()->quantity);
         $this->assertSame(['DELIVERY', 'DELIVERY', 'SALE', 'SPOILAGE'], InventoryMovement::query()->orderBy('id')->pluck('type')->all());
     }
 
@@ -245,7 +245,7 @@ class SpoilageApiTest extends TestCase
 
     private function item(string $code, string $name): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'price' => '10.00']);
     }
 
     private function stock(Station $station, string $code, string $name, string $quantity): array

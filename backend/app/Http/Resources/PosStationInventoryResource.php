@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,11 +16,11 @@ class PosStationInventoryResource extends JsonResource
             'unit' => $this->item->units_backup,
             'quantity' => $this->quantity,
             'currentQuantity' => $this->quantity,
-            'recordedDeliveredQuantity' => $this->recorded_delivered_quantity ?? '0.000',
-            'recordedSoldQuantity' => $this->recorded_sold_quantity ?? '0.000',
-            'recordedSpoilageQuantity' => $this->recorded_spoilage_quantity ?? '0.000',
+            'recordedDeliveredQuantity' => $this->recorded_delivered_quantity ?? '0.00',
+            'recordedSoldQuantity' => $this->recorded_sold_quantity ?? '0.00',
+            'recordedSpoilageQuantity' => $this->recorded_spoilage_quantity ?? '0.00',
             'isActive' => $this->item->is_active,
-            'isLowStock' => (float) $this->quantity <= Item::LOW_STOCK_QUANTITY,
+            'isLowStock' => $this->item->isLowStock($this->quantity),
         ];
     }
 }

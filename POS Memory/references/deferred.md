@@ -21,6 +21,7 @@ Current authority and status are maintained in [[Rules]], [[Requirement]], [[PRD
 
 - Generic/manual inventory adjustment workflow
 - Reconciliation reversal or unreconcile workflow
+- Automatic low-stock notifications and replenishment remain deferred; the Item-level reorder threshold and visual Low Stock status are active.
 
 ## Reporting
 
@@ -37,3 +38,4 @@ Current authority and status are maintained in [[Rules]], [[Requirement]], [[PRD
 
 - Removed Consignee and Consignment Account workflows require new stakeholder analysis before reintroduction.
 - Any Privilege-to-permission/RBAC redesign requires stakeholder consultation. Self-service name, email, sex, and confirmed password updates are implemented in My Profile.
+- Broader audit logging and configurable operational KPI thresholds remain deferred. Account deactivation/reactivation is implemented and replaces User deletion.

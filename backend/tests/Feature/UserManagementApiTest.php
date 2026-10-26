@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\Order;
 use App\Models\Station;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -168,6 +169,7 @@ class UserManagementApiTest extends TestCase
             'password' => Hash::make('original-password'),
         ]);
         $originalPasswordHash = $user->password;
+        $user->createToken('pos-desktop');
         Sanctum::actingAs($admin);
 
         $this->putJson("/api/users/{$user->id}", [
@@ -181,6 +183,7 @@ class UserManagementApiTest extends TestCase
             ->assertJsonMissingPath('user.password');
 
         $this->assertSame($originalPasswordHash, $user->fresh()->password);
+        $this->assertDatabaseCount('personal_access_tokens', 1);
     }
 
     public function test_admin_can_update_user_password_securely(): void
@@ -189,6 +192,7 @@ class UserManagementApiTest extends TestCase
         $user = User::factory()->endUser()->create([
             'password' => Hash::make('original-password'),
         ]);
+        $user->createToken('pos-desktop');
         Sanctum::actingAs($admin);
 
         $this->putJson("/api/users/{$user->id}", [
@@ -202,35 +206,70 @@ class UserManagementApiTest extends TestCase
             ->assertJsonMissingPath('user.password');
 
         $this->assertTrue(Hash::check('replacement-password', $user->fresh()->password));
+        $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
-    public function test_admin_can_delete_another_user(): void
+    public function test_admin_can_deactivate_and_reactivate_another_user(): void
     {
         $admin = User::factory()->admin()->create();
         $user = User::factory()->endUser()->create();
+        $user->createToken('pos-desktop');
         Sanctum::actingAs($admin);
 
-        $this->deleteJson("/api/users/{$user->id}")
+        $this->patchJson("/api/users/{$user->id}/status", ['is_active' => false])
             ->assertOk()
-            ->assertJsonPath('message', 'Employee deleted successfully.');
+            ->assertJsonPath('message', 'Employee deactivated successfully.')
+            ->assertJsonPath('user.is_active', false);
 
-        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'is_active' => false]);
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+
+        $this->patchJson("/api/users/{$user->id}/status", ['is_active' => true])
+            ->assertOk()
+            ->assertJsonPath('message', 'Employee reactivated successfully.')
+            ->assertJsonPath('user.is_active', true);
     }
 
-    public function test_admin_cannot_delete_their_own_account(): void
+    public function test_admin_cannot_deactivate_their_own_account(): void
     {
         $admin = User::factory()->admin()->create();
         User::factory()->admin()->create();
         Sanctum::actingAs($admin);
 
-        $this->deleteJson("/api/users/{$admin->id}")
+        $this->patchJson("/api/users/{$admin->id}/status", ['is_active' => false])
             ->assertConflict()
-            ->assertJsonPath('message', 'You cannot delete your own account while signed in.');
+            ->assertJsonPath('message', 'You cannot deactivate your own account while signed in.');
 
-        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+        $this->assertDatabaseHas('users', ['id' => $admin->id, 'is_active' => true]);
     }
 
-    public function test_last_admin_cannot_be_deleted(): void
+    public function test_user_with_historical_records_can_be_deactivated_without_orphaning_history(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $cashier = User::factory()->endUser()->create();
+        $station = Station::query()->create(['name' => 'Main Station', 'location' => 'Main']);
+        Order::query()->create([
+            'order_number' => 'ORD20261026000001',
+            'ordered_at' => now(),
+            'station_id' => $station->id,
+            'cashier_id' => $cashier->id,
+            'payment_method' => 'cash',
+            'subtotal_amount' => '10.00',
+            'discount_amount' => '0.00',
+            'total_amount' => '10.00',
+            'cash_received' => '10.00',
+            'change_amount' => '0.00',
+        ]);
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/users/{$cashier->id}/status", ['is_active' => false])
+            ->assertOk()
+            ->assertJsonPath('user.is_active', false);
+
+        $this->assertDatabaseHas('orders', ['cashier_id' => $cashier->id]);
+    }
+
+    public function test_last_active_admin_cannot_be_deactivated(): void
     {
         $currentAdmin = User::factory()->admin()->create();
         $lastOtherAdmin = User::factory()->admin()->create();
@@ -240,11 +279,11 @@ class UserManagementApiTest extends TestCase
             'role' => UserRole::EndUser->value,
         ]);
 
-        $this->deleteJson("/api/users/{$lastOtherAdmin->id}")
+        $this->patchJson("/api/users/{$lastOtherAdmin->id}/status", ['is_active' => false])
             ->assertConflict()
             ->assertJsonPath('message', 'The system must have at least one administrator.');
 
-        $this->assertDatabaseHas('users', ['id' => $lastOtherAdmin->id]);
+        $this->assertDatabaseHas('users', ['id' => $lastOtherAdmin->id, 'is_active' => true]);
     }
 
     public function test_last_admin_cannot_be_demoted(): void

@@ -4,6 +4,35 @@
 # University HomeStay POS
 ## Development Handoff
 
+## User Account Deactivation (2026-10-26)
+
+- Replaced User deletion with Admin-only Deactivate/Reactivate actions and visible Active/Inactive status.
+- Added `users.is_active` with a safe default of active directly to the original Users creation migration, then rebuilt and seeded the development database from the clean migration set.
+- Deactivation revokes all tokens and inactive Users receive the generic invalid-credentials login response. Historical records and foreign-key identities remain intact.
+- Self-deactivation and deactivation or demotion of the final active Admin are blocked with HTTP 409.
+
+## Phase 10.23H.5 — Reorder Point Activation and Low-Stock Threshold (2026-10-26)
+
+- Restored `items.reorder_point` directly in the original Items creation migration as `DECIMAL(12,2) NOT NULL DEFAULT 10.00`; removed the uncommitted drop migration and rebuilt/seeded the development database from the clean migration history.
+- Added the required Reorder Point field and Product table column. Values accept zero and at most two decimals.
+- Dashboard, Station Inventory, POS Available Items, and POS Station Inventory now share the Item-level threshold: zero or less remains red Out of Stock; positive stock at or below the threshold remains soft-yellow Low Stock.
+- Inventory quantities, movement behavior, checkout validation, reconciliation, exports, taxes, authentication, and User Management are otherwise unchanged.
+
+The Phase 10.23H notes below describe the immediately preceding implementation and are superseded only where they say the reorder point was removed or Low Stock was fixed at 10.
+
+## Phase 10.23H — Security, Data Integrity, and Code Health (2026-10-26)
+
+- Completed the two-decimal quantity contract across backend validation/arithmetic/casts/resources, frontend fixed-point helpers and inputs, reports, and regression fixtures. Third fractional digits are rejected.
+- Added 100-row limits to checkout, delivery, spoilage, physical-count, reconciliation, and remittance batches.
+- Configured 12-hour Sanctum token expiry. Self-service and Admin password changes revoke all tokens for the affected User; the current frontend session returns to Login after a self password change.
+- Serialized final-Admin demotion/deletion with row locks and return HTTP 409 when a User is referenced by historical records.
+- Changed Sales Excel export from an eager full result set to bounded lazy chunks.
+- Added a forward migration removing the dead Item reorder point and removed its active backend/frontend/test contracts. Low Stock remains fixed at 10.
+- Removed the Login slideshow Pause/Play by stakeholder request, kept automatic rotation disabled for reduced-motion users, removed automatic live announcements, and use overlapping image layers for a flicker-free crossfade without redundant JavaScript preloading.
+- Verification: 185 backend tests / 1,534 assertions pass; Pint, frontend typecheck, and Electron production build pass.
+- Local database inspection confirmed all active quantity columns at scale 2, zero third-decimal conflicts, one Product with a zero reorder point, and two Users. Migration batch 2 removed `items.reorder_point`; the Product and Users were preserved. No database reset or reseed was performed.
+- No commit or push was created for this phase.
+
 ### Phase 10.23UI — Sidebar Profile and Navigation (2026-10-22)
 
 Replaced the expanded Admin sidebar identity block with a navbar avatar, name, System Role, and chevron trigger. The accessible dropdown closes on outside click or Escape and displays email, explicit System Role, informational Privilege badges, Station, My Profile, and Logout. Existing Admin modules are grouped under Main, Inventory & Products, Sales & Transactions, Reports, and Administration; Spoilage is now visible in its existing authorized route. Route guards and `users.role` authorization are unchanged.
@@ -16,7 +45,7 @@ The POS masthead now uses the shared brand-green token instead of a separate har
 
 The Login card now centers the supplied HomeStay logo and `University HomeStay POS` name above the existing sign-in form. Authentication behavior is unchanged.
 
-Desktop Login now uses a responsive balanced 50/50 split: `LoginSlideshow` cycles the three supplied local images on the left every five seconds with an 800ms crossfade, centered cover image placement, separate captions, and clickable keyboard-accessible indicators. It preloads images, cleans up its timer, resets timing after manual navigation, and respects reduced-motion preferences. The existing card remains centered on the right, narrow screens retain the single-column card layout, and authentication, navbar, and footer behavior are unchanged.
+Desktop Login now uses a responsive balanced 50/50 split: `LoginSlideshow` cycles the three supplied local images on the left every five seconds with an 800ms opacity crossfade, centered cover image placement, separate captions, and clickable keyboard-accessible indicators. Its overlapping layers avoid source-swap flicker, it cleans up its timer, resets timing after manual navigation, and respects reduced-motion preferences. The existing card remains centered on the right, narrow screens retain the single-column card layout, and authentication, navbar, and footer behavior are unchanged.
 
 Removed the unused 3.2 MB `pos-food-hero.png` asset after confirming it had no source references.
 

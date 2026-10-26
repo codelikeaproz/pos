@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'role' => UserRole::EndUser,
             'sex' => fake()->randomElement(['male', 'female']),
+            'is_active' => true,
             'remember_token' => Str::random(10),
         ];
     }

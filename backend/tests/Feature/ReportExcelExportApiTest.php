@@ -63,7 +63,7 @@ class ReportExcelExportApiTest extends TestCase
         $report = MonthlyEndReport::query()->create(['station_id' => $station->id, 'created_by_id' => $admin->id, 'report_month' => 10, 'report_year' => 2026, 'status' => 'FINALIZED', 'finalized_by_id' => $admin->id, 'finalized_at' => now()]);
         $rows = [];
         foreach ([['Batchoy', '50.00', '48.00'], ['Rice', '30.00', '30.00'], ['Coke', '20.00', '22.00']] as [$name, $system, $physical]) {
-            $item = Item::query()->create(['item_code' => strtoupper($name), 'name' => $name, 'units_backup' => 'pc', 'unit' => 'pc', 'reorder_point' => '0.00', 'price' => '10.00']);
+            $item = Item::query()->create(['item_code' => strtoupper($name), 'name' => $name, 'units_backup' => 'pc', 'unit' => 'pc', 'price' => '10.00']);
             $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => $system]);
             $rows[$name] = $report->items()->create(['item_id' => $item->id, 'item_code_snapshot' => strtoupper($name), 'item_name_snapshot' => $name, 'unit_snapshot' => 'pc', 'system_count' => $system, 'physical_count' => $physical]);
             if ($name === 'Batchoy') {

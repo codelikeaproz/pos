@@ -16,9 +16,9 @@ class StoreItemDeliveryRequest extends FormRequest
         return [
             'stationId' => ['required', 'integer', 'exists:stations,id'],
             'receivedById' => ['required', 'integer', 'exists:users,id'],
-            'items' => ['required', 'array', 'min:1'],
+            'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.itemId' => ['required', 'integer', 'distinct', 'exists:items,id'],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/'],
+            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'regex:/^\d{1,9}(\.\d{1,2})?$/'],
         ];
     }
 

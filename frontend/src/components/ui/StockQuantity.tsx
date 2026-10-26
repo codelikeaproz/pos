@@ -1,4 +1,4 @@
-import { formatQuantity, quantityToThousandths } from '../../lib/posCalculations'
+import { formatQuantity, quantityToHundredths } from '../../lib/posCalculations'
 import { Badge } from './Badge'
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 }
 
 export function StockQuantity({ quantity, unit, isLowStock }: Props) {
-  const amount = quantityToThousandths(quantity) ?? 0n
+  const amount = quantityToHundredths(quantity) ?? 0n
   const displayedQuantity = `${formatQuantity(quantity)}${unit ? ` ${unit}` : ''}`
 
   if (amount <= 0n) return <Badge tone="error">Out of Stock: {displayedQuantity} remaining</Badge>

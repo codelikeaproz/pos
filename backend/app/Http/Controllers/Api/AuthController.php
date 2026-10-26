@@ -21,7 +21,7 @@ class AuthController extends Controller
         /** @var User|null $user */
         $user = User::query()->where('email', $credentials['email'])->first();
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! $user->is_active || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials.'],
             ]);
@@ -55,7 +55,12 @@ class AuthController extends Controller
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         $user = $request->user();
-        $user->update($request->validated());
+        $validated = $request->validated();
+        $passwordChanged = filled($validated['password'] ?? null);
+        $user->update($validated);
+        if ($passwordChanged) {
+            $user->tokens()->delete();
+        }
 
         return response()->json([
             'message' => 'Profile updated successfully.',

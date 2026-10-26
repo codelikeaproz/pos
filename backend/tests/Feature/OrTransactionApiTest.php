@@ -95,7 +95,7 @@ class OrTransactionApiTest extends TestCase
     {
         [$station, , $cashier] = $this->contexts();
         $order = $this->order($station, $cashier, 'ORD20261005000003', '2026-10-05 03:00:00');
-        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => Item::query()->firstOrFail()->id, 'quantity' => '7.500']);
+        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => Item::query()->firstOrFail()->id, 'quantity' => '7.50']);
         $movementCount = InventoryMovement::query()->count();
         Sanctum::actingAs(User::factory()->admin()->create());
 
@@ -104,7 +104,7 @@ class OrTransactionApiTest extends TestCase
             ->assertJsonPath('order.items.0.itemCode', 'SNAP-CODE')->assertJsonPath('order.items.0.itemName', 'Snapshot Item')
             ->assertJsonPath('order.items.0.unitPrice', '25.00')->assertJsonPath('order.items.0.subtotal', '50.00');
 
-        $this->assertSame('7.500', $stock->fresh()->quantity);
+        $this->assertSame('7.50', $stock->fresh()->quantity);
         $this->assertSame($movementCount, InventoryMovement::query()->count());
     }
 
@@ -136,13 +136,13 @@ class OrTransactionApiTest extends TestCase
 
     private function order(Station $station, User $cashier, string $number, string $orderedAt, string $method = 'cash', string $total = '50.00', ?Customer $customer = null): Order
     {
-        $item = Item::query()->firstOrCreate(['item_code' => 'MASTER'], ['name' => 'Master', 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => '10.00']);
+        $item = Item::query()->firstOrCreate(['item_code' => 'MASTER'], ['name' => 'Master', 'units_backup' => 'PACK', 'unit' => '1', 'price' => '10.00']);
         $order = Order::query()->create([
             'order_number' => $number, 'ordered_at' => $orderedAt, 'station_id' => $station->id, 'cashier_id' => $cashier->id,
             'customer_id' => $customer?->id, 'payment_method' => $method, 'total_amount' => $total,
             'cash_received' => $method === 'cash' ? '100.00' : null, 'change_amount' => $method === 'cash' ? bcsub('100.00', $total, 2) : null,
         ]);
-        $order->orderItems()->create(['item_id' => $item->id, 'item_code' => 'SNAP-CODE', 'item_name' => 'Snapshot Item', 'unit' => 'PACK', 'quantity' => '2.000', 'unit_price' => '25.00', 'subtotal' => '50.00']);
+        $order->orderItems()->create(['item_id' => $item->id, 'item_code' => 'SNAP-CODE', 'item_name' => 'Snapshot Item', 'unit' => 'PACK', 'quantity' => '2.00', 'unit_price' => '25.00', 'subtotal' => '50.00']);
 
         return $order;
     }

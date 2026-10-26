@@ -87,8 +87,8 @@ class SpoilageController extends Controller
 
             $shortages = [];
             foreach ($requested as $line) {
-                $available = self::toThousandths($stock->get($line['itemId'])->quantity);
-                if (self::toThousandths((string) $line['quantity']) > $available) {
+                $available = self::toCents($stock->get($line['itemId'])->quantity);
+                if (self::toCents((string) $line['quantity']) > $available) {
                     $shortages[] = ['itemId' => $line['itemId'], 'available' => $stock->get($line['itemId'])->quantity];
                 }
             }
@@ -113,19 +113,19 @@ class SpoilageController extends Controller
             foreach ($requested as $line) {
                 $item = $items->get($line['itemId']);
                 $balance = $stock->get($line['itemId']);
-                $quantity = self::toThousandths((string) $line['quantity']);
+                $quantity = self::toCents((string) $line['quantity']);
                 $detail = $spoilage->items()->create([
                     'item_id' => $item->id,
-                    'quantity' => self::fromThousandths($quantity),
+                    'quantity' => self::fromCents($quantity),
                     'item_code' => $item->item_code,
                     'item_name' => $item->name,
                     'unit' => $item->units_backup,
                 ]);
-                $balance->update(['quantity' => self::fromThousandths(self::toThousandths($balance->quantity) - $quantity)]);
+                $balance->update(['quantity' => self::fromCents(self::toCents($balance->quantity) - $quantity)]);
                 InventoryMovement::query()->create([
                     'station_item_id' => $balance->id,
                     'item_id' => $item->id,
-                    'quantity_change' => '-'.self::fromThousandths($quantity),
+                    'quantity_change' => '-'.self::fromCents($quantity),
                     'type' => 'SPOILAGE',
                     'reference_type' => 'spoilage_item',
                     'reference_id' => $detail->id,
@@ -139,15 +139,15 @@ class SpoilageController extends Controller
         return response()->json(['message' => 'Spoilage recorded.', 'spoilage' => (new SpoilageResource($spoilage))->resolve($request)], 201);
     }
 
-    private static function toThousandths(string $value): int
+    private static function toCents(string $value): int
     {
         [$whole, $fraction] = array_pad(explode('.', $value, 2), 2, '');
 
-        return (int) $whole * 1000 + (int) str_pad($fraction, 3, '0');
+        return (int) $whole * 100 + (int) str_pad($fraction, 2, '0');
     }
 
-    private static function fromThousandths(int $value): string
+    private static function fromCents(int $value): string
     {
-        return intdiv($value, 1000).'.'.str_pad((string) ($value % 1000), 3, '0', STR_PAD_LEFT);
+        return intdiv($value, 100).'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
     }
 }

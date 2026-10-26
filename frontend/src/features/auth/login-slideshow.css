@@ -22,9 +22,7 @@
   transition: opacity 800ms ease;
 }
 
-.login-slideshow__images img.is-active {
-  opacity: .88;
-}
+.login-slideshow__images img.is-active { opacity: .88; }
 
 .login-slideshow__shade {
   background: linear-gradient(180deg, rgb(0 73 30 / 4%) 38%, rgb(0 55 22 / 86%) 100%);
@@ -52,6 +50,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-slideshow__images img { transition: opacity 120ms linear; }
+  .login-slideshow__images img { transition: none; }
   .login-slideshow__dots button { transition: none; }
 }

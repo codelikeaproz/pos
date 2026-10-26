@@ -108,9 +108,13 @@ class MonthlyEndReportApiTest extends TestCase
             ->assertJsonPath('report.items.4.result', 'UNCOUNTED');
 
         foreach ($stocks as $index => $stock) {
-            $this->assertSame(['50.000', '30.000', '20.000', '5.000', '10.250'][$index], $stock->fresh()->quantity);
+            $this->assertSame(['50.00', '30.00', '20.00', '5.00', '10.25'][$index], $stock->fresh()->quantity);
         }
         $this->assertSame($movementCount, InventoryMovement::query()->count());
+
+        $this->putJson("/api/monthly-end-reports/{$report['id']}/physical-counts", ['counts' => [
+            ['id' => $ids['SHORT']['id'], 'physicalCount' => '1.125'],
+        ]])->assertUnprocessable()->assertJsonValidationErrors('counts.0.physicalCount');
     }
 
     public function test_finalization_requires_every_count_then_freezes_report_without_stock_or_movements(): void
@@ -129,7 +133,7 @@ class MonthlyEndReportApiTest extends TestCase
             ->assertJsonPath('report.summary.uncounted', 0);
         $this->putJson("/api/monthly-end-reports/{$report['id']}/physical-counts", ['counts' => [['id' => $itemId, 'physicalCount' => '50.00']]])->assertUnprocessable();
         $this->postJson("/api/monthly-end-reports/{$report['id']}/finalize")->assertUnprocessable();
-        $this->assertSame('50.000', $stock->fresh()->quantity);
+        $this->assertSame('50.00', $stock->fresh()->quantity);
         $this->assertSame($movementCount, InventoryMovement::query()->count());
     }
 
@@ -156,7 +160,7 @@ class MonthlyEndReportApiTest extends TestCase
 
     private function stock(Station $station, string $code, string $name, string $unit, string $quantity, bool $active = true, bool $priced = true): StationItem
     {
-        $item = Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => $unit, 'unit' => $unit, 'reorder_point' => '0.00', 'price' => '10.00', 'is_active' => $active]);
+        $item = Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => $unit, 'unit' => $unit, 'price' => '10.00', 'is_active' => $active]);
         if ($priced) {
             $item->prices()->create(['amount' => '10.00', 'is_active' => true]);
         }

@@ -13,6 +13,6 @@ class UpdateStationItemRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['quantity' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,3})?$/']];
+        return ['quantity' => ['required', 'numeric', 'min:0', 'regex:/^\d{1,9}(\.\d{1,2})?$/']];
     }
 }

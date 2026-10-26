@@ -15,3 +15,4 @@
 - Senior Discount uses the accepted server-side formula and persisted snapshot values.
 - Orders and Order Items preserve historical values; checkout writes a negative SALE Inventory Movement with the stock deduction.
 - Any validation or write failure rolls back Order, items, stock, and movements together.
+- Cart quantities use at most two decimal places, and one checkout accepts at most 100 Item rows.

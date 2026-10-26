@@ -48,16 +48,18 @@ class SalesReportController extends Controller
         $period = $filters['period'] ?? 'this_month';
         [$from, $to] = $this->dateRange($period, $filters);
         $query = $this->filteredOrders($filters, $from, $to);
-        $orders = (clone $query)->with(['station', 'cashier', 'customer'])->orderByDesc('ordered_at')->orderByDesc('id')->get();
+        $summary = $this->summary($query);
+        $orders = (clone $query)->with(['station', 'cashier', 'customer'])
+            ->orderByDesc('ordered_at')->orderByDesc('id')->lazy(500);
         $fromDate = $from->setTimezone('Asia/Manila')->toDateString();
         $toDate = $to->subSecond()->setTimezone('Asia/Manila')->toDateString();
-        $path = $exporter->sales($orders, $this->summary($query), [
+        $path = $exporter->sales($orders, $summary, [
             'from' => CarbonImmutable::parse($fromDate)->format('F j, Y'),
             'to' => CarbonImmutable::parse($toDate)->format('F j, Y'),
             'station' => isset($filters['station_id']) ? Station::query()->findOrFail($filters['station_id'])->name : 'All Stations',
             'payment' => ($filters['payment_method'] ?? null) === 'cash' ? 'Cash' : (($filters['payment_method'] ?? null) === 'credit' ? 'Credit / Utang' : 'All'),
             'search' => trim($filters['search'] ?? ''),
-        ]);
+        ], (int) $summary->transactions);
 
         return response()->download($path, "sales-report-{$fromDate}-to-{$toDate}.xlsx", ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend();
     }

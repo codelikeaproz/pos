@@ -13,6 +13,6 @@ class StoreSaleRemittanceRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['order_ids' => ['required', 'array', 'min:1'], 'order_ids.*' => ['required', 'integer', 'distinct']];
+        return ['order_ids' => ['required', 'array', 'min:1', 'max:100'], 'order_ids.*' => ['required', 'integer', 'distinct']];
     }
 }

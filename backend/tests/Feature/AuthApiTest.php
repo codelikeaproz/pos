@@ -77,6 +77,19 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('errors.email.0', 'Invalid credentials.');
     }
 
+    public function test_inactive_user_cannot_login(): void
+    {
+        User::factory()->create([
+            'email' => 'inactive@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => false,
+        ]);
+
+        $this->postJson('/api/login', ['email' => 'inactive@example.com', 'password' => 'password'])
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.email.0', 'Invalid credentials.');
+    }
+
     public function test_login_validates_email_and_password(): void
     {
         $this->postJson('/api/login', [
@@ -185,6 +198,30 @@ class AuthApiTest extends TestCase
         $this->withToken($expiredToken)
             ->getJson('/api/current-user')
             ->assertUnauthorized();
+    }
+
+    public function test_desktop_tokens_expire_after_twelve_hours(): void
+    {
+        $this->assertSame(720, config('sanctum.expiration'));
+    }
+
+    public function test_changing_own_password_revokes_all_tokens(): void
+    {
+        $user = User::factory()->create(['password' => Hash::make('old-password')]);
+        $currentToken = $user->createToken('current-pos-desktop')->plainTextToken;
+        $user->createToken('other-pos-desktop');
+
+        $this->withToken($currentToken)->patchJson('/api/current-user', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'sex' => $user->sex,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])->assertOk();
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($currentToken)->getJson('/api/current-user')->assertUnauthorized();
     }
 
     public function test_logout_revokes_token(): void

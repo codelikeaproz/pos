@@ -17,7 +17,7 @@ import { PosStationInventoryDialog } from '../features/pos/PosStationInventoryDi
 import { PosTransactionsDialog } from '../features/pos/PosTransactionsDialog'
 import { SeniorDiscountDialog } from '../features/pos/SeniorDiscountDialog'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
-import { addOneToQuantity, cartTotalCents, formatPesoCents, formatPosQuantity, formatQuantity, moneyToCents, normalizeQuantity, quantityToThousandths, seniorDiscountCents, validateCartQuantity, validateManualQuantity } from '../lib/posCalculations'
+import { addOneToQuantity, cartTotalCents, formatPesoCents, formatPosQuantity, formatQuantity, moneyToCents, normalizeQuantity, quantityToHundredths, seniorDiscountCents, validateCartQuantity, validateManualQuantity } from '../lib/posCalculations'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
 import { checkoutOrder, loadPosItems } from '../services/posService'
 import type { CartItem, CheckoutOrder, PosItem, PosItemList, SeniorDiscount } from '../types/pos'
@@ -99,7 +99,7 @@ export function OrdersPage() {
 
   function addItem(item: PosItem): boolean {
     const existing = cart.find((cartItem) => cartItem.itemId === item.id)
-    const nextQuantity = existing ? addOneToQuantity(existing.quantity) : '1.000'
+    const nextQuantity = existing ? addOneToQuantity(existing.quantity) : '1.00'
     if (!nextQuantity) { showToast('Unable to update quantity.', 'info'); return false }
     const validationError = validateCartQuantity(nextQuantity, item.available_quantity)
     if (validationError) { showToast(validationError, 'info'); return false }
@@ -173,11 +173,11 @@ export function OrdersPage() {
 
   function stepQuantity(direction: 1 | -1): void {
     if (!editing) return
-    const current = quantityInput.trim() ? quantityToThousandths(quantityInput) : 0n
+    const current = quantityInput.trim() ? quantityToHundredths(quantityInput) : 0n
     if (current === null) { setQuantityError('Enter a valid quantity before using the arrows.'); return }
-    const next = current + BigInt(direction) * 1000n
+    const next = current + BigInt(direction) * 100n
     if (next <= 0n) { setQuantityError('Quantity must be greater than zero.'); return }
-    const nextValue = formatPosQuantity(`${next / 1000n}.${(next % 1000n).toString().padStart(3, '0')}`)
+    const nextValue = formatPosQuantity(`${next / 100n}.${(next % 100n).toString().padStart(2, '0')}`)
     const validationError = validateCartQuantity(nextValue, editing.availableQuantity)
     if (validationError) { setQuantityError(validationError); return }
     setQuantityInput(nextValue); setQuantityError(null)

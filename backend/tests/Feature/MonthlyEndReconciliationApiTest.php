@@ -47,11 +47,11 @@ class MonthlyEndReconciliationApiTest extends TestCase
             ->assertOk()->assertJsonPath('report.reconciliationStatus', 'FULLY_RECONCILED')
             ->assertJsonPath('report.summary.pendingReconciliation', 0)->assertJsonPath('report.summary.reconciled', 2)
             ->assertJsonPath('report.items.0.itemName', 'SHORT')->assertJsonPath('report.items.0.systemCount', '50.00')
-            ->assertJsonPath('report.items.0.physicalCount', '48.00')->assertJsonPath('report.items.0.currentStock', '43.000');
+            ->assertJsonPath('report.items.0.physicalCount', '48.00')->assertJsonPath('report.items.0.currentStock', '43.00');
 
-        $this->assertSame('43.000', $stocks['SHORT']->fresh()->quantity);
-        $this->assertSame('12.000', $stocks['OVER']->fresh()->quantity);
-        $this->assertSame(['-2.000', '2.000'], InventoryMovement::query()->orderBy('id')->pluck('quantity_change')->all());
+        $this->assertSame('43.00', $stocks['SHORT']->fresh()->quantity);
+        $this->assertSame('12.00', $stocks['OVER']->fresh()->quantity);
+        $this->assertSame(['-2.00', '2.00'], InventoryMovement::query()->orderBy('id')->pluck('quantity_change')->all());
         $this->assertDatabaseHas('inventory_movements', ['reference_type' => 'monthly_end_report_item', 'reference_id' => $items['SHORT']->id, 'actor_id' => $admin->id]);
         $this->assertNotNull($items['SHORT']->fresh()->reconciled_at);
         $this->assertSame($admin->id, $items['SHORT']->fresh()->reconciled_by_id);
@@ -67,7 +67,7 @@ class MonthlyEndReconciliationApiTest extends TestCase
         $this->postJson($url, ['itemIds' => [$items['SHORT']->id]])->assertOk();
         $this->postJson($url, ['itemIds' => [$items['SHORT']->id]])->assertUnprocessable();
 
-        $this->assertSame('8.000', $stocks['SHORT']->fresh()->quantity);
+        $this->assertSame('8.00', $stocks['SHORT']->fresh()->quantity);
         $this->assertDatabaseCount('inventory_movements', 1);
     }
 
@@ -81,8 +81,8 @@ class MonthlyEndReconciliationApiTest extends TestCase
         $this->postJson("/api/monthly-end-reports/{$report->id}/reconcile", ['itemIds' => [$items['OVER']->id, $items['SHORT']->id]])
             ->assertUnprocessable()->assertJsonValidationErrors('itemIds');
 
-        $this->assertSame('2.000', $stocks['OVER']->fresh()->quantity);
-        $this->assertSame('1.000', $stocks['SHORT']->fresh()->quantity);
+        $this->assertSame('2.00', $stocks['OVER']->fresh()->quantity);
+        $this->assertSame('1.00', $stocks['SHORT']->fresh()->quantity);
         $this->assertDatabaseCount('inventory_movements', 0);
         $this->assertNull($items['OVER']->fresh()->reconciled_at);
         $this->assertNull($items['SHORT']->fresh()->reconciled_at);
@@ -97,7 +97,7 @@ class MonthlyEndReconciliationApiTest extends TestCase
         $items = [];
         $stocks = [];
         foreach ($counts as $code => [$system, $physical]) {
-            $item = Item::query()->create(['item_code' => $code, 'name' => $code, 'units_backup' => 'pc', 'unit' => 'pc', 'reorder_point' => '0.00', 'price' => '10.00']);
+            $item = Item::query()->create(['item_code' => $code, 'name' => $code, 'units_backup' => 'pc', 'unit' => 'pc', 'price' => '10.00']);
             $stocks[$code] = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => $system]);
             $items[$code] = $report->items()->create(['item_id' => $item->id, 'item_code_snapshot' => $code, 'item_name_snapshot' => $code, 'unit_snapshot' => 'pc', 'system_count' => $system, 'physical_count' => $physical]);
         }

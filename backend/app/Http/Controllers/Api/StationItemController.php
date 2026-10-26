@@ -62,8 +62,8 @@ class StationItemController extends Controller
     {
         DB::transaction(function () use ($request, $stationItem) {
             $locked = StationItem::query()->whereKey($stationItem->id)->lockForUpdate()->firstOrFail();
-            $old = (int) round((float) $locked->quantity * 1000);
-            $new = (int) round((float) $request->validated('quantity') * 1000);
+            $old = (int) round((float) $locked->quantity * 100);
+            $new = (int) round((float) $request->validated('quantity') * 100);
             if ($old === $new) {
                 return;
             }
@@ -72,7 +72,7 @@ class StationItemController extends Controller
             InventoryMovement::query()->create([
                 'station_item_id' => $locked->id,
                 'item_id' => $locked->item_id,
-                'quantity_change' => ($difference < 0 ? '-' : '').sprintf('%d.%03d', intdiv(abs($difference), 1000), abs($difference) % 1000),
+                'quantity_change' => ($difference < 0 ? '-' : '').sprintf('%d.%02d', intdiv(abs($difference), 100), abs($difference) % 100),
                 'type' => 'ADJUSTMENT',
                 'actor_id' => $request->user()->id,
             ]);

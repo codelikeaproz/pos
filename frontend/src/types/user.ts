@@ -6,6 +6,7 @@ export type Employee = {
   email: string
   sex: UserSex
   role: UserRole
+  is_active: boolean
   station: { id: number; name: string } | null
 }
 

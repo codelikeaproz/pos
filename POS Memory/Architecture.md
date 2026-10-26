@@ -1,6 +1,14 @@
 # University HomeStay POS
 ## Architecture
 
+### Phase 10.23H — Security, Data Integrity, and Code Health (2026-10-26)
+
+Inventory quantities now have one end-to-end two-decimal contract across validation, fixed-point calculations, model serialization, API resources, frontend inputs, reports, and tests. Values with a third fractional digit are rejected instead of being silently rounded by MySQL. Batch write endpoints cap submitted rows at 100. Phase 10.23H.5 supersedes the earlier reorder-point removal: `items.reorder_point` is active with a default of `10.00`, and each Product defines its shared Low Stock threshold across Stations.
+
+Sanctum desktop tokens expire after 720 minutes. Any self-service or Admin password change revokes every token for the affected User and the frontend returns a self-updating User to Login. Final-Admin demotion/deletion is serialized with database row locks, and Users referenced by historical transactions or audit records return HTTP 409 instead of a foreign-key server error.
+
+Sales Excel export streams Orders in bounded chunks while retaining eager-loaded display relationships and the existing full-filter totals. The Login slideshow does not auto-advance when reduced motion is requested, avoids automatic live-region announcements, and uses overlapping rendered images for a flicker-free opacity crossfade without redundant JavaScript preloading. These changes do not alter authorization roles, checkout authority, inventory movement semantics, report definitions, or hardware behavior.
+
 ### Phase 10.23UI — Sidebar Profile and Navigation (2026-10-22)
 
 The shared navbar profile trigger displays the authenticated User's sex-based local avatar, readable name, and System Role. Its focused dropdown reuses current-user state for email, System Role, informational business Privileges, Station, My Profile, and Logout. My Profile separates avatar/name/email identity from left-aligned metadata cards and exposes an Edit icon. Edit mode calls authenticated `PATCH /api/current-user` and may change only the signed-in User's name, email, sex, and optional confirmed password; role, Privileges, and Station are excluded from validation and updates. The User model's hashed cast stores a changed password securely, and the returned User replaces frontend auth state immediately. Outside click and Escape close only the dropdown. Profile actions share consistent text and icon sizing. The navigation-only Admin sidebar groups existing modules under Main, Inventory & Products, Sales & Transactions, Reports, and Administration while preserving every existing role check and route guard.
@@ -8,6 +16,8 @@ The shared navbar profile trigger displays the authenticated User's sex-based lo
 The shared non-POS header uses the local CMU HomeStay logo, fixed `University HomeStay POS` identity, and a right-edge profile menu instead of a dynamic page title or standalone Logout. A compact shared footer identifies `© 2026 Central Mindanao University · University HomeStay POS` on non-POS pages. The POS route retains its dedicated operational footer and does not render the shared footer.
 
 The fresh `users` schema stores required `sex` as `male` or `female`; User Management creates and edits it and the existing User resource supplies it to authentication and management views. It selects the supplied local profile artwork only and does not change authentication, `users.role`, Privilege relationships, API middleware, or Cashier routing.
+
+User lifecycle is status-based rather than destructive. `users.is_active` defaults true; Admin User Management can deactivate or reactivate another account. Deactivation revokes all bearer tokens and inactive credentials receive the same generic login failure as invalid credentials. User rows and historical relationships remain intact. Self-deactivation and deactivation or demotion of the final active Admin return HTTP 409.
 
 ### Phase 10.22D — Excel Report Export (2026-10-22)
 
@@ -45,7 +55,7 @@ The compact `/tax-configuration` screen and `GET/PUT /api/tax-settings` endpoint
 
 Admin lands on `/dashboard`; End User with the Cashier privilege and an assigned Station lands directly on `/orders` after login. The Admin Dashboard is an operational monitoring screen only, protected by the Admin route guard and the Admin-only `GET /api/dashboard` endpoint. Cashier POS exit goes to `/cashier-home`; Admin POS exit returns to `/dashboard`. Cashier Home is a minimal Open POS fallback without Admin navigation or KPIs; Logout remains available in the shared header. A nonempty POS cart requires an exit confirmation.
 
-The dashboard endpoint returns the current Asia/Manila day, available Stations, persisted Order totals, and a paginated Today’s Sales list. Its selected Station scope applies to all aggregates and rows. Today’s Sales/Cash/Credit/transaction count use completed Orders from the Manila day, while Unremitted Cash counts all unremitted Cash Orders regardless of date. Low Stock counts positive Station Item balances at or below `items.reorder_point`; Out of Stock counts balances at or below zero. Order detail uses the existing read-only O.R snapshot endpoint. Stations have no active/inactive status in the current schema, so every existing Station appears in the selector. No checkout, remittance, or historical O.R behavior changes.
+The dashboard endpoint returns the current Asia/Manila day, available Stations, persisted Order totals, and a paginated Today’s Sales list. Its selected Station scope applies to all aggregates and rows. Today’s Sales/Cash/Credit/transaction count use completed Orders from the Manila day, while Unremitted Cash counts all unremitted Cash Orders regardless of date. Low Stock counts positive Station Item balances at or below each Item's reorder point; Out of Stock counts balances at or below zero. Order detail uses the existing read-only O.R snapshot endpoint. Stations have no active/inactive status in the current schema, so every existing Station appears in the selector. No checkout, remittance, or historical O.R behavior changes.
 
 Phase 10.20A.1 keeps this behavior and refines the presentation: the navigation-only sidebar is 232px, the Today’s Sales table has a dashboard-specific 1100px minimum width with internal horizontal scrolling, and valid dashboard data remains visible during filter refreshes. The profile dropdown is structured into identity, metadata, and actions. Cashier Home is an intentionally centered minimal workspace and Cashier still enters POS directly.
 
@@ -53,7 +63,7 @@ Phase 10.20A.2 simplifies the Dashboard presentation without changing data behav
 
 The shared header contains fixed product identity and Logout. Admin profile access remains in the sidebar dropdown and centered My Profile modal. Cashier Home is a centered compact card with consistently left-aligned, text-only content and a lightweight three-row identity section.
 
-The Login surface uses a balanced 50/50 desktop split with a local three-image slideshow on the left and the existing centered 400px card on the right. `LoginSlideshow` owns its timer and active state, preloads every image, cycles every five seconds, crossfades over 800ms, fills the visual panel with centered cover placement, and exposes keyboard-accessible indicators that reset the timer after manual selection. Captions remain separate from the image assets. Reduced-motion preferences shorten the fade. At narrower widths the slideshow is hidden and the card returns to a single-column layout. The local HomeStay logo and University HomeStay POS name remain centered above the Sign in heading and existing shared form controls. Password visibility is controlled locally in `LoginPage`; its state-based icon is Eye for visible text and EyeOff for masked text, while its accessible label describes the Show/Hide action. Credentials, validation, submission, routing, and authentication services are unchanged.
+The Login surface uses a balanced 50/50 desktop split with a local three-image slideshow on the left and the existing centered 400px card on the right. `LoginSlideshow` cycles every five seconds, crossfades overlapping image layers over 800ms, fills the visual panel with centered cover placement, and exposes keyboard-accessible indicators. Manual selection resets the timer; reduced-motion preference stops automatic rotation and animation. Captions are not an automatic live region, and no duplicate JavaScript preload effect is used. At narrower widths the slideshow is hidden and the card returns to a single-column layout.
 
 ### Current module boundary — Consignee removal (2026-10-09)
 
@@ -97,15 +107,13 @@ On desktop widths above 1150px, the POS page is constrained to the application v
 
 ### Quantity precision schema update (2026-10-06)
 
-Commit `d60b26d` changes the fresh-schema definitions for Item reorder points, Station balances, Order Item quantities, Inventory Movement quantity changes, Delivery Item quantities, and Spoilage Item quantities from `DECIMAL(12,3)` to `DECIMAL(12,2)`. This establishes two decimal places as the intended database precision for newly created development databases.
-
-This commit changes creation migrations only. The current Laravel decimal casts, quantity request validators, checkout messages, frontend fixed-point parser, and historical precision tests still support three fractional digits. Existing databases are also unchanged until their schema is refreshed or reconciled. Treat two-decimal standardization as incomplete until those runtime contracts and the active database agree with the two-decimal schema.
+Phase 10.23H completes the earlier schema work from commit `d60b26d`: Station balances, Order Item quantities, Inventory Movement quantity changes, Delivery Item quantities, Spoilage Item quantities, and Monthly End counts use two decimals end to end. Laravel validation and frontend fixed-point parsing reject a third fractional digit. Phase 10.23H.5 retains that precision contract while restoring the Item reorder point directly in the original creation migration.
 
 ### Phase 10.19.4 semantic table status colors (2026-10-06)
 
 Table statuses use the shared compact Badge tones and always retain visible text. Product and Price show Active in green and Inactive in red; inactive Price history records also use a subtle red full-row background. Sale Remittance shows Remitted in green and Not Remitted in amber; remitted records also use a subtle green row background while pending records retain the normal row background. Admin and POS inventory tables highlight the full row with a subtle red background when stock is low or out.
 
-Station Inventory, the POS Available Items table, and the POS F12 inventory dialog share one stock presentation component. Zero or negative balances display Out of Stock in red; positive balances at or below the Product's existing `items.reorder_point` display Low Stock in amber; balances above the threshold remain plain. The POS resources expose the existing rule as status metadata, while stock authority, availability, and checkout validation remain unchanged.
+Station Inventory, the POS Available Items table, and the POS F12 inventory dialog share one stock presentation component. Zero or negative balances display Out of Stock in red; positive balances at or below the Item's reorder point display Low Stock in amber; balances above the threshold remain plain. The POS resources expose the shared Item rule as status metadata, while stock authority, availability, and checkout validation remain unchanged.
 
 Paginated administration modules share a Rows per page selector with 10, 20, 50, and 100 choices and default to 10 in the UI. The backend validates page sizes centrally and caps selectable administrative requests at 100. POS Available Items, Customer selection, F6, F7, and F12 request a fixed 15 rows without showing a size selector so the operational layout stays compact.
 
@@ -161,7 +169,7 @@ The confirmed sidebar entries Privilege Assignment and Privilege are enabled. Sa
 
 Shared Modal focus initializes only when a dialog opens. The component keeps the latest close callback in a ref, automatically focuses the first enabled body control unless a caller supplies `initialFocusRef`, and restores the prior control on close. Controlled field rerenders and AJAX option refreshes no longer refocus the dialog container or interrupt typing.
 
-Inventory quantity storage and calculations remain exact thousandths with `DECIMAL(12,3)`. New manual quantity entry uses at most two decimal places in Product, POS quantity editing, Item Delivery, and Spoilage; backend acceptance remains three-decimal compatible for existing records and integrations. Display formatting removes trailing `.000` and preserves a meaningful third digit in historical values such as `1.125`.
+Inventory quantity storage and calculations use exact hundredths with `DECIMAL(12,2)`. Manual quantity entry in POS, Item Delivery, Spoilage, Station Inventory, and Monthly End accepts at most two decimal places; the backend rejects a third fractional digit. Display formatting may remove trailing zeroes without changing stored precision.
 
 The Spoilage reporting dialog uses a compact two-table layout: Available Station Items with individual and master checkboxes on the left, and Selected Spoilage Items with editable quantities on the right. Station, Item search, selectable Manila Incident Date, and Remarks remain presentation over the existing Phase 10.14 transaction. The authenticated actor, snapshots, stock validation, locks, negative SPOILAGE movements, and rollback behavior remain authoritative.
 
@@ -183,7 +191,7 @@ Movement summaries cover only records written since inventory movement tracking 
 
 The POS uses a full-width cashier layout with the existing green/yellow branding. The left column shows Available Items with inline, paginated AJAX search results and no food image. Its table shows Name, Item Code, Available stock with its unit (for example, `8 bottle`), Unit Price, and an icon-only Add action. Item names are regular weight. The current Order and payment panel remain on the right; Current Order has a separate Item Code column, regular-weight Item names, and icon-only pencil and trash actions for each cart line. The live Manila clock sits at the left of the bottom action strip. The shared application top bar and sidebar are hidden on POS and return when the cashier exits to Dashboard; the POS masthead supplies its own branding.
 
-`GET /api/pos/items` keeps its authenticated Station scope, active-Item and single-active-Price rules, 10-row pagination, and name/code search. A blank search shows the first page. Exact Item code matches rank first within a search so Enter can add one unit from the first page; name matches are selected from the list. Zero-stock Items remain visible with a disabled plus icon and an out-of-stock tooltip, but cannot be added. Icon-only actions have item-specific accessible labels and tooltips. A search failure appears at the field without hiding the cart or payment area. Adding an Item clears the search for the next entry. F12 remains the separate read-only inventory dialog, including inactive and unpriced assigned stock. Change Quantity selects the existing value on open, accepts ordinary text editing and Backspace, and uses one-unit up/down controls while retaining up to three fractional digits. Enter submits through the same validation as Update. POS noninteger quantities display at least two fractional places (`1.50`, `2.50`), while whole numbers display as `2`. POS dialogs use their header X to cancel or close, without duplicate footer actions.
+`GET /api/pos/items` keeps its authenticated Station scope, active-Item and single-active-Price rules, 10-row pagination, and name/code search. A blank search shows the first page. Exact Item code matches rank first within a search so Enter can add one unit from the first page; name matches are selected from the list. Zero-stock Items remain visible with a disabled plus icon and an out-of-stock tooltip, but cannot be added. Icon-only actions have item-specific accessible labels and tooltips. A search failure appears at the field without hiding the cart or payment area. Adding an Item clears the search for the next entry. F12 remains the separate read-only inventory dialog, including inactive and unpriced assigned stock. Change Quantity selects the existing value on open, accepts ordinary text editing and Backspace, and uses one-unit up/down controls while retaining at most two fractional digits. Enter submits through the same validation as Update. POS noninteger quantities preserve hundredths while whole numbers display as `2`. POS dialogs use their header X to cancel or close, without duplicate footer actions.
 
 The payment panel has a prominent Mode of Payment heading above plain-text F3 Cash and F4 Credit / Utang controls in place of radio buttons. F3 aligns with Total Amount; F4 aligns with Cash Received. The heading and Pay action have no icons. F3 opens a Cash Received dialog with one ordinary text input, Order Total, and live Change; there is no on-screen keypad. Confirming a sufficient amount returns to the POS; Cash Received and Change remain read-only in the panel until Pay submits the existing checkout. F4 opens Customer selection and activates Credit only after selection. Cancelling either dialog keeps the prior payment choice. Switching methods clears the other method's details. Cash and Credit continue to use the same checkout API and server safeguards.
 
@@ -710,13 +718,13 @@ Canonical authenticated endpoints:
 - `POST /api/users` — create an Admin or End User
 - `GET /api/users/{user}` — retrieve one user
 - `PUT /api/users/{user}` — update identity, role, and optionally password
-- `DELETE /api/users/{user}` — delete another user
+- `PATCH /api/users/{user}/status` — deactivate or reactivate another user
 
 All `/api/users` routes require Sanctum authentication followed by the simple `EnsureUserIsAdmin` middleware. The middleware permits only the existing `admin` role. Unauthenticated requests receive HTTP 401 and authenticated End Users receive HTTP 403. No permission tables, complex RBAC package, Gate, or per-resource Policy is needed for the current two-role system.
 
 Employee search is asynchronous: the renderer waits 350 ms after typing, requests `GET /api/users?search=...`, and displays the paginated Eloquent results. The input uses an inline X to clear the query; separate Search and Clear buttons are not used.
 
-Passwords are accepted only as write-only input, are hashed by the `User` model, and are never emitted by `UserResource`. Omitting the password during update keeps the stored hash. The backend rejects deletion of the signed-in account and rejects deleting or demoting the last remaining Admin with HTTP 409. These protections are authoritative even though the frontend also disables self-delete.
+Passwords are accepted only as write-only input, are hashed by the `User` model, and are never emitted by `UserResource`. Omitting the password during update keeps the stored hash. The backend rejects self-deactivation and rejects deactivating or demoting the final active Admin with HTTP 409. These protections are authoritative even though the frontend also disables the signed-in User's status action.
 
 Phase 10.1 does not add a migration, package, service layer, repository layer, station assignment, other Master Data CRUD, POS behavior, hardware integration, or advanced authentication.
 
@@ -778,13 +786,13 @@ items
 MySQL
 ```
 
-The `items` table follows the confirmed Item fields using consistent Laravel names: `id`, unique required string `item_code`, required `name`, fixed-precision `quantity DECIMAL(12,3)`, readable `units_backup`, legacy unit code `unit`, Item-level `reorder_point DECIMAL(12,3) DEFAULT 0`, fixed-precision `price DECIMAL(10,2)`, and timestamps. The API returns quantity, reorder point, and price as decimal strings; the renderer adds Philippine peso formatting for price display only.
+The current `items` table stores `id`, unique required `item_code`, required `name`, readable `units_backup`, legacy unit code `unit`, `reorder_point DECIMAL(12,2) NOT NULL DEFAULT 10.00`, fixed-precision `price DECIMAL(10,2)`, active state, and timestamps. Stock quantity remains in Station Inventory.
 
-The boundaries are explicit: Item stores the original system's quantity, readable unit backup, unit code, and reorder point. Station Inventory compares its station-specific quantity with the Item reorder point for display-only Low Stock status. Automatic deduction, stock-in, stock-out, movement history, alerts, replenishment, and order-based updates remain deferred.
+The boundaries are explicit: Item stores Product identity, unit metadata, Price history, active state, and the shared reorder point. Station Inventory owns station-specific quantity and compares it with the Item threshold for presentation. Inventory writes continue through the implemented checkout, delivery, spoilage, and reconciliation workflows.
 
 Item currently has no Consignee, Consignment, Station, Inventory, Order, or user relationship. Management routes are Admin-only; future End User read access for ordering must be introduced deliberately with the Orders/POS requirements.
 
-The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/unit-name search, and 10-record pagination. Item Management keeps the simple visible fields Item Code, Item Name, Quantity, Unit, and Price. The visible Unit edits `units_backup`; the legacy `unit` code and Item `reorder_point` remain API/database details and are not shown in the Item form or table. No units table is introduced.
+The module follows Controller-to-Eloquent CRUD with Form Requests, a safe `ItemResource`, 350 ms cancellable live item-code/name/unit-name search, and 10-record pagination. Item Management keeps Item Code, Item Name, Unit, Reorder Point, Price, and active state. The visible Unit edits `units_backup`; the legacy `unit` code remains an internal compatibility field.
 
 ## 9.7 Consignee Management (Phase 10.5)
 
@@ -833,11 +841,11 @@ Legacy `station_items` evidence confirms that quantities belong to a Station and
 Station 1:N StationItem N:1 Item
 ```
 
-`station_items` contains `id`, restrictive `station_id` and `item_id` foreign keys, fixed-precision `quantity DECIMAL(12,3)`, timestamps, and a database-level unique constraint across `(station_id, item_id)`. `StationItem` is a real Eloquent model because quantity is meaningful business state, not an anonymous pivot. The reorder point belongs to the Item, matching the confirmed legacy schema.
+`station_items` contains `id`, restrictive `station_id` and `item_id` foreign keys, fixed-precision `quantity DECIMAL(12,2)`, timestamps, and a database-level unique constraint across `(station_id, item_id)`. `StationItem` is a real Eloquent model because quantity is meaningful business state, not an anonymous pivot.
 
 `station_items.quantity` is the source of truth for station-specific inventory. Existing `items.quantity` remains a transitional global quantity for backward compatibility and is not synchronized automatically. A future controlled cleanup must decide whether to remove or redefine it.
 
-Admin Station Inventory management supports Station filtering, item-code/name/unit search, 10-record pagination, explicit assignment, quantity editing, computed Low Stock status when station quantity is less than or equal to the Item's reorder point, and safe removal of only the assignment. The reorder point remains an internal Item field and is not displayed in Item or Station Inventory interfaces. Future End User POS reads will follow User → assigned Station → Station Inventory. Automatic alerts, replenishment, stock deduction, and movement history remain deferred.
+Admin Station Inventory management supports Station filtering, item-code/name/unit search, 10-record pagination, explicit assignment, two-decimal quantity editing, Item-threshold Low Stock status for positive balances, and safe removal of only the assignment. End User POS reads follow User → assigned Station → Station Inventory. Automatic alerts and replenishment remain deferred.
 
 Legacy Item `units` values are identifiers rather than quantities, while `unitsbackup` preserves the readable label. The clean schema retains these meanings as `items.unit` and `items.units_backup`. Legacy `expiry_notification` remains deferred until Receiving or batch inventory records an actual expiration date.
 

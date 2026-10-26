@@ -1,4 +1,4 @@
-const QUANTITY_SCALE = 3
+const QUANTITY_SCALE = 2
 const PRICE_SCALE = 2
 
 function parseFixedDecimal(value: string, scale: number): bigint | null {
@@ -17,17 +17,17 @@ function formatScaledInteger(value: bigint, scale: number): string {
   return `${whole}.${fraction}`
 }
 
-export function quantityToThousandths(value: string): bigint | null {
+export function quantityToHundredths(value: string): bigint | null {
   return parseFixedDecimal(value, QUANTITY_SCALE)
 }
 
 export function addOneToQuantity(value: string): string | null {
-  const quantity = quantityToThousandths(value)
-  return quantity === null ? null : formatScaledInteger(quantity + 1000n, QUANTITY_SCALE)
+  const quantity = quantityToHundredths(value)
+  return quantity === null ? null : formatScaledInteger(quantity + 100n, QUANTITY_SCALE)
 }
 
 export function normalizeQuantity(value: string): string | null {
-  const quantity = quantityToThousandths(value)
+  const quantity = quantityToHundredths(value)
   return quantity === null ? null : formatScaledInteger(quantity, QUANTITY_SCALE)
 }
 
@@ -41,15 +41,15 @@ export function formatPosQuantity(value: string): string {
   const quantity = normalizeQuantity(value)
   if (!quantity) return value
   const [whole, fraction] = quantity.split('.')
-  if (fraction === '000') return whole
-  return fraction.endsWith('0') ? `${whole}.${fraction.slice(0, 2)}` : quantity
+  if (fraction === '00') return whole
+  return quantity
 }
 
 export function validateCartQuantity(value: string, availableQuantity: string): string | null {
-  const quantity = quantityToThousandths(value)
-  const available = quantityToThousandths(availableQuantity)
+  const quantity = quantityToHundredths(value)
+  const available = quantityToHundredths(availableQuantity)
 
-  if (quantity === null) return 'Enter a quantity with no more than three decimal places.'
+  if (quantity === null) return 'Enter a quantity with no more than two decimal places.'
   if (quantity <= 0n) return 'Quantity must be greater than zero.'
   if (available === null || quantity > available) return `Only ${formatQuantity(availableQuantity)} units are available at this station.`
   return null
@@ -62,8 +62,8 @@ export function validateManualQuantity(value: string, availableQuantity: string)
 
 export function lineSubtotalCents(unitPrice: string, quantity: string): bigint {
   const priceCents = parseFixedDecimal(unitPrice, PRICE_SCALE) ?? 0n
-  const quantityThousandths = quantityToThousandths(quantity) ?? 0n
-  return (priceCents * quantityThousandths + 500n) / 1000n
+  const quantityHundredths = quantityToHundredths(quantity) ?? 0n
+  return (priceCents * quantityHundredths + 50n) / 100n
 }
 
 export function cartTotalCents(items: Array<{ unitPrice: string; quantity: string }>): bigint {

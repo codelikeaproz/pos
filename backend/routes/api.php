@@ -70,8 +70,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/or-transactions/{order}', [OrderController::class, 'orTransaction'])->middleware('admin');
 
     Route::get('/employee-options', [UserController::class, 'options'])->middleware('admin');
+    Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->middleware('admin');
 
     Route::apiResource('users', UserController::class)
+        ->except('destroy')
         ->middleware('admin');
 
     Route::apiResource('stations', StationController::class)

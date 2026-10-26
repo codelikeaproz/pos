@@ -174,7 +174,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const updateProfile = useCallback(async (input: ProfileInput) => {
-    setCurrentUser(await updateProfileRequest(input))
+    const user = await updateProfileRequest(input)
+    if (input.password) {
+      clearAuthToken()
+      setCurrentUser(null)
+      setStatus('unauthenticated')
+      setAuthNotice({
+        tone: 'success',
+        title: 'Password updated',
+        message: 'Sign in again with your new password.'
+      })
+      return
+    }
+    setCurrentUser(user)
   }, [])
 
   const value = useMemo(

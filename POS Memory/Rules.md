@@ -55,9 +55,9 @@
 
 ### Shared low-stock presentation
 
-- Low Stock uses one fixed shared rule: a positive Station balance from 1 through 10 units. A zero or negative balance is Out of Stock.
+- Low Stock is Item-specific: a positive Station balance at or below `items.reorder_point`. A zero or negative balance is Out of Stock.
 - Dashboard counts, Station Inventory, POS Available Items, and the POS Station Inventory dialog must consume the same backend status. Use a yellow row for Low Stock and a red row for Out of Stock; neither presentation changes checkout stock validation.
-- Do not add a threshold control or Low Stock column to Product Management. Its existing legacy `reorder_point` field is not used by this fixed rule.
+- Product Management owns the Item-level Reorder Point and displays it in the Product table. The value is required, non-negative, accepts at most two decimals, and defaults to `10.00`.
 
 ### Phase 10.21 — Non-VAT and tax snapshot rules
 
@@ -89,6 +89,7 @@
 
 - Do not add Consignee or Consignment Account routes, pages, endpoints, models, relationships, or schema without newly confirmed business requirements.
 - Keep User Management. `users` remains the source of authentication, roles, optional Station assignment, operational actor identity, privileges, and remittance accountability.
+- User accounts are never deleted through User Management. Admins deactivate/reactivate accounts; deactivation revokes tokens, blocks login, and preserves every historical foreign-key relationship. A signed-in Admin cannot deactivate themselves, and the final active Admin cannot be deactivated or demoted.
 - Keep Customers distinct from Users. Customers identify Credit / Utang purchasers and must not be repurposed as Consignees.
 - If consignment is required later, document the actual workflow first and implement it as a newly scoped feature; do not restore the removed screens or duplicate credentials speculatively.
 - Older Consignee and Consignment rules below are historical phase records and are superseded by this current boundary.
@@ -120,18 +121,18 @@ Keep Laravel API-only. Do not restore a Blade welcome page, backend Vite/Tailwin
 
 At desktop widths, keep the POS masthead and action footer visible within the application viewport. Long Available Items and Current Order lists must scroll inside their own panels. At responsive widths where the POS columns stack, retain normal page scrolling.
 
-### Quantity precision transition (2026-10-06)
+### Quantity precision contract (completed 2026-10-26)
 
-- Fresh-schema quantity and reorder-point columns now use `DECIMAL(12,2)` through commit `d60b26d`.
-- Do not describe two-decimal standardization as complete while Laravel casts and validators, the frontend quantity parser, tests, or the active database still use three-decimal behavior.
-- Before closing the transition, align every quantity boundary and reconcile the active database deliberately. Preserve transactional inventory arithmetic and historical snapshots during that work.
-- Historical phase notes describing `DECIMAL(12,3)` document the behavior at those earlier milestones and are superseded for fresh schema by this transition note.
+- Active quantity storage, Laravel casts and validators, frontend fixed-point arithmetic, reports, and tests use two decimal places.
+- Reject a third fractional digit at every API and UI write boundary; do not rely on database rounding.
+- The Item reorder point uses the same two-decimal contract and is defined in the original Items creation migration. Preserve transactional inventory arithmetic and historical snapshots.
+- Historical phase notes describing `DECIMAL(12,3)` are superseded by this contract.
 
 ### Semantic table statuses (Phase 10.19.4)
 
 - Status meaning must remain visible in text; color is supporting information only.
-- Use the shared Badge tones for Product and Price Active/Inactive and Sale Remittance Remitted/Not Remitted states. Inactive Price history records use a subtle red full-row background. Admin and POS inventory tables use a subtle red full-row highlight for low and out-of-stock records while retaining explicit text. Sale Remittance uses a subtle green row for Remitted records and keeps the normal row background for Not Remitted records.
-- Stock status uses the Product's configured `items.reorder_point`: a balance at or below zero is Out of Stock, a positive balance at or below the reorder point is Low Stock, and a balance above it is normal.
+- Use the shared Badge tones for Product and Price Active/Inactive and Sale Remittance Remitted/Not Remitted states. Inactive Price history records use a subtle red full-row background. Admin and POS inventory tables use soft yellow for Low Stock and subtle red for Out of Stock while retaining explicit text. Sale Remittance uses a subtle green row for Remitted records and keeps the normal row background for Not Remitted records.
+- Stock status uses the Product threshold: a balance at or below zero is Out of Stock, a positive balance at or below the Item reorder point is Low Stock, and a balance above it is normal.
 - Low Stock remains sellable. Only Out of Stock disables the POS Add action. These labels do not change inventory calculations or checkout validation.
 - Do not infer Paid or Unpaid Credit states, and do not add semantic status colors to Delivery or Spoilage without a confirmed business rule.
 - In POS F7 Station Transactions, a remitted record uses a subtle green full-row background and a green Date Remitted badge. The existing Not Remitted value uses an amber badge on the normal row background.
@@ -935,7 +936,7 @@ Consignee remains independent Master Data until Phase 10.6 defines Consignment. 
 
 Authentication credentials belong only to `users`; never create duplicate credential tables for business modules. `password_confirmation` is validation-only and must never be persisted. Passwords and hashes must never be returned by API Resources. Foreign-key IDs are internal; interfaces display human-readable Station and Consignee names. Deferred business functionality must remain explicitly tracked.
 
-Inventory quantities are Station-specific and use fixed-precision `DECIMAL`, never FLOAT/DOUBLE. The reorder point belongs to the Item, matching the legacy Item schema. Each Station+Item assignment must be unique. Treat station quantity less than or equal to the Item reorder point as Low Stock for display only; alerts and automatic replenishment remain deferred. `StationItem` is a real Eloquent model, and removing it must never delete the underlying Station or Item. Do not add `expiry_notification` until batch or Receiving inventory records an actual expiration date.
+Inventory quantities are Station-specific `DECIMAL(12,2)` values, never FLOAT/DOUBLE. Requests and frontend inputs reject more than two fractional digits. Each Station+Item assignment must be unique. Treat positive quantity at or below the Item's `reorder_point` as Low Stock for display only; alerts and automatic replenishment remain deferred. `StationItem` is a real Eloquent model, and removing it must never delete the underlying Station or Item. Do not add `expiry_notification` until batch or Receiving inventory records an actual expiration date.
 
 POS availability must come from `station_items.quantity`, never transitional `items.quantity`. Resolve the POS Station from the authenticated User; End Users and Admins must not select or override arbitrary Station IDs. Accounts without a Station receive a readable conflict response rather than access to another Station or the full catalog.
 
@@ -1049,7 +1050,7 @@ Prioritize:
 
 Frontend presentation conventions: use the shared design tokens and reusable SearchField, Pagination, Table, Button, Input, and Modal for repeated patterns. Keep feature-specific forms and POS calculations within their features. Search remains debounced and cancellable; presentation refactors must not change API contracts, quantity precision, or payment behavior. At narrow desktop widths, stack page actions and POS panels, allow tables to scroll within their containers, and keep dialog content within the viewport.
 
-Quantity values retain `DECIMAL(12,3)` storage and accept up to three fractional digits. General management views omit unnecessary trailing zeroes: `5` instead of `5.000`, `1.5` instead of `1.500`, and `1.125` where all three digits matter. POS cart and quantity editing show integers without decimal zeros, nonintegers with at least two fractional places (`1.50`, `2.50`), and three places when needed (`1.125`). This is presentation normalization only; API validation, calculations, and database precision remain unchanged.
+Quantity values use `DECIMAL(12,2)` storage and accept at most two fractional digits. General management and POS views may omit unnecessary trailing zeroes while preserving exact hundredths. API validation, calculations, and database precision must remain aligned.
 
 The POS screen should prioritize speed.
 

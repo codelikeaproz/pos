@@ -11,12 +11,13 @@ export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: P
   const [itemCode, setItemCode] = useState(item?.item_code ?? '')
   const [name, setName] = useState(item?.name ?? '')
   const [unitsBackup, setUnitsBackup] = useState(item?.units_backup ?? 'pcs')
+  const [reorderPoint, setReorderPoint] = useState(item?.reorder_point ?? '10.00')
   const [price, setPrice] = useState(item?.price ?? '')
   const [isActive, setIsActive] = useState(item?.is_active ?? true)
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
-    onSubmit({ item_code: itemCode.trim(), name: name.trim(), units_backup: unitsBackup.trim(), unit: item?.unit ?? unitsBackup.trim(), reorder_point: item?.reorder_point ?? '0', ...(item ? {} : { price: price.trim() }), is_active: isActive })
+    onSubmit({ item_code: itemCode.trim(), name: name.trim(), units_backup: unitsBackup.trim(), unit: item?.unit ?? unitsBackup.trim(), reorder_point: reorderPoint.trim(), ...(item ? {} : { price: price.trim() }), is_active: isActive })
   }
 
   return (
@@ -39,6 +40,12 @@ export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: P
             {ITEM_UNITS.map((option) => <option key={option} value={option} />)}
           </datalist>
           {errors.units_backup ? <span id={`${formId}-units-backup-error`} className="page__field-error">{errors.units_backup}</span> : null}
+      </div>
+      <div className="item-form__field">
+        <Label htmlFor={`${formId}-reorder-point`} required>Reorder Point</Label>
+        <Input id={`${formId}-reorder-point`} type="number" inputMode="decimal" min="0" step="0.01" value={reorderPoint} onChange={(event) => setReorderPoint(event.target.value)} required disabled={disabled} error={Boolean(errors.reorder_point)} aria-describedby={`${formId}-reorder-point-help${errors.reorder_point ? ` ${formId}-reorder-point-error` : ''}`} placeholder="10.00" />
+        <span id={`${formId}-reorder-point-help`} className="item-form__help">Stock at or below this quantity will be marked Low Stock.</span>
+        {errors.reorder_point ? <span id={`${formId}-reorder-point-error`} className="page__field-error">{errors.reorder_point}</span> : null}
       </div>
       <div className="item-form__field">
         <Label htmlFor={`${formId}-price`} required={!item}>{item ? 'Current Price' : 'Initial Price'}</Label>

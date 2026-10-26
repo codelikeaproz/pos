@@ -29,6 +29,7 @@ class User extends Authenticatable
         'role',
         'sex',
         'station_id',
+        'is_active',
     ];
 
     /**
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'is_active' => 'boolean',
         ];
     }
 

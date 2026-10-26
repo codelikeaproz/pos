@@ -11,7 +11,9 @@
 
 - `station_items.quantity` is authoritative Station stock. Product Management does not own stock quantity; Station Inventory monitors it.
 - Movement signs: SALE negative, DELIVERY positive, SPOILAGE negative, ADJUSTMENT signed.
-- Stock status: quantity at or below 0 is Out of Stock; positive quantity through 10 is Low Stock; above 10 is Normal.
+- Stock status: quantity at or below 0 is Out of Stock; positive quantity at or below the Item's reorder point is Low Stock; above the threshold is Normal.
 - Monthly End Inventory records frozen System Counts and manual Physical Counts. Finalization never changes Station stock or creates a movement.
 - Finalized Monthly End discrepancies can be reconciled once. The server derives `physical_count - system_count`, applies that signed variance to locked current Station stock, and records a traceable ADJUSTMENT movement.
 - Reconciliation never rewrites historical counts, never sets live stock directly to the physical count, and rejects any batch that would produce negative stock.
+- All active quantity inputs, storage, movement records, and report counts use at most two decimal places; a third fractional digit is rejected.
+- Batch inventory writes accept at most 100 rows. Product Management owns the required Item reorder point, default `10.00`, while each Station assignment owns only its quantity.

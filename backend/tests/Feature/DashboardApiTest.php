@@ -29,9 +29,11 @@ class DashboardApiTest extends TestCase
         $remitted = $this->order($second, $cashier, 'CASH-2', '2026-10-10 00:00:00', 'cash', '40.00');
         $remitted->update(['remitted_at' => '2026-10-10 01:00:00']);
         $this->order($second, $cashier, 'OLD-CASH', '2026-10-09 15:59:59', 'cash', '10.00');
-        $item = Item::query()->create(['item_code' => 'STOCK', 'name' => 'Stock', 'units_backup' => 'pc', 'unit' => 'pc', 'reorder_point' => '5.000', 'price' => '10.00']);
-        StationItem::query()->create(['station_id' => $first->id, 'item_id' => $item->id, 'quantity' => '3.000']);
-        StationItem::query()->create(['station_id' => $second->id, 'item_id' => $item->id, 'quantity' => '0.000']);
+        $item = Item::query()->create(['item_code' => 'STOCK', 'name' => 'Stock', 'units_backup' => 'pc', 'unit' => 'pc', 'reorder_point' => '2.00', 'price' => '10.00']);
+        $lowStockItem = Item::query()->create(['item_code' => 'LOW', 'name' => 'Low Stock', 'units_backup' => 'pc', 'unit' => 'pc', 'reorder_point' => '5.00', 'price' => '10.00']);
+        StationItem::query()->create(['station_id' => $first->id, 'item_id' => $item->id, 'quantity' => '3.00']);
+        StationItem::query()->create(['station_id' => $second->id, 'item_id' => $item->id, 'quantity' => '0.00']);
+        StationItem::query()->create(['station_id' => $first->id, 'item_id' => $lowStockItem->id, 'quantity' => '3.00']);
 
         $this->getJson('/api/dashboard')->assertUnauthorized();
         Sanctum::actingAs($cashier);

@@ -11,7 +11,7 @@ class InventoryMovement extends Model
 
     protected function casts(): array
     {
-        return ['quantity_change' => 'decimal:3'];
+        return ['quantity_change' => 'decimal:2'];
     }
 
     public function stationItem(): BelongsTo

@@ -35,7 +35,7 @@ class PosCheckoutApiTest extends TestCase
         Sanctum::actingAs($user);
         $this->postJson('/api/pos/checkout', ['items' => [], 'paymentMethod' => 'card', 'cashReceived' => '-1'])
             ->assertUnprocessable()->assertJsonValidationErrors(['items', 'paymentMethod', 'cashReceived']);
-        $this->postJson('/api/pos/checkout', ['items' => [['itemId' => 999, 'quantity' => '0.000']], 'paymentMethod' => 'cash', 'cashReceived' => '10.00'])
+        $this->postJson('/api/pos/checkout', ['items' => [['itemId' => 999, 'quantity' => '0.00']], 'paymentMethod' => 'cash', 'cashReceived' => '10.00'])
             ->assertUnprocessable()->assertJsonValidationErrors(['items.0.quantity']);
         $this->postJson('/api/pos/checkout', $this->payload(999))
             ->assertUnprocessable()->assertJsonValidationErrors(['items']);
@@ -46,7 +46,7 @@ class PosCheckoutApiTest extends TestCase
         [$user, , $item] = $this->context();
         Sanctum::actingAs($user);
         $this->postJson('/api/pos/checkout', [
-            'items' => [['itemId' => $item->id, 'quantity' => '1.0000'], ['itemId' => $item->id, 'quantity' => '1.000']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.125'], ['itemId' => $item->id, 'quantity' => '1.00']],
             'paymentMethod' => 'cash', 'cashReceived' => '100.00',
         ])->assertUnprocessable()->assertJsonValidationErrors(['items.0.quantity', 'items.1.itemId']);
     }
@@ -56,7 +56,7 @@ class PosCheckoutApiTest extends TestCase
         [$user, $station] = $this->context();
         $other = Station::query()->create(['name' => 'Other', 'location' => 'Other']);
         $item = $this->item('OTHER', 'Other Item');
-        StationItem::query()->create(['station_id' => $other->id, 'item_id' => $item->id, 'quantity' => '5.000']);
+        StationItem::query()->create(['station_id' => $other->id, 'item_id' => $item->id, 'quantity' => '5.00']);
         Sanctum::actingAs($user);
 
         $this->postJson('/api/pos/checkout', $this->payload($item->id) + ['station_id' => $other->id])
@@ -68,12 +68,12 @@ class PosCheckoutApiTest extends TestCase
     {
         [$user, , $item, $stock] = $this->context();
         Sanctum::actingAs($user);
-        $this->postJson('/api/pos/checkout', $this->payload($item->id, '6.000', '500.00'))
+        $this->postJson('/api/pos/checkout', $this->payload($item->id, '6.00', '500.00'))
             ->assertUnprocessable()->assertJsonValidationErrors('items');
-        $this->postJson('/api/pos/checkout', $this->payload($item->id, '2.000', '10.00'))
+        $this->postJson('/api/pos/checkout', $this->payload($item->id, '2.00', '10.00'))
             ->assertUnprocessable()->assertJsonValidationErrors('cashReceived');
         $this->assertDatabaseCount('orders', 0);
-        $this->assertSame('5.000', $stock->fresh()->quantity);
+        $this->assertSame('5.00', $stock->fresh()->quantity);
     }
 
     public function test_checkout_uses_authoritative_values_and_deducts_only_station_stock(): void
@@ -81,9 +81,9 @@ class PosCheckoutApiTest extends TestCase
         [$user, $station, $item, $stock] = $this->context();
         Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/pos/checkout', $this->payload($item->id, '1.500', '100.00') + [
+        $response = $this->postJson('/api/pos/checkout', $this->payload($item->id, '1.50', '100.00') + [
             'station_id' => 999, 'cashier_id' => 999, 'totalAmount' => '0.01', 'changeAmount' => '99.99',
-            'items' => [['itemId' => $item->id, 'quantity' => '1.500', 'expectedUnitPrice' => '25.00', 'unitPrice' => '0.01', 'subtotal' => '0.01']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.50', 'expectedUnitPrice' => '25.00', 'unitPrice' => '0.01', 'subtotal' => '0.01']],
         ])->assertCreated()->assertJsonPath('message', 'Payment completed successfully.')
             ->assertJsonPath('order.station.id', $station->id)
             ->assertJsonPath('order.cashier.id', $user->id)
@@ -94,14 +94,14 @@ class PosCheckoutApiTest extends TestCase
             ->assertJsonPath('order.items.0.itemCode', 'ITM-001')
             ->assertJsonPath('order.items.0.itemName', 'Test Item')
             ->assertJsonPath('order.items.0.unit', 'PACK')
-            ->assertJsonPath('order.items.0.quantity', '1.500')
+            ->assertJsonPath('order.items.0.quantity', '1.50')
             ->assertJsonPath('order.items.0.unitPrice', '25.00')
             ->assertJsonPath('order.items.0.subtotal', '37.50');
 
         $order = Order::query()->firstOrFail();
         $this->assertMatchesRegularExpression('/^ORD\d{14}$/', $order->order_number);
         $this->assertNotNull($order->ordered_at);
-        $this->assertSame('3.500', $stock->fresh()->quantity);
+        $this->assertSame('3.50', $stock->fresh()->quantity);
         $response->assertJsonMissingPath('order.cashier.password')->assertJsonMissingPath('order.cashier.remember_token');
     }
 
@@ -109,9 +109,9 @@ class PosCheckoutApiTest extends TestCase
     {
         [$user, , $item, $stock] = $this->context();
         Sanctum::actingAs($user);
-        $this->postJson('/api/pos/checkout', $this->payload($item->id, '5.000', '125.00'))
+        $this->postJson('/api/pos/checkout', $this->payload($item->id, '5.00', '125.00'))
             ->assertCreated()->assertJsonPath('order.changeAmount', '0.00');
-        $this->assertSame('0.000', $stock->fresh()->quantity);
+        $this->assertSame('0.00', $stock->fresh()->quantity);
     }
 
     public function test_non_vat_cash_checkout_snapshots_exempt_sales_without_adding_vat(): void
@@ -119,14 +119,14 @@ class PosCheckoutApiTest extends TestCase
         [$user, $station, $item] = $this->context();
         $item->prices()->update(['amount' => '45.00']);
         $second = $this->item('RICE', 'Rice Plain', '15.00');
-        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '5.000']);
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '5.00']);
         TaxSetting::query()->findOrFail(1)->update(['vat_rate' => '15.00']);
         Sanctum::actingAs($user);
 
         $this->postJson('/api/pos/checkout', [
             'items' => [
-                ['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '45.00'],
-                ['itemId' => $second->id, 'quantity' => '1.000', 'expectedUnitPrice' => '15.00'],
+                ['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '45.00'],
+                ['itemId' => $second->id, 'quantity' => '1.00', 'expectedUnitPrice' => '15.00'],
             ],
             'paymentMethod' => 'cash', 'cashReceived' => '100.00',
         ])->assertCreated()
@@ -148,7 +148,7 @@ class PosCheckoutApiTest extends TestCase
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/pos/checkout', [
-            'items' => [['itemId' => $item->id, 'quantity' => '1.500', 'expectedUnitPrice' => '25.00']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.50', 'expectedUnitPrice' => '25.00']],
             'paymentMethod' => 'credit', 'customerId' => $customer->id,
         ])->assertCreated()->assertJsonPath('order.paymentMethod', 'credit')
             ->assertJsonPath('order.customer.name', 'Maria Cruz')
@@ -160,8 +160,8 @@ class PosCheckoutApiTest extends TestCase
             ->assertJsonPath('order.vatExemptSales', '37.50')
             ->assertJsonPath('order.items.0.subtotal', '37.50');
         $this->assertSame($customer->id, Order::query()->firstOrFail()->customer_id);
-        $this->assertSame('3.500', $stock->fresh()->quantity);
-        $this->assertDatabaseHas('inventory_movements', ['type' => 'SALE', 'quantity_change' => '-1.500']);
+        $this->assertSame('3.50', $stock->fresh()->quantity);
+        $this->assertDatabaseHas('inventory_movements', ['type' => 'SALE', 'quantity_change' => '-1.50']);
         $this->assertSame(1, InventoryMovement::query()->count());
         $this->assertMatchesRegularExpression('/^ORD\d{14}$/', $response->json('order.orderNumber'));
 
@@ -175,19 +175,19 @@ class PosCheckoutApiTest extends TestCase
     {
         [$user, , $item, $stock] = $this->context();
         Sanctum::actingAs($user);
-        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit'];
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit'];
         $this->postJson('/api/pos/checkout', $base)->assertUnprocessable()->assertJsonValidationErrors('customerId');
         $this->postJson('/api/pos/checkout', $base + ['customerId' => 999])->assertUnprocessable()->assertJsonValidationErrors('customerId');
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
-        $this->assertSame('5.000', $stock->fresh()->quantity);
+        $this->assertSame('5.00', $stock->fresh()->quantity);
     }
 
     public function test_cash_still_requires_cash_received_and_allows_walk_in(): void
     {
         [$user, , $item] = $this->context();
         Sanctum::actingAs($user);
-        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash'];
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash'];
         $this->postJson('/api/pos/checkout', $base)->assertUnprocessable()->assertJsonValidationErrors('cashReceived');
         $this->postJson('/api/pos/checkout', $base + ['cashReceived' => '30.00'])
             ->assertCreated()->assertJsonPath('order.customer', null)->assertJsonPath('order.changeAmount', '5.00');
@@ -201,7 +201,7 @@ class PosCheckoutApiTest extends TestCase
         Event::listen('eloquent.creating: '.OrderItem::class, fn () => throw new \RuntimeException('Forced item failure'));
         try {
             $this->withoutExceptionHandling()->postJson('/api/pos/checkout', [
-                'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']],
+                'items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '25.00']],
                 'paymentMethod' => 'credit', 'customerId' => $customer->id,
             ]);
             $this->fail('Expected the forced order item failure.');
@@ -213,7 +213,7 @@ class PosCheckoutApiTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('order_items', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
-        $this->assertSame('5.000', $stock->fresh()->quantity);
+        $this->assertSame('5.00', $stock->fresh()->quantity);
     }
 
     public function test_credit_rejects_insufficient_stock_and_changed_price_without_writes(): void
@@ -221,15 +221,15 @@ class PosCheckoutApiTest extends TestCase
         [$user, , $item, $stock] = $this->context();
         $customer = Customer::query()->create(['name' => 'Maria Cruz', 'address' => 'Maramag']);
         Sanctum::actingAs($user);
-        $base = ['items' => [['itemId' => $item->id, 'quantity' => '6.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit', 'customerId' => $customer->id, 'customerCount' => 2, 'seniorCount' => 1];
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '6.00', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'credit', 'customerId' => $customer->id, 'customerCount' => 2, 'seniorCount' => 1];
         $this->postJson('/api/pos/checkout', $base)->assertUnprocessable()->assertJsonValidationErrors('items');
-        $base['items'][0]['quantity'] = '1.000';
+        $base['items'][0]['quantity'] = '1.00';
         $item->prices()->update(['is_active' => false]);
         $item->prices()->create(['amount' => '30.00', 'is_active' => true]);
         $this->postJson('/api/pos/checkout', $base)->assertConflict()->assertJsonPath('currentPrices.0.price', '30.00');
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
-        $this->assertSame('5.000', $stock->fresh()->quantity);
+        $this->assertSame('5.00', $stock->fresh()->quantity);
     }
 
     public function test_line_subtotals_use_half_up_rounding_before_totaling(): void
@@ -238,10 +238,10 @@ class PosCheckoutApiTest extends TestCase
         $item->prices()->create(['amount' => '0.01', 'is_active' => true]);
         $item->prices()->where('amount', '25.00')->update(['is_active' => false]);
         $second = $this->item('ITM-002', 'Second Item', '0.01');
-        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '5.000']);
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $second->id, 'quantity' => '5.00']);
         Sanctum::actingAs($user);
         $this->postJson('/api/pos/checkout', [
-            'items' => [['itemId' => $item->id, 'quantity' => '0.500', 'expectedUnitPrice' => '0.01'], ['itemId' => $second->id, 'quantity' => '0.500', 'expectedUnitPrice' => '0.01']],
+            'items' => [['itemId' => $item->id, 'quantity' => '0.50', 'expectedUnitPrice' => '0.01'], ['itemId' => $second->id, 'quantity' => '0.50', 'expectedUnitPrice' => '0.01']],
             'paymentMethod' => 'cash', 'cashReceived' => '0.02',
         ])->assertCreated()->assertJsonPath('order.totalAmount', '0.02');
     }
@@ -253,14 +253,14 @@ class PosCheckoutApiTest extends TestCase
         Sanctum::actingAs($user);
 
         $discountedPayload = [
-            'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '400.00']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '400.00']],
             'paymentMethod' => 'cash', 'customerCount' => 5, 'seniorCount' => 1,
         ];
         $this->postJson('/api/pos/checkout', $discountedPayload + ['cashReceived' => '383.99'])
             ->assertUnprocessable()->assertJsonValidationErrors('cashReceived');
 
         $this->postJson('/api/pos/checkout', [
-            'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '400.00']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '400.00']],
             'paymentMethod' => 'cash', 'cashReceived' => '400.00', 'customerCount' => 5, 'seniorCount' => 1,
             'subtotalAmount' => '400.00', 'discountAmount' => '300.00', 'totalAmount' => '100.00',
         ])->assertCreated()
@@ -270,8 +270,8 @@ class PosCheckoutApiTest extends TestCase
             ->assertJsonPath('order.taxStatusSnapshot', 'NON_VAT')->assertJsonPath('order.vatExemptSales', null)
             ->assertJsonPath('order.items.0.unitPrice', '400.00')->assertJsonPath('order.items.0.subtotal', '400.00');
 
-        $this->assertSame('4.000', $stock->fresh()->quantity);
-        $this->assertDatabaseHas('inventory_movements', ['type' => 'SALE', 'quantity_change' => '-1.000']);
+        $this->assertSame('4.00', $stock->fresh()->quantity);
+        $this->assertDatabaseHas('inventory_movements', ['type' => 'SALE', 'quantity_change' => '-1.00']);
         Sanctum::actingAs(User::factory()->admin()->create());
         $this->getJson('/api/sale-remittances')->assertOk()->assertJsonPath('data.0.totalAmount', '384.00');
     }
@@ -288,7 +288,7 @@ class PosCheckoutApiTest extends TestCase
         ] as $case) {
             $item->prices()->update(['amount' => $case['price']]);
             $this->postJson('/api/pos/checkout', [
-                'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => $case['price']]],
+                'items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => $case['price']]],
                 'paymentMethod' => 'cash', 'cashReceived' => $case['price'],
                 'customerCount' => $case['customers'], 'seniorCount' => $case['seniors'],
             ])->assertCreated()->assertJsonPath('order.discountAmount', $case['discount'])->assertJsonPath('order.totalAmount', $case['total']);
@@ -317,7 +317,7 @@ class PosCheckoutApiTest extends TestCase
     {
         [$user, , $item] = $this->context();
         Sanctum::actingAs($user);
-        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash', 'cashReceived' => '25.00'];
+        $base = ['items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash', 'cashReceived' => '25.00'];
 
         foreach ([[0, 1], [-1, 1], [3.5, 1], [3, 0], [3, -1], [3, 1.5], [3, 4]] as [$customers, $seniors]) {
             $this->postJson('/api/pos/checkout', $base + ['customerCount' => $customers, 'seniorCount' => $seniors])->assertUnprocessable();
@@ -335,12 +335,12 @@ class PosCheckoutApiTest extends TestCase
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/pos/checkout', [
-            'items' => [['itemId' => $item->id, 'quantity' => '1.000', 'expectedUnitPrice' => '1000.00']],
+            'items' => [['itemId' => $item->id, 'quantity' => '1.00', 'expectedUnitPrice' => '1000.00']],
             'paymentMethod' => 'credit', 'customerId' => $customer->id, 'customerCount' => 5, 'seniorCount' => 2,
         ])->assertCreated()->assertJsonPath('order.subtotalAmount', '1000.00')->assertJsonPath('order.discountAmount', '80.00')
             ->assertJsonPath('order.totalAmount', '920.00')->assertJsonPath('order.cashReceived', null);
 
-        $this->assertSame('4.000', $stock->fresh()->quantity);
+        $this->assertSame('4.00', $stock->fresh()->quantity);
         Sanctum::actingAs(User::factory()->admin()->create());
         $this->getJson('/api/credit-monitoring')->assertOk()->assertJsonPath('data.0.totalAmount', '920.00');
         $this->getJson('/api/or-transactions')->assertOk()->assertJsonPath('data.0.totalAmount', '920.00');
@@ -366,7 +366,7 @@ class PosCheckoutApiTest extends TestCase
 
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('order_items', 0);
-        $this->assertSame('5.000', $stock->fresh()->quantity);
+        $this->assertSame('5.00', $stock->fresh()->quantity);
     }
 
     public function test_stock_update_failure_rolls_back_order_items_and_all_stock(): void
@@ -386,7 +386,7 @@ class PosCheckoutApiTest extends TestCase
 
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('order_items', 0);
-        $this->assertSame('5.000', $stock->fresh()->quantity);
+        $this->assertSame('5.00', $stock->fresh()->quantity);
     }
 
     /** @return array{User, Station, Item, StationItem} */
@@ -395,20 +395,20 @@ class PosCheckoutApiTest extends TestCase
         $station = Station::query()->create(['name' => 'Main', 'location' => 'Main']);
         $user = User::factory()->endUser()->create(['station_id' => $station->id]);
         $item = $this->item();
-        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.000']);
+        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.00']);
 
         return [$user, $station, $item, $stock];
     }
 
     private function item(string $code = 'ITM-001', string $name = 'Test Item', string $price = '25.00'): Item
     {
-        $item = Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PACK', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $price]);
+        $item = Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PACK', 'unit' => '1', 'price' => $price]);
         Price::query()->create(['item_id' => $item->id, 'amount' => $price, 'is_active' => true]);
 
         return $item;
     }
 
-    private function payload(?int $itemId = null, string $quantity = '1.000', string $cash = '100.00'): array
+    private function payload(?int $itemId = null, string $quantity = '1.00', string $cash = '100.00'): array
     {
         return ['items' => [['itemId' => $itemId ?? 1, 'quantity' => $quantity, 'expectedUnitPrice' => '25.00']], 'paymentMethod' => 'cash', 'cashReceived' => $cash];
     }

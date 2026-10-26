@@ -124,7 +124,7 @@ class PriceManagementApiTest extends TestCase
         $cashier = User::factory()->endUser()->create(['station_id' => $station->id]);
         $item = $this->item('COKE-001', 'Coca-Cola', '10.00');
         $item->prices()->create(['amount' => '30.00', 'is_active' => true]);
-        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.000']);
+        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '5.00']);
         Sanctum::actingAs($cashier);
 
         $this->getJson('/api/pos/items')->assertOk()->assertJsonPath('data.0.price', '30.00');
@@ -141,13 +141,13 @@ class PriceManagementApiTest extends TestCase
         $this->assertDatabaseCount('orders', 1);
         $this->assertDatabaseCount('order_items', 1);
         $this->assertDatabaseCount('inventory_movements', 1);
-        $this->assertSame('4.000', $stock->fresh()->quantity);
+        $this->assertSame('4.00', $stock->fresh()->quantity);
         $this->assertSame('30.00', $firstOrderItem->fresh()->unit_price);
         $this->getJson('/api/pos/items')->assertOk()->assertJsonPath('data.0.price', '35.00');
 
         $this->postJson('/api/pos/checkout', $this->checkout($item->id, '35.00'))
             ->assertCreated()->assertJsonPath('order.items.0.unitPrice', '35.00');
-        $this->assertSame('3.000', $stock->fresh()->quantity);
+        $this->assertSame('3.00', $stock->fresh()->quantity);
         $this->assertSame(2, InventoryMovement::query()->where('type', 'SALE')->count());
     }
 
@@ -156,7 +156,7 @@ class PriceManagementApiTest extends TestCase
         $station = Station::query()->create(['name' => 'Main', 'location' => 'Main']);
         $cashier = User::factory()->endUser()->create(['station_id' => $station->id]);
         $missing = $this->item('MISSING', 'Missing');
-        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $missing->id, 'quantity' => '2.000']);
+        StationItem::query()->create(['station_id' => $station->id, 'item_id' => $missing->id, 'quantity' => '2.00']);
         Sanctum::actingAs($cashier);
         $this->getJson('/api/pos/items')->assertOk()->assertJsonCount(0, 'data');
         $this->postJson('/api/pos/checkout', $this->checkout($missing->id, '20.00'))->assertUnprocessable();
@@ -170,11 +170,11 @@ class PriceManagementApiTest extends TestCase
 
     private function item(string $code = 'ITEM-1', string $name = 'Item', string $legacyPrice = '20.00'): Item
     {
-        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'reorder_point' => '0.000', 'price' => $legacyPrice]);
+        return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => 'PIECE', 'unit' => '1', 'price' => $legacyPrice]);
     }
 
     private function checkout(int $itemId, string $expectedPrice): array
     {
-        return ['items' => [['itemId' => $itemId, 'quantity' => '1.000', 'expectedUnitPrice' => $expectedPrice]], 'paymentMethod' => 'cash', 'cashReceived' => '100.00'];
+        return ['items' => [['itemId' => $itemId, 'quantity' => '1.00', 'expectedUnitPrice' => $expectedPrice]], 'paymentMethod' => 'cash', 'cashReceived' => '100.00'];
     }
 }

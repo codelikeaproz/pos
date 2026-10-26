@@ -14,7 +14,7 @@ class ReconcileMonthlyEndItemsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'itemIds' => ['required', 'array', 'min:1'],
+            'itemIds' => ['required', 'array', 'min:1', 'max:100'],
             'itemIds.*' => ['required', 'integer', 'distinct'],
         ];
     }

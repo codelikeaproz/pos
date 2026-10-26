@@ -9,8 +9,6 @@ use LogicException;
 
 class Item extends Model
 {
-    public const LOW_STOCK_QUANTITY = 10;
-
     protected $attributes = ['is_active' => true];
 
     /** @var list<string> */
@@ -28,10 +26,15 @@ class Item extends Model
     protected function casts(): array
     {
         return [
-            'reorder_point' => 'decimal:3',
+            'reorder_point' => 'decimal:2',
             'price' => 'decimal:2',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function isLowStock(string $quantity): bool
+    {
+        return (float) $quantity > 0 && (float) $quantity <= (float) $this->reorder_point;
     }
 
     public function stationItems(): HasMany

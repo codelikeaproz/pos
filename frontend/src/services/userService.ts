@@ -15,10 +15,6 @@ type UserResponse = {
   user: Employee
 }
 
-type DeleteUserResponse = {
-  message: string
-}
-
 export async function loadEmployees(
   search: string,
   page: number,
@@ -60,9 +56,10 @@ export function updateEmployee(
   })
 }
 
-export function deleteEmployee(employeeId: number): Promise<DeleteUserResponse> {
-  return apiRequest<DeleteUserResponse>(`/api/users/${employeeId}`, {
-    method: 'DELETE'
+export function updateEmployeeStatus(employeeId: number, isActive: boolean): Promise<UserResponse> {
+  return apiRequest<UserResponse>(`/api/users/${employeeId}/status`, {
+    method: 'PATCH',
+    body: { is_active: isActive }
   })
 }
 

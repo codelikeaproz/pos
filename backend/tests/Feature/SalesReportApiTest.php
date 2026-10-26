@@ -110,12 +110,12 @@ class SalesReportApiTest extends TestCase
     {
         Date::setTestNow('2026-10-21 04:00:00 UTC');
         [$station, $cashier] = $this->context();
-        $item = Item::query()->create(['item_code' => 'ITEM', 'name' => 'Current Name', 'units_backup' => 'pc', 'unit' => 'pc', 'reorder_point' => '1.000', 'price' => '50.00']);
+        $item = Item::query()->create(['item_code' => 'ITEM', 'name' => 'Current Name', 'units_backup' => 'pc', 'unit' => 'pc', 'price' => '50.00']);
         Price::query()->create(['item_id' => $item->id, 'amount' => '50.00', 'is_active' => true]);
-        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '10.000']);
+        $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '10.00']);
         $order = $this->order($station, $cashier, 'HISTORICAL', '2026-10-21 01:00:00', 'cash', '45.00', '0.00');
         $order->update(['tax_status_snapshot' => 'NON_VAT', 'vat_rate_snapshot' => '12.00', 'vat_exempt_sales' => null]);
-        $order->orderItems()->create(['item_id' => $item->id, 'item_code' => 'OLD-CODE', 'item_name' => 'Historical Name', 'unit' => 'pc', 'quantity' => '1.000', 'unit_price' => '45.00', 'subtotal' => '45.00']);
+        $order->orderItems()->create(['item_id' => $item->id, 'item_code' => 'OLD-CODE', 'item_name' => 'Historical Name', 'unit' => 'pc', 'quantity' => '1.00', 'unit_price' => '45.00', 'subtotal' => '45.00']);
         TaxSetting::query()->create(['tax_status' => 'NON_VAT', 'vat_rate' => '12.00']);
         $beforeOrder = $order->fresh()->getAttributes();
         $movementCount = InventoryMovement::query()->count();
@@ -126,7 +126,7 @@ class SalesReportApiTest extends TestCase
             ->assertJsonPath('order.items.0.itemName', 'Historical Name')->assertJsonPath('order.items.0.unitPrice', '45.00')
             ->assertJsonPath('order.taxStatusSnapshot', 'NON_VAT')->assertJsonPath('order.vatExemptSales', null);
         $this->assertSame($beforeOrder, $order->fresh()->getAttributes());
-        $this->assertSame('10.000', $stock->fresh()->quantity);
+        $this->assertSame('10.00', $stock->fresh()->quantity);
         $this->assertSame($movementCount, InventoryMovement::query()->count());
         $this->assertSame('12.00', TaxSetting::query()->firstOrFail()->vat_rate);
         Date::setTestNow();

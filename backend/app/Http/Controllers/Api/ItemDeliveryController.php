@@ -94,7 +94,7 @@ class ItemDeliveryController extends Controller
 
             foreach ($requested as $line) {
                 $item = $items->get($line['itemId']);
-                $quantity = self::toThousandths((string) $line['quantity']);
+                $quantity = self::toCents((string) $line['quantity']);
                 $detail = $delivery->items()->create([
                     'item_id' => $item->id,
                     'item_code' => $item->item_code,
@@ -104,18 +104,18 @@ class ItemDeliveryController extends Controller
                 ]);
                 $stock = $stockByItem->get($item->id);
                 if ($stock) {
-                    $newQuantity = self::toThousandths($stock->quantity) + $quantity;
+                    $newQuantity = self::toCents($stock->quantity) + $quantity;
                     if ($newQuantity > 999999999999) {
                         throw ValidationException::withMessages(['items' => ['Station stock would exceed the supported quantity.']]);
                     }
-                    $stock->update(['quantity' => self::fromThousandths($newQuantity)]);
+                    $stock->update(['quantity' => self::fromCents($newQuantity)]);
                 } else {
-                    $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => self::fromThousandths($quantity)]);
+                    $stock = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => self::fromCents($quantity)]);
                 }
                 InventoryMovement::query()->create([
                     'station_item_id' => $stock->id,
                     'item_id' => $item->id,
-                    'quantity_change' => self::fromThousandths($quantity),
+                    'quantity_change' => self::fromCents($quantity),
                     'type' => 'DELIVERY',
                     'reference_type' => 'item_delivery_item',
                     'reference_id' => $detail->id,
@@ -129,15 +129,15 @@ class ItemDeliveryController extends Controller
         return response()->json(['message' => 'Items delivered successfully.', 'delivery' => (new ItemDeliveryResource($delivery))->resolve($request)], 201);
     }
 
-    private static function toThousandths(string $value): int
+    private static function toCents(string $value): int
     {
         [$whole, $fraction] = array_pad(explode('.', $value, 2), 2, '');
 
-        return (int) $whole * 1000 + (int) str_pad($fraction, 3, '0');
+        return (int) $whole * 100 + (int) str_pad($fraction, 2, '0');
     }
 
-    private static function fromThousandths(int $value): string
+    private static function fromCents(int $value): string
     {
-        return intdiv($value, 1000).'.'.str_pad((string) ($value % 1000), 3, '0', STR_PAD_LEFT);
+        return intdiv($value, 100).'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
     }
 }

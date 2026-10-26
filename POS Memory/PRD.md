@@ -4,6 +4,10 @@
 # University HomeStay POS
 ## Product Requirements Document
 
+> Phase 10.23H.5 status (2026-10-26): The implemented POS protects quantity integrity with a two-decimal limit across inventory workflows, caps batch writes at 100 rows, and uses each Product's Reorder Point for Low Stock across Dashboard, Station Inventory, and POS. Password changes invalidate the affected User's sessions, desktop access tokens expire after 12 hours, the system prevents removal of the final Admin and preserves Users with history, Sales Excel export is memory-bounded, and the Login slideshow uses a flicker-free crossfade while respecting reduced motion.
+
+> User lifecycle status (2026-10-26): User Management no longer deletes accounts. Admins deactivate/reactivate Users, inactive accounts cannot authenticate, deactivation revokes sessions, and historical operational identity is preserved.
+
 > Phase 10.23UI status (2026-10-22): The shared navbar has an accessible profile dropdown using the User's stored Male/Female sex to select the supplied avatar. My Profile separates its identity row from left-aligned detail cards and provides an Edit icon. Any authenticated User can update their own name, email, sex, and optional confirmed password there, while role, Privileges, and Station remain Admin-controlled. The navbar shows the HomeStay logo, fixed product name, and right-edge profile menu containing Logout; non-POS pages share a compact institutional footer. The navigation-only Admin sidebar groups the long module list under stable headings. Privileges remain descriptive business assignments and do not grant Admin access.
 
 > Phase 10.22D status (2026-10-22): Sales Report provides an Admin-only Export Excel action using the active period, Station, Payment Method, and search filters across all matching transactions. Finalized Monthly End detail provides an Admin-only Export Excel action containing its frozen inventory snapshot and reconciliation audit. Downloads are real styled `.xlsx` workbooks and do not change application data. Draft Monthly End reports cannot be exported.

@@ -11,6 +11,7 @@ use App\Models\Station;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -66,15 +67,21 @@ class UserController extends Controller
             unset($validatedData['password']);
         }
 
-        if (
-            $user->role === UserRole::Admin
-            && $validatedData['role'] === UserRole::EndUser->value
-            && User::query()->where('role', UserRole::Admin->value)->count() === 1
-        ) {
-            abort(409, 'The system must have at least one administrator.');
-        }
+        $user = DB::transaction(function () use ($user, $validatedData) {
+            $admins = User::query()->where('role', UserRole::Admin->value)->where('is_active', true)->orderBy('id')->lockForUpdate()->get(['id']);
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if ($locked->is_active && $locked->role === UserRole::Admin && $validatedData['role'] === UserRole::EndUser->value && $admins->count() === 1) {
+                abort(409, 'The system must have at least one administrator.');
+            }
 
-        $user->update($validatedData);
+            $passwordChanged = filled($validatedData['password'] ?? null);
+            $locked->update($validatedData);
+            if ($passwordChanged) {
+                $locked->tokens()->delete();
+            }
+
+            return $locked;
+        });
 
         return response()->json([
             'message' => 'Employee updated successfully.',
@@ -82,25 +89,34 @@ class UserController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, User $user): JsonResponse
+    public function updateStatus(Request $request, User $user): JsonResponse
     {
-        if ($request->user()->is($user)) {
+        $isActive = $request->validate(['is_active' => ['required', 'boolean']])['is_active'];
+
+        if (! $isActive && $request->user()->is($user)) {
             return response()->json([
-                'message' => 'You cannot delete your own account while signed in.',
+                'message' => 'You cannot deactivate your own account while signed in.',
             ], 409);
         }
 
-        if (
-            $user->role === UserRole::Admin
-            && User::query()->where('role', UserRole::Admin->value)->count() === 1
-        ) {
-            abort(409, 'The system must have at least one administrator.');
-        }
+        $user = DB::transaction(function () use ($user, $isActive) {
+            $activeAdmins = User::query()->where('role', UserRole::Admin->value)->where('is_active', true)->orderBy('id')->lockForUpdate()->get(['id']);
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if (! $isActive && $locked->is_active && $locked->role === UserRole::Admin && $activeAdmins->count() === 1) {
+                abort(409, 'The system must have at least one administrator.');
+            }
 
-        $user->delete();
+            $locked->update(['is_active' => $isActive]);
+            if (! $isActive) {
+                $locked->tokens()->delete();
+            }
+
+            return $locked;
+        });
 
         return response()->json([
-            'message' => 'Employee deleted successfully.',
+            'message' => $isActive ? 'Employee reactivated successfully.' : 'Employee deactivated successfully.',
+            'user' => (new UserResource($user->fresh()->load('station')))->resolve(),
         ]);
     }
 }

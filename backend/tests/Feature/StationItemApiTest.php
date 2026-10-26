@@ -28,21 +28,21 @@ class StationItemApiTest extends TestCase
         Sanctum::actingAs(User::factory()->admin()->create());
         $station = $this->station();
         $item = $this->item();
-        $response = $this->postJson('/api/station-items', ['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '1.500'])
+        $response = $this->postJson('/api/station-items', ['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '1.50'])
             ->assertCreated()
-            ->assertJsonPath('station_item.quantity', '1.500')
+            ->assertJsonPath('station_item.quantity', '1.50')
             ->assertJsonPath('station_item.is_low_stock', true)
             ->assertJsonPath('station_item.item.item_code', 'ITM-001');
         $id = $response->json('station_item.id');
         $this->getJson("/api/station-items/{$id}")->assertOk()->assertJsonPath('station_item.station.name', 'Main Station');
-        $this->putJson("/api/station-items/{$id}", ['quantity' => '2.750', 'station_id' => 999, 'item_id' => 999])
+        $this->putJson("/api/station-items/{$id}", ['quantity' => '2.75', 'station_id' => 999, 'item_id' => 999])
             ->assertOk()
-            ->assertJsonPath('station_item.quantity', '2.750')
+            ->assertJsonPath('station_item.quantity', '2.75')
             ->assertJsonPath('station_item.is_low_stock', true)
             ->assertJsonPath('station_item.item.id', $item->id)
             ->assertJsonPath('station_item.station.id', $station->id);
         $this->deleteJson("/api/station-items/{$id}")->assertConflict();
-        $this->assertDatabaseHas('inventory_movements', ['station_item_id' => $id, 'type' => 'ADJUSTMENT', 'quantity_change' => '1.250']);
+        $this->assertDatabaseHas('inventory_movements', ['station_item_id' => $id, 'type' => 'ADJUSTMENT', 'quantity_change' => '1.25']);
         $this->assertDatabaseHas('items', ['id' => $item->id]);
         $this->assertDatabaseHas('stations', ['id' => $station->id]);
     }
@@ -52,7 +52,7 @@ class StationItemApiTest extends TestCase
         Sanctum::actingAs(User::factory()->admin()->create());
         $station = $this->station();
         $item = $this->item();
-        $payload = ['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '10.000'];
+        $payload = ['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '10.00'];
         $this->postJson('/api/station-items', $payload)->assertCreated();
         $this->postJson('/api/station-items', $payload)->assertUnprocessable()->assertJsonValidationErrors('item_id');
         $this->postJson('/api/station-items', [...$payload, 'item_id' => 999])->assertUnprocessable()->assertJsonValidationErrors('item_id');
@@ -62,21 +62,24 @@ class StationItemApiTest extends TestCase
         $this->deleteJson("/api/stations/{$station->id}")->assertConflict();
     }
 
-    public function test_low_stock_status_uses_the_fixed_ten_unit_boundary(): void
+    public function test_low_stock_status_uses_each_items_reorder_point(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
         $station = $this->station();
-        $item = $this->item(reorderPoint: '999.000');
+        $item = $this->item(reorderPoint: '5.50');
         $response = $this->postJson('/api/station-items', [
             'station_id' => $station->id,
             'item_id' => $item->id,
-            'quantity' => '10.000',
+            'quantity' => '5.50',
         ])->assertCreated()->assertJsonPath('station_item.is_low_stock', true);
         $id = $response->json('station_item.id');
 
-        $this->putJson("/api/station-items/{$id}", ['quantity' => '9.999'])
+        $this->putJson("/api/station-items/{$id}", ['quantity' => '0.00'])
+            ->assertOk()->assertJsonPath('station_item.is_low_stock', false)
+            ->assertJsonPath('station_item.stock_status', 'out_of_stock');
+        $this->putJson("/api/station-items/{$id}", ['quantity' => '5.49'])
             ->assertOk()->assertJsonPath('station_item.is_low_stock', true);
-        $this->putJson("/api/station-items/{$id}", ['quantity' => '10.001'])
+        $this->putJson("/api/station-items/{$id}", ['quantity' => '5.51'])
             ->assertOk()->assertJsonPath('station_item.is_low_stock', false);
     }
 
@@ -86,10 +89,10 @@ class StationItemApiTest extends TestCase
         $station = $this->station();
         $otherStation = Station::query()->create(['name' => 'Other', 'location' => 'Other']);
         foreach (range(1, 11) as $number) {
-            $item = $this->item(sprintf('CODE-%02d', $number), sprintf('Drink %02d', $number), '2.000', $number === 1 ? 'Special unit' : 'PIECE');
-            StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '10.000']);
+            $item = $this->item(sprintf('CODE-%02d', $number), sprintf('Drink %02d', $number), $number === 1 ? 'Special unit' : 'PIECE');
+            StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '10.00']);
         }
-        StationItem::query()->create(['station_id' => $otherStation->id, 'item_id' => $this->item('OTHER', 'Other Item')->id, 'quantity' => '1.000']);
+        StationItem::query()->create(['station_id' => $otherStation->id, 'item_id' => $this->item('OTHER', 'Other Item')->id, 'quantity' => '1.00']);
         $this->getJson("/api/station-items?station_id={$station->id}&page=1")->assertOk()->assertJsonCount(10, 'data')->assertJsonPath('meta.total', 11);
         foreach (['Drink 01', 'CODE-01', 'Special unit'] as $term) {
             $this->getJson("/api/station-items?station_id={$station->id}&search=".urlencode($term))->assertOk()->assertJsonCount(1, 'data');
@@ -104,40 +107,40 @@ class StationItemApiTest extends TestCase
         Sanctum::actingAs($admin);
         $station = $this->station();
         $otherStation = Station::query()->create(['name' => 'Other', 'location' => 'Other']);
-        $item = $this->item(reorderPoint: '1.000');
+        $item = $this->item();
         $otherItem = $this->item('ITM-002', 'Cake');
-        $stationItem = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '7.625']);
-        $untouched = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $otherItem->id, 'quantity' => '4.250']);
-        $otherBalance = StationItem::query()->create(['station_id' => $otherStation->id, 'item_id' => $item->id, 'quantity' => '99.000']);
+        $stationItem = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $item->id, 'quantity' => '7.63']);
+        $untouched = StationItem::query()->create(['station_id' => $station->id, 'item_id' => $otherItem->id, 'quantity' => '4.25']);
+        $otherBalance = StationItem::query()->create(['station_id' => $otherStation->id, 'item_id' => $item->id, 'quantity' => '99.00']);
 
         foreach ([
-            ['DELIVERY', '10.500'], ['DELIVERY', '1.125'],
-            ['SALE', '-2.250'], ['SALE', '-0.375'],
-            ['SPOILAGE', '-1.125'], ['SPOILAGE', '-0.500'],
-            ['ADJUSTMENT', '0.375'], ['ADJUSTMENT', '-0.125'],
+            ['DELIVERY', '10.50'], ['DELIVERY', '1.12'],
+            ['SALE', '-2.25'], ['SALE', '-0.37'],
+            ['SPOILAGE', '-1.12'], ['SPOILAGE', '-0.50'],
+            ['ADJUSTMENT', '0.37'], ['ADJUSTMENT', '-0.12'],
         ] as [$type, $quantity]) {
             InventoryMovement::query()->create(['station_item_id' => $stationItem->id, 'item_id' => $item->id, 'quantity_change' => $quantity, 'type' => $type, 'actor_id' => $admin->id]);
         }
-        InventoryMovement::query()->create(['station_item_id' => $otherBalance->id, 'item_id' => $item->id, 'quantity_change' => '-50.000', 'type' => 'SALE', 'actor_id' => $admin->id]);
-        InventoryMovement::query()->create(['station_item_id' => $untouched->id, 'item_id' => $otherItem->id, 'quantity_change' => '-1.000', 'type' => 'SALE', 'actor_id' => $admin->id]);
+        InventoryMovement::query()->create(['station_item_id' => $otherBalance->id, 'item_id' => $item->id, 'quantity_change' => '-50.00', 'type' => 'SALE', 'actor_id' => $admin->id]);
+        InventoryMovement::query()->create(['station_item_id' => $untouched->id, 'item_id' => $otherItem->id, 'quantity_change' => '-1.00', 'type' => 'SALE', 'actor_id' => $admin->id]);
 
         $response = $this->getJson("/api/station-items?station_id={$station->id}&search=ITM-001")
             ->assertOk()->assertJsonCount(1, 'data');
 
-        $response->assertJsonPath('data.0.current_quantity', '7.625')
-            ->assertJsonPath('data.0.recorded_delivered_quantity', '11.625')
-            ->assertJsonPath('data.0.recorded_sold_quantity', '2.625')
-            ->assertJsonPath('data.0.recorded_spoilage_quantity', '1.625')
-            ->assertJsonPath('data.0.reconciled_quantity', '11.875')
+        $response->assertJsonPath('data.0.current_quantity', '7.63')
+            ->assertJsonPath('data.0.recorded_delivered_quantity', '11.62')
+            ->assertJsonPath('data.0.recorded_sold_quantity', '2.62')
+            ->assertJsonPath('data.0.recorded_spoilage_quantity', '1.62')
+            ->assertJsonPath('data.0.reconciled_quantity', '11.87')
             ->assertJsonPath('data.0.stock_status', 'in_stock');
 
         $this->getJson("/api/station-items?station_id={$station->id}&search=ITM-002")
             ->assertOk()
-            ->assertJsonPath('data.0.current_quantity', '4.250')
-            ->assertJsonPath('data.0.recorded_delivered_quantity', '0.000')
-            ->assertJsonPath('data.0.recorded_sold_quantity', '1.000')
-            ->assertJsonPath('data.0.recorded_spoilage_quantity', '0.000')
-            ->assertJsonPath('data.0.reconciled_quantity', '5.250');
+            ->assertJsonPath('data.0.current_quantity', '4.25')
+            ->assertJsonPath('data.0.recorded_delivered_quantity', '0.00')
+            ->assertJsonPath('data.0.recorded_sold_quantity', '1.00')
+            ->assertJsonPath('data.0.recorded_spoilage_quantity', '0.00')
+            ->assertJsonPath('data.0.reconciled_quantity', '5.25');
     }
 
     private function station(): Station
@@ -145,7 +148,7 @@ class StationItemApiTest extends TestCase
         return Station::query()->create(['name' => 'Main Station', 'location' => 'Main']);
     }
 
-    private function item(string $code = 'ITM-001', string $name = 'Coke', string $reorderPoint = '2.000', string $unitsBackup = 'PIECE'): Item
+    private function item(string $code = 'ITM-001', string $name = 'Coke', string $unitsBackup = 'PIECE', string $reorderPoint = '10.00'): Item
     {
         return Item::query()->create(['item_code' => $code, 'name' => $name, 'units_backup' => $unitsBackup, 'unit' => '1', 'reorder_point' => $reorderPoint, 'price' => '10.00']);
     }

@@ -53,7 +53,7 @@ Cashier Home uses the same centered logo and product-name treatment above its ex
 
 The desktop Admin sidebar is 260px wide and keeps navigation labels on one line so long module names remain readable without reducing text size. The mobile layout remains responsive.
 
-Added required `users.sex` (`male` or `female`) directly to the clean users creation migration, User model/resource, validation, factory, development seed, frontend types, User Management form, and table. The supplied `maleprofile.png` and `femaleprofile.png` are selected from that persisted value. The development database was rebuilt successfully and seeded with Administrator and POS Operator accounts using `male`.
+Added required `users.sex` (`male` or `female`) directly to the clean users creation migration, User model/resource, validation, factory, development seed, frontend types, User Management form, and table. The supplied lightweight `maleprofile.webp` and `femaleprofile.webp` assets are selected from that persisted value. The development database was rebuilt successfully and seeded with Administrator and POS Operator accounts using `male`.
 
 Verification passed: 178 Laravel tests with 1,492 assertions, Pint, frontend TypeScript checking, Electron production build, and `git diff --check`. User Management coverage includes accepted persisted sex and invalid-value rejection. No authorization middleware, route permission, Privilege relationship, checkout, inventory, tax, or report behavior changed.
 

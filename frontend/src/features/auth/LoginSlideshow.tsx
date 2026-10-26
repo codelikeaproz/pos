@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import slide1 from '../../assets/login_slide1.png'
-import slide2 from '../../assets/login_slide2.png'
-import slide3 from '../../assets/login_slide3.png'
+import slide1 from '../../assets/login_slide1.webp'
+import slide2 from '../../assets/login_slide2.webp'
+import slide3 from '../../assets/login_slide3.webp'
 import './login-slideshow.css'
 
 type LoginSlide = {

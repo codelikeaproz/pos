@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import femaleProfile from '../../assets/femaleprofile.png'
-import maleProfile from '../../assets/maleprofile.png'
+import femaleProfile from '../../assets/femaleprofile.webp'
+import maleProfile from '../../assets/maleprofile.webp'
 import type { CurrentUser, ProfileInput, UserSex } from '../../types/auth'
 import { roleLabel } from '../../types/auth'
 import { AppIcons, iconSize, iconStroke } from '../../lib/icons'

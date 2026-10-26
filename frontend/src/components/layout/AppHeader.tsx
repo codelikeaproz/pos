@@ -1,4 +1,4 @@
-import logo from '../../assets/cmuhomestaylogo.jpg'
+import logo from '../../assets/cmuhomestaylogo.png'
 import { useAuth } from '../../features/auth/AuthContext'
 import { SidebarProfileMenu } from './SidebarProfileMenu'
 import './app-header.css'

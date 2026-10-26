@@ -1,6 +1,6 @@
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
-import logo from '../assets/cmuhomestaylogo.jpg'
+import logo from '../assets/cmuhomestaylogo.png'
 import { useAuth } from '../features/auth/AuthContext'
 import '../components/layout/page.css'
 import './cashier-home-page.css'

@@ -4,10 +4,10 @@ import { Alert } from '../../components/feedback/Alert'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
-import logo from '../../assets/cmuhomestaylogo.jpg'
-import loginBackground from '../../assets/login_bg.png'
+import logo from '../../assets/cmuhomestaylogo.png'
 import { AppIcons, iconStroke } from '../../lib/icons'
 import { useAuth } from './AuthContext'
+import { LoginSlideshow } from './LoginSlideshow'
 import './login-page.css'
 
 export function LoginPage() {
@@ -112,9 +112,7 @@ export function LoginPage() {
         </form>
         </div>
       </main>
-      <aside className="login-page__visual" aria-hidden="true">
-        <img src={loginBackground} alt="" />
-      </aside>
+      <LoginSlideshow />
     </div>
   )
 }

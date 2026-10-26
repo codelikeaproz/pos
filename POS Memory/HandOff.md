@@ -16,7 +16,7 @@ The POS masthead now uses the shared brand-green token instead of a separate har
 
 The Login card now centers the supplied HomeStay logo and `University HomeStay POS` name above the existing sign-in form. Authentication behavior is unchanged.
 
-Desktop Login now uses a responsive balanced 50/50 split: the supplied `login_bg.png` office/POS artwork fills the left with reduced opacity and a light brand-green overlay, while the existing card is centered on the right. Narrow screens retain the single-column card layout. Authenticated navbar and footer layouts are unchanged.
+Desktop Login now uses a responsive balanced 50/50 split: `LoginSlideshow` cycles the three supplied local images on the left every five seconds with an 800ms crossfade, centered cover image placement, separate captions, and clickable keyboard-accessible indicators. It preloads images, cleans up its timer, resets timing after manual navigation, and respects reduced-motion preferences. The existing card remains centered on the right, narrow screens retain the single-column card layout, and authentication, navbar, and footer behavior are unchanged.
 
 Removed the unused 3.2 MB `pos-food-hero.png` asset after confirming it had no source references.
 

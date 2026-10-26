@@ -1,0 +1,57 @@
+.login-slideshow {
+  position: relative;
+  grid-area: visual;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-brand-green);
+}
+
+.login-slideshow__images,
+.login-slideshow__images img,
+.login-slideshow__shade {
+  position: absolute;
+  inset: 0;
+}
+
+.login-slideshow__images img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 800ms ease;
+}
+
+.login-slideshow__images img.is-active {
+  opacity: .88;
+}
+
+.login-slideshow__shade {
+  background: linear-gradient(180deg, rgb(0 73 30 / 4%) 38%, rgb(0 55 22 / 86%) 100%);
+  pointer-events: none;
+}
+
+.login-slideshow__caption {
+  position: absolute;
+  z-index: 1;
+  right: clamp(24px, 5vw, 72px);
+  bottom: clamp(28px, 6vh, 72px);
+  left: clamp(24px, 5vw, 72px);
+  color: #fff;
+}
+
+.login-slideshow__caption h2 { max-width: 560px; margin: 0; font-size: clamp(24px, 2vw, 28px); line-height: 1.2; }
+.login-slideshow__caption p { margin: var(--space-2) 0 0; font-size: clamp(14px, 1.2vw, 16px); }
+.login-slideshow__dots { display: flex; gap: 8px; margin-top: var(--space-4); }
+.login-slideshow__dots button { width: 9px; height: 9px; padding: 0; border: 0; border-radius: 999px; background: rgb(255 255 255 / 58%); cursor: pointer; transition: width 180ms ease, background-color 180ms ease; }
+.login-slideshow__dots button.is-active { width: 28px; background: var(--color-brand-yellow); }
+.login-slideshow__dots button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .login-slideshow { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-slideshow__images img { transition: opacity 120ms linear; }
+  .login-slideshow__dots button { transition: none; }
+}

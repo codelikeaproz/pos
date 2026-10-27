@@ -14,6 +14,10 @@
 - Renamed the O.R-only daily counter table to `official_receipt_sequences` and documented its checkout-concurrency purpose in the owning migration. It does not generate Order, delivery, spoilage, or Credit Payment numbers.
 - Verification: focused Accounting/Credit backend tests, frontend TypeScript, Electron production build, `git diff --check`, and Graphify refresh passed. Manual Electron display verification remains.
 
+## Mascot application branding (2026-10-27)
+
+- The supplied `MascotLogo.webp` is the renderer tab icon, while `MascotLogo.ico` is the native Electron BrowserWindow icon. Both public copies are included in development and production renderer output; the temporary PNG mascot copy was removed.
+
 ## User Account Deactivation (2026-10-26)
 
 - Replaced User deletion with Admin-only Deactivate/Reactivate actions and visible Active/Inactive status.

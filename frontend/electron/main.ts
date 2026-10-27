@@ -8,6 +8,9 @@ import { registerPrintingIpc } from './ipc/printing'
 const isDev = !app.isPackaged
 const rendererScheme = 'pos'
 const rendererHost = 'app'
+const mascotIconPath = isDev
+  ? join(__dirname, '../../public/mascot-logo.ico')
+  : join(__dirname, '../renderer/mascot-logo.ico')
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -60,6 +63,7 @@ function createWindow(): void {
     minHeight: 640,
     show: false,
     title: 'University HomeStay POS',
+    icon: mascotIconPath,
     backgroundColor: '#FBFBFA',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

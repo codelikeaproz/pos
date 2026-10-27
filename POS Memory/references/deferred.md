@@ -40,3 +40,8 @@ Current authority and status are maintained in [[Rules]], [[Requirement]], [[PRD
 - Removed Consignee and Consignment Account workflows require new stakeholder analysis before reintroduction.
 - Any Privilege-to-permission/RBAC redesign requires stakeholder consultation. Self-service name, email, sex, and confirmed password updates are implemented in My Profile.
 - Broader audit logging and configurable operational KPI thresholds remain deferred. Account deactivation/reactivation is implemented and replaces User deletion.
+# Phase 10.23A Deferred
+
+- Credit payment void/reversal and collection-specific official receipts.
+- Generic/full RBAC, Accounting business Privilege authority, and audit-log subsystem.
+- Legacy Customer payroll/app/funding/employment codes, sequence, and co-maker.

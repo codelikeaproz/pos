@@ -949,3 +949,11 @@ New features should only be added after the existing workflow is stable and veri
 ### Phase 10.22C — Inventory Reconciliation (2026-10-21)
 
 Finalized Monthly End report items are the sole source for reconciliation. One Admin batch endpoint locks the report, selected report items, and matching `station_items` in stable order, validates the full selection, then applies each persisted signed variance to current live stock inside one transaction. Each result creates an `ADJUSTMENT` `inventory_movement` linked by `reference_type = monthly_end_report_item` and `reference_id`, while the report item records the actor, timestamp, and movement foreign key. Any invalid item rolls back the full batch.
+# Phase 10.23A — Accounting and Credit Architecture
+
+- `users.role` has three hard authorization values: `admin`, `cashier`, and `accounting`; business Privileges never expand system-role access.
+- Accounting reuses the existing Customer, O.R Transaction, Sale Remittance, and Sales Report modules through explicit `admin|accounting` middleware and has a separate aggregate Dashboard.
+- Customers store atomic names, optional employee/sex/birth data, one address, an active lifecycle, and a `DECIMAL(12,2)` Credit Limit defaulting to 500.00.
+- Credit settlement is normalized as immutable `credit_payments` linked to the original Credit Order and recording User. Status, total paid, outstanding, and available credit are derived.
+- Checkout locks the Customer before its server-authoritative Credit Limit check. The same transaction creates the Order, allocates a daily O.R counter, writes stock/movements, and commits atomically.
+- Order numbers remain internal and dash-free (`ORDYYYYMMDD######`). O.R Numbers are separate, daily, and customer-facing (`OR#YYYYMMDD######`).

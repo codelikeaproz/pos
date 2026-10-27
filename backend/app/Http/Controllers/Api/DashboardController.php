@@ -44,7 +44,8 @@ class DashboardController extends Controller
         $orders = (clone $todayOrders)->with(['station', 'cashier', 'customer'])
             ->when($search !== '', fn ($query) => $query->where(fn ($match) => $match
                 ->where('order_number', 'like', "%{$search}%")
-                ->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', "%{$search}%"))
+                ->orWhere('or_number', 'like', "%{$search}%")
+                ->orWhereHas('customer', fn ($customer) => $customer->where('employee_number', 'like', "%{$search}%")->orWhere('first_name', 'like', "%{$search}%")->orWhere('middle_name', 'like', "%{$search}%")->orWhere('last_name', 'like', "%{$search}%"))
                 ->orWhereHas('cashier', fn ($cashier) => $cashier->where('name', 'like', "%{$search}%"))))
             ->when(isset($filters['payment_method']), fn ($query) => $query->where('payment_method', $filters['payment_method']))
             ->orderByDesc('ordered_at')->orderByDesc('id')

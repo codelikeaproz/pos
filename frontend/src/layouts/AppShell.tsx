@@ -13,7 +13,7 @@ export function AppShell() {
     <div className={`app-shell${isPos ? ' app-shell--pos' : ''}`}>
       {!isPos ? <AppHeader /> : null}
       <div className="app-shell__body">
-        {!isPos && currentUser?.role === 'admin' ? <AppSidebar /> : null}
+        {!isPos && (currentUser?.role === 'admin' || currentUser?.role === 'accounting') ? <AppSidebar /> : null}
         <div className="app-shell__workspace">
           <main className={`app-shell__content${isCashierHome ? ' app-shell__content--centered' : ''}`}>
             <Outlet />

@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Hash;
  * Development-only users. Do not use these credentials in production.
  *
  * Admin:    admin@example.com / password
- * End User: operator@example.com / password
+ * Cashier:    operator@example.com / password
+ * Accounting: accounting@example.com / password
  */
 class DevelopmentUserSeeder extends Seeder
 {
@@ -24,6 +25,16 @@ class DevelopmentUserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => UserRole::Admin,
                 'sex' => 'male',
+            ]
+        );
+
+        User::query()->updateOrCreate(
+            ['email' => 'accounting@example.com'],
+            [
+                'name' => 'Accounting Officer',
+                'password' => Hash::make('password'),
+                'role' => UserRole::Accounting,
+                'sex' => 'female',
             ]
         );
 

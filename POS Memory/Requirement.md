@@ -484,3 +484,10 @@ A feature is considered complete when:
 - Documentation is updated
 - Changes are committed to Git
 > Phase 10.22C status (2026-10-21): Admin can reconcile selected non-zero discrepancies from a FINALIZED Monthly End report. The API derives the signed variance from immutable snapshots, applies it to locked current Station stock, rejects negative results, creates a traceable ADJUSTMENT movement, and prevents duplicate reconciliation. Selected batches succeed or roll back together.
+# Phase 10.23A Requirements
+
+- Support Accounting as a system role with its own Dashboard and limited financial/customer navigation.
+- Normalize Customers into employee number, atomic names, sex, birth date, address, Credit Limit, and active status.
+- Support partial Credit payments, read-only payment history, derived balances/status, and concurrent overpayment protection.
+- Enforce Customer available credit during atomic Credit checkout.
+- Generate and display a separate automatic O.R Number on previews, physical receipts, transaction history, and Credit Monitoring.

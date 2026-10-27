@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'end_user'
+export type UserRole = 'admin' | 'cashier' | 'accounting'
 export type UserSex = 'male' | 'female'
 
 export type CurrentUser = {
@@ -29,5 +29,5 @@ export type ProfileInput = Pick<CurrentUser, 'name' | 'email' | 'sex'> & {
 }
 
 export function roleLabel(role: UserRole): string {
-  return role === 'admin' ? 'Admin' : 'Cashier'
+  return role === 'admin' ? 'Admin' : role === 'accounting' ? 'Accounting' : 'Cashier'
 }

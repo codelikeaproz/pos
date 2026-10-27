@@ -31,11 +31,11 @@ export function CustomerSelector({ open, selected, onClose, onSelect }: { open: 
   }, [open, search, page])
   useEffect(() => { if (open) setChoice(selected) }, [open, selected])
 
-  return <Modal open={open} title="Select Customer" onClose={onClose} actions={<Button onClick={() => onSelect(choice)}>Select</Button>}>
+  return <Modal open={open} title="Select Customer" onClose={onClose} actions={<Button disabled={!choice} onClick={() => onSelect(choice)}>Select</Button>}>
     <div className="pos-customer-selector">
-      <SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search name or address..." label="Search Customers" />
+      <SearchField value={searchInput} onChange={setSearchInput} onClear={() => setSearchInput('')} placeholder="Search employee number, name, or address..." label="Search Customers" />
       {error ? <Alert tone="error">{error}</Alert> : null}
-      {loading ? <LoadingState label="Loading Customers…" /> : <div className="pos-customer-selector__results" role="group" aria-label="Customers">{list.customers.length > 0 ? <div className="pos-customer-selector__header" aria-hidden="true"><span></span><span>Customer</span><span>Address</span></div> : null}{list.customers.map((customer) => { const checked = choice?.id === customer.id; return <label key={customer.id} className="pos-customer-selector__row"><input type="checkbox" checked={checked} onChange={() => setChoice(checked ? null : customer)} /><strong>{customer.name}</strong><span>{customer.address}</span></label> })}{list.customers.length === 0 ? <p>No Customers found.</p> : null}</div>}
+      {loading ? <LoadingState label="Loading Customers…" /> : <div className="pos-customer-selector__results" role="group" aria-label="Customers">{list.customers.length > 0 ? <div className="pos-customer-selector__header" aria-hidden="true"><span></span><span>Customer</span><span>Credit</span></div> : null}{list.customers.map((customer) => { const checked = choice?.id === customer.id; return <label key={customer.id} className="pos-customer-selector__row"><input type="checkbox" checked={checked} onChange={() => setChoice(checked ? null : customer)} /><span className="pos-customer-selector__identity"><strong>{customer.name}</strong></span><span className="pos-customer-selector__credit"><span><small>Available</small><strong>₱{Number(customer.availableCredit).toFixed(2)}</strong></span><span><small>Credit limit</small><strong>₱{Number(customer.creditLimit).toFixed(2)}</strong></span></span></label> })}{list.customers.length === 0 ? <p>No active Customers found.</p> : null}</div>}
       <Pagination currentPage={list.currentPage} lastPage={list.lastPage} label="Customer" onPageChange={setPage} />
     </div>
   </Modal>

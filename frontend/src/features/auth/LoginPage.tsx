@@ -19,7 +19,7 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
 
   if (status === 'authenticated') {
-    return <Navigate to={currentUser?.role === 'admin' ? '/dashboard' : currentUser?.station && currentUser.privileges.some((privilege) => privilege.description.toLowerCase() === 'cashier') ? '/orders' : '/cashier-home'} replace />
+    return <Navigate to={currentUser?.role === 'admin' ? '/dashboard' : currentUser?.role === 'accounting' ? '/accounting-dashboard' : currentUser?.station && currentUser.privileges.some((privilege) => privilege.description.toLowerCase() === 'cashier') ? '/orders' : '/cashier-home'} replace />
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {

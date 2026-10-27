@@ -4,6 +4,16 @@
 # University HomeStay POS
 ## Development Handoff
 
+## Phase 10.23A — Accounting/Credit UI and payment-time corrections (2026-10-27)
+
+- Removed the accidental second O.R Number placeholder column from O.R Transactions; the table now shows the current generated O.R value once.
+- Credit Monitoring now hides employee numbers in the Customer column, restores the derived Age column, aligns actions to the right, and uses an eye action to open read-only payment history for PAID rows. Other outstanding rows retain Record Payment.
+- POS F4 Customer selection now shows Customer name, Available Credit, and Credit Limit only; employee/customer ID is no longer shown in the result row.
+- Corrected Credit Payment datetime handling: desktop entry defaults to Manila time, the backend converts Manila input to UTC for persistence, and payment history renders in Manila time. Added a regression assertion for this conversion.
+- New payment numbers are dash-free `PAYYYYYMMDD######`; existing immutable numbers are not rewritten.
+- Renamed the O.R-only daily counter table to `official_receipt_sequences` and documented its checkout-concurrency purpose in the owning migration. It does not generate Order, delivery, spoilage, or Credit Payment numbers.
+- Verification: focused Accounting/Credit backend tests, frontend TypeScript, Electron production build, `git diff --check`, and Graphify refresh passed. Manual Electron display verification remains.
+
 ## User Account Deactivation (2026-10-26)
 
 - Replaced User deletion with Admin-only Deactivate/Reactivate actions and visible Active/Inactive status.
@@ -1379,3 +1389,6 @@ The new architecture should make the system easier to maintain without unnecessa
 Implemented Admin-only reconciliation inside finalized Monthly End Inventory detail. Admins can select pending Short/Over rows, select all pending discrepancies, review stored variance against current live stock, and reconcile the selection. The backend re-derives every variance, locks report and stock records, blocks zero/already-reconciled/missing/negative-result items, and rolls back the full batch on any failure.
 
 Successful rows update current `station_items.quantity` by the signed variance, create traceable ADJUSTMENT movements, and record reconciled actor/time/movement metadata without changing the historical Monthly End snapshot. The UI shows Matches, Pending, Reconciled, current/resulting stock preview, and inline movement audit details. Phase 10.22B.1 topmost Escape protection remains active for both confirmations.
+# Phase 10.23A Handoff — 2026-10-26
+
+Accounting, normalized Customer credit, partial payment collection, and automatic O.R numbering are implemented. The development database was rebuilt from clean owning migrations and seeded with `admin@example.com`, `operator@example.com`, and `accounting@example.com` (password: `password`). New sales use dash-free `ORDYYYYMMDD######` internally and `OR#YYYYMMDD######` on receipts. Credit payment records are immutable; correction by reversal/void remains deferred. Backend regression status: 191 tests / 1,594 assertions.

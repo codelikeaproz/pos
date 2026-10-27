@@ -11,7 +11,7 @@ export type AssignmentUser = {
   id: number
   name: string
   email: string
-  role: 'admin' | 'end_user'
+  role: 'admin' | 'cashier' | 'accounting'
   privilegeIds: number[]
 }
 

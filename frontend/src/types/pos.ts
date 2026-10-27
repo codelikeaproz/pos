@@ -53,6 +53,7 @@ export type CartItem = {
 export type CheckoutOrder = {
   id: number
   orderNumber: string
+  orNumber: string
   orderedAt: string
   station: PosStation
   cashier: { id: number; name: string }

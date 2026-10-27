@@ -71,7 +71,7 @@ class ItemDeliveryController extends Controller
             $station = Station::query()->whereKey($data['stationId'])->lockForUpdate()->firstOrFail();
             $receiver = User::query()->whereKey($data['receivedById'])->lockForUpdate()->firstOrFail();
             if ($receiver->role !== UserRole::EndUser || $receiver->station_id !== $station->id) {
-                throw ValidationException::withMessages(['receivedById' => ['Select an End User assigned to this Station.']]);
+                throw ValidationException::withMessages(['receivedById' => ['Select a Cashier assigned to this Station.']]);
             }
 
             $requested = collect($data['items'])->sortBy('itemId')->values();

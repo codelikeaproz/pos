@@ -86,4 +86,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Privilege::class, 'user_privilege')->withTimestamps();
     }
+
+    public function creditPaymentsRecorded(): HasMany
+    {
+        return $this->hasMany(CreditPayment::class, 'recorded_by_id');
+    }
 }

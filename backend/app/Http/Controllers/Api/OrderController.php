@@ -64,8 +64,9 @@ class OrderController extends Controller
         $orders = Order::query()->with(['station', 'cashier', 'customer'])
             ->when($stationId !== null, fn ($query) => $query->where('station_id', $stationId))
             ->when($search !== '', fn ($query) => $query->where(fn ($searchQuery) => $searchQuery
-                ->where('order_number', 'like', "%{$search}%")
-                ->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', "%{$search}%"))
+                ->where('or_number', 'like', "%{$search}%")
+                ->orWhere('order_number', 'like', "%{$search}%")
+                ->orWhereHas('customer', fn ($customer) => $customer->where('employee_number', 'like', "%{$search}%")->orWhere('first_name', 'like', "%{$search}%")->orWhere('middle_name', 'like', "%{$search}%")->orWhere('last_name', 'like', "%{$search}%"))
                 ->orWhereHas('cashier', fn ($cashier) => $cashier->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('station', fn ($station) => $station->where('name', 'like', "%{$search}%"))))
             ->when(isset($validated['from_date']), fn ($query) => $query->where('ordered_at', '>=',
@@ -73,7 +74,7 @@ class OrderController extends Controller
             ->when(isset($validated['to_date']), fn ($query) => $query->where('ordered_at', '<',
                 CarbonImmutable::parse($validated['to_date'], 'Asia/Manila')->addDay()->startOfDay()->utc()->toDateTimeString()))
             ->when(isset($validated['customer_sort']), fn ($query) => $query->orderBy(
-                Customer::query()->select('name')->whereColumn('customers.id', 'orders.customer_id'),
+                Customer::query()->select('first_name')->whereColumn('customers.id', 'orders.customer_id'),
                 $validated['customer_sort']
             ))
             ->orderByDesc('ordered_at')->orderByDesc('id')->paginate($this->pageSize($request))->withQueryString();

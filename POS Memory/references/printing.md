@@ -13,3 +13,4 @@
 - Physical output currently uses an approximately 32-column narrow profile and historical completed Order snapshots.
 - Phase 10.21 tax receipt fields use persisted Order tax snapshots, including the discounted-order pending-rule fallback.
 - PDFx is removed. Raw ESC/P, silent printing, saved printer choice, and further hardware-specific control remain deferred unless physical validation requires a new phase.
+- Receipt preview and physical output lead with the sale O.R Number (`OR#YYYYMMDD######`) and retain the dash-free internal Order Number as secondary metadata.

@@ -45,6 +45,9 @@ class PosCheckoutController extends Controller
             if ($paymentMethod === 'credit' && ! $customer) {
                 throw ValidationException::withMessages(['customerId' => ['Select a valid Customer for Credit / Utang.']]);
             }
+            if ($paymentMethod === 'credit' && ! $customer->is_active) {
+                throw ValidationException::withMessages(['customerId' => ['This Customer is inactive and cannot make a new Credit purchase.']]);
+            }
             $requests = collect($requestedItems)->keyBy('itemId');
             $stationItems = StationItem::query()
                 ->where('station_id', $cashier->station_id)
@@ -122,6 +125,15 @@ class PosCheckoutController extends Controller
             }
             $finalTotalCents = $subtotalCents - $discountCents;
 
+            if ($paymentMethod === 'credit') {
+                $creditSales = $this->parseFixed((string) $customer->orders()->where('payment_method', 'credit')->sum('total_amount'), 2);
+                $payments = $this->parseFixed((string) $customer->creditPayments()->sum('amount'), 2);
+                $available = max($this->parseFixed($customer->credit_limit, 2) - max($creditSales - $payments, 0), 0);
+                if ($finalTotalCents > $available) {
+                    throw ValidationException::withMessages(['customerId' => ['Credit limit exceeded. Available credit is ₱'.number_format($available / 100, 2).'.']]);
+                }
+            }
+
             $cashCents = $paymentMethod === 'cash' ? $this->parseFixed($cashReceived, 2) : null;
             if ($cashCents !== null && $cashCents < $finalTotalCents) {
                 throw ValidationException::withMessages(['cashReceived' => ['Cash received is less than the order total.']]);
@@ -147,6 +159,12 @@ class PosCheckoutController extends Controller
                 'change_amount' => $cashCents === null ? null : $this->formatFixed($cashCents - $finalTotalCents, 2),
             ]);
             $order->forceFill(['order_number' => 'ORD'.$order->ordered_at->setTimezone('Asia/Manila')->format('Ymd').str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)])->save();
+            $sequenceDate = $order->ordered_at->setTimezone('Asia/Manila')->toDateString();
+            DB::table('official_receipt_sequences')->insertOrIgnore(['sequence_date' => $sequenceDate, 'last_number' => 0]);
+            $sequence = DB::table('official_receipt_sequences')->where('sequence_date', $sequenceDate)->lockForUpdate()->first();
+            $next = $sequence->last_number + 1;
+            DB::table('official_receipt_sequences')->where('sequence_date', $sequenceDate)->update(['last_number' => $next]);
+            $order->forceFill(['or_number' => 'OR#'.str_replace('-', '', $sequenceDate).str_pad((string) $next, 6, '0', STR_PAD_LEFT)])->save();
 
             foreach ($lines as $line) {
                 $stationItem = $line['stationItem'];

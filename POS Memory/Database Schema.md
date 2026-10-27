@@ -310,3 +310,10 @@ consign_id ->int
 ### Phase 10.22C reconciliation additions
 
 `monthly_end_report_items` includes nullable `reconciled_at`, `reconciled_by_id` → `users.id`, and `reconciliation_movement_id` → `inventory_movements.id`. A reconciled discrepancy points to one signed ADJUSTMENT movement; that movement also points back through `reference_type = monthly_end_report_item` and `reference_id = monthly_end_report_items.id`. The original System Count, Physical Count, and Item snapshots are unchanged.
+# Phase 10.23A Schema
+
+- `users.role`: `admin`, `cashier`, or `accounting`.
+- `customers`: `employee_number` nullable unique, `first_name`, `middle_name` nullable, `last_name`, `sex` nullable, `birth_date` nullable DATE, `address`, `credit_limit DECIMAL(12,2) DEFAULT 500.00`, `is_active`.
+- `orders.or_number`: nullable unique for legacy compatibility; mandatory through checkout for every new sale. `orders.order_number` remains unique and dash-free.
+- `credit_payments`: unique `payment_number`, Order FK, two-decimal amount, `paid_at`, optional description, recording User FK, timestamps. No duplicated Customer FK.
+- `official_receipt_sequences`: Manila `sequence_date` primary key and locked `last_number` counter. It exists only to safely allocate one daily O.R sequence during concurrent checkout; it does not store Orders, deliveries, spoilage, or payments.

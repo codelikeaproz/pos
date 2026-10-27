@@ -14,6 +14,7 @@ type ReceiptItem = {
 
 export type ReceiptPrintData = {
   orderNumber: string
+  orNumber: string
   orderedAt: string
   paymentMethod: 'cash' | 'credit'
   subtotalAmount: string
@@ -64,7 +65,7 @@ function parseReceipt(value: unknown): ReceiptPrintData | null {
   const cashier = party(order.cashier)
   const customer = party(order.customer)
   const parsed = {
-    orderNumber: text(order.orderNumber, 100), orderedAt: text(order.orderedAt, 50), paymentMethod,
+    orderNumber: text(order.orderNumber, 100), orNumber: text(order.orNumber, 100), orderedAt: text(order.orderedAt, 50), paymentMethod,
     subtotalAmount: text(order.subtotalAmount, 30), discountAmount: text(order.discountAmount, 30), totalAmount: text(order.totalAmount, 30),
     taxStatusSnapshot: order.taxStatusSnapshot === 'NON_VAT' ? 'NON_VAT' as const : null,
     vatRateSnapshot: order.vatRateSnapshot === null || order.vatRateSnapshot === undefined ? null : text(order.vatRateSnapshot, 30),
@@ -76,7 +77,7 @@ function parseReceipt(value: unknown): ReceiptPrintData | null {
     items: items.filter((item): item is ReceiptItem => item !== null)
   }
   const amounts = [parsed.subtotalAmount, parsed.discountAmount, parsed.totalAmount, ...(parsed.vatRateSnapshot === null ? [] : [parsed.vatRateSnapshot]), ...(parsed.vatExemptSales === null ? [] : [parsed.vatExemptSales]), ...(paymentMethod === 'cash' ? [parsed.cashReceived, parsed.changeAmount] : [])]
-  if (!parsed.orderNumber || !Date.parse(parsed.orderedAt) || !paymentMethod || !station || !cashier || (paymentMethod === 'credit' && !customer) || parsed.items.length !== items.length || parsed.items.length === 0 || amounts.some((amount) => !amount || !decimal(amount))) return null
+  if (!parsed.orderNumber || !/^OR#\d{14}$/.test(parsed.orNumber) || !Date.parse(parsed.orderedAt) || !paymentMethod || !station || !cashier || (paymentMethod === 'credit' && !customer) || parsed.items.length !== items.length || parsed.items.length === 0 || amounts.some((amount) => !amount || !decimal(amount))) return null
   return parsed as ReceiptPrintData
 }
 
@@ -90,7 +91,7 @@ export function formatPrintReceipt(order: ReceiptPrintData): string {
     center('MUSUAN PEAK'),
     center('MUSUAN, MARAMAG, BUKIDNON'),
     center('TIN: 621-400-000'), '',
-    ...wrap(`Station : ${order.station.name}`), ...wrap(`Txn No. : ${order.orderNumber}`),
+    ...wrap(`O.R No. : ${order.orNumber}`), ...wrap(`Order   : ${order.orderNumber}`), ...wrap(`Station : ${order.station.name}`),
     ...wrap(`Date    : ${new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.orderedAt))}`),
     ...wrap(`Cashier : ${order.cashier.name}`), ...wrap(`Customer: ${order.customer?.name ?? 'Walk-in'}`),
     `Payment : ${order.paymentMethod === 'credit' ? 'CREDIT / UTANG' : 'CASH'}`, rule

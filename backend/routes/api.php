@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\AccountingDashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CreditMonitoringController;
+use App\Http\Controllers\Api\CreditPaymentController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\HealthController;
@@ -46,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/current-user', [AuthController::class, 'currentUser']);
     Route::patch('/current-user', [AuthController::class, 'updateProfile']);
     Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('admin');
+    Route::get('/accounting-dashboard', [AccountingDashboardController::class, 'index'])->middleware('role:admin,accounting');
     Route::get('/monthly-end-reports', [MonthlyEndReportController::class, 'index'])->middleware('admin');
     Route::post('/monthly-end-reports', [MonthlyEndReportController::class, 'store'])->middleware('admin');
     Route::get('/monthly-end-reports/{monthlyEndReport}', [MonthlyEndReportController::class, 'show'])->middleware('admin');
@@ -53,21 +56,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/monthly-end-reports/{monthlyEndReport}/finalize', [MonthlyEndReportController::class, 'finalize'])->middleware('admin');
     Route::post('/monthly-end-reports/{monthlyEndReport}/reconcile', [MonthlyEndReportController::class, 'reconcile'])->middleware('admin');
     Route::get('/monthly-end-reports/{monthlyEndReport}/export', [MonthlyEndReportController::class, 'export'])->middleware('admin');
-    Route::get('/reports/sales', [SalesReportController::class, 'index'])->middleware('admin');
-    Route::get('/reports/sales/export', [SalesReportController::class, 'export'])->middleware('admin');
-    Route::get('/reports/sales/{order}', [SalesReportController::class, 'show'])->middleware('admin');
+    Route::get('/reports/sales', [SalesReportController::class, 'index'])->middleware('role:admin,accounting');
+    Route::get('/reports/sales/export', [SalesReportController::class, 'export'])->middleware('role:admin,accounting');
+    Route::get('/reports/sales/{order}', [SalesReportController::class, 'show'])->middleware('role:admin,accounting');
     Route::get('/tax-settings', [TaxSettingController::class, 'show'])->middleware('admin');
     Route::put('/tax-settings', [TaxSettingController::class, 'update'])->middleware('admin');
 
-    Route::get('/pos/items', [PosItemController::class, 'index']);
-    Route::get('/pos/station-inventory', [PosItemController::class, 'stationInventory']);
-    Route::post('/pos/checkout', [PosCheckoutController::class, 'store']);
-    Route::get('/orders', [OrderController::class, 'index']);
-    Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::get('/pos/or-transactions', [OrderController::class, 'posOrTransactions']);
-    Route::get('/pos/or-transactions/{order}', [OrderController::class, 'posOrTransaction']);
-    Route::get('/or-transactions', [OrderController::class, 'orTransactions'])->middleware('admin');
-    Route::get('/or-transactions/{order}', [OrderController::class, 'orTransaction'])->middleware('admin');
+    Route::get('/pos/items', [PosItemController::class, 'index'])->middleware('role:admin,cashier');
+    Route::get('/pos/station-inventory', [PosItemController::class, 'stationInventory'])->middleware('role:admin,cashier');
+    Route::post('/pos/checkout', [PosCheckoutController::class, 'store'])->middleware('role:admin,cashier');
+    Route::get('/orders', [OrderController::class, 'index'])->middleware('role:admin,cashier');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->middleware('role:admin,cashier');
+    Route::get('/pos/or-transactions', [OrderController::class, 'posOrTransactions'])->middleware('role:admin,cashier');
+    Route::get('/pos/or-transactions/{order}', [OrderController::class, 'posOrTransaction'])->middleware('role:admin,cashier');
+    Route::get('/or-transactions', [OrderController::class, 'orTransactions'])->middleware('role:admin,accounting');
+    Route::get('/or-transactions/{order}', [OrderController::class, 'orTransaction'])->middleware('role:admin,accounting');
 
     Route::get('/employee-options', [UserController::class, 'options'])->middleware('admin');
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->middleware('admin');
@@ -82,9 +85,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('items', ItemController::class)
         ->middleware('admin');
 
-    Route::get('/customers', [CustomerController::class, 'index']);
-    Route::post('/customers', [CustomerController::class, 'store'])->middleware('admin');
-    Route::get('/credit-monitoring', [CreditMonitoringController::class, 'index'])->middleware('admin');
+    Route::get('/customers', [CustomerController::class, 'index'])->middleware('role:admin,cashier,accounting');
+    Route::post('/customers', [CustomerController::class, 'store'])->middleware('role:admin,accounting');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->middleware('role:admin,accounting');
+    Route::patch('/customers/{customer}/status', [CustomerController::class, 'updateStatus'])->middleware('role:admin,accounting');
+    Route::get('/credit-monitoring', [CreditMonitoringController::class, 'index'])->middleware('role:admin,accounting');
+    Route::get('/credit-orders/{order}', [CreditMonitoringController::class, 'show'])->middleware('role:admin,accounting');
+    Route::post('/credit-orders/{order}/payments', [CreditPaymentController::class, 'store'])->middleware('role:admin,accounting');
 
     Route::get('/item-delivery-options', [ItemDeliveryController::class, 'options'])->middleware('admin');
     Route::get('/item-deliveries', [ItemDeliveryController::class, 'index'])->middleware('admin');
@@ -100,8 +107,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/prices', [PriceController::class, 'store'])->middleware('admin');
     Route::post('/prices/{price}/activate', [PriceController::class, 'activate'])->middleware('admin');
     Route::get('/price-item-options', [PriceController::class, 'options'])->middleware('admin');
-    Route::get('/sale-remittances', [SaleRemittanceController::class, 'index'])->middleware('admin');
-    Route::post('/sale-remittances', [SaleRemittanceController::class, 'store'])->middleware('admin');
+    Route::get('/sale-remittances', [SaleRemittanceController::class, 'index'])->middleware('role:admin,accounting');
+    Route::post('/sale-remittances', [SaleRemittanceController::class, 'store'])->middleware('role:admin,accounting');
 
     Route::get('/privileges', [PrivilegeController::class, 'index'])->middleware('admin');
     Route::post('/privileges', [PrivilegeController::class, 'store'])->middleware('admin');

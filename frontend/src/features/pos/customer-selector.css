@@ -1,11 +1,16 @@
 .pos-customer-selector { display: flex; flex-direction: column; gap: var(--space-3); }
 .pos-customer-selector__results { max-height: 280px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
-.pos-customer-selector__header, .pos-customer-selector__row { display: grid; grid-template-columns: 24px minmax(100px, .8fr) minmax(0, 1.2fr); align-items: center; gap: var(--space-3); padding: var(--space-3); }
+.pos-customer-selector__header, .pos-customer-selector__row { display: grid; grid-template-columns: 24px minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: var(--space-3); padding: var(--space-3); }
 .pos-customer-selector__header { background: var(--color-bg-subtle); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-secondary); font-weight: 600; }
 .pos-customer-selector__row { border-bottom: 1px solid var(--color-border); cursor: pointer; }
 .pos-customer-selector__row:last-of-type { border-bottom: 0; }
 .pos-customer-selector__row:hover, .pos-customer-selector__row:has(input:focus-visible) { background: var(--color-bg-subtle); }
 .pos-customer-selector__row input { width: 16px; height: 16px; margin: 0; accent-color: var(--color-brand-green); }
-.pos-customer-selector__row strong { font-weight: 500; }
-.pos-customer-selector__row span { color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.pos-customer-selector__identity { display: grid; gap: 2px; min-width: 0; }
+.pos-customer-selector__identity strong { overflow: hidden; color: var(--color-text-primary); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.pos-customer-selector__identity small { color: var(--color-text-secondary); font-size: 11px; }
+.pos-customer-selector__credit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); min-width: 0; }
+.pos-customer-selector__credit > span { display: grid; gap: 2px; }
+.pos-customer-selector__credit small { color: var(--color-text-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: .03em; }
+.pos-customer-selector__credit strong { color: var(--color-brand-green); font-size: var(--font-size-secondary); font-weight: 650; white-space: nowrap; }
 .pos-customer-selector__results > p { margin: 0; padding: var(--space-4); color: var(--color-text-secondary); text-align: center; }

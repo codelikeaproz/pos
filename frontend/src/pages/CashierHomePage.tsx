@@ -9,6 +9,7 @@ export function CashierHomePage() {
   const { currentUser } = useAuth()
   const navigate = useNavigate()
   if (currentUser?.role === 'admin') return <Navigate to="/dashboard" replace />
+  if (currentUser?.role === 'accounting') return <Navigate to="/accounting-dashboard" replace />
   const canOpenPos = Boolean(currentUser?.station && currentUser.privileges.some((privilege) => privilege.description.toLowerCase() === 'cashier'))
 
   return (

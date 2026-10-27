@@ -30,18 +30,17 @@ class CustomerCreditMonitoringApiTest extends TestCase
         $this->deleteJson('/api/credit-monitoring/1')->assertNotFound();
     }
 
-    public function test_admin_creates_trimmed_customers_with_duplicate_names_and_no_invented_balance(): void
+    public function test_admin_creates_normalized_customers_with_default_credit_limit(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
-        $this->postJson('/api/customers', ['name' => '  Maria Cruz  ', 'address' => '  Main Street  ', 'balance' => '999.00'])
-            ->assertCreated()->assertJsonPath('customer.name', 'Maria Cruz')->assertJsonPath('customer.address', 'Main Street')->assertJsonPath('customer.balance', null);
-        $this->postJson('/api/customers', ['name' => 'Maria Cruz', 'address' => 'Other Street'])->assertCreated();
+        $input = ['first_name' => '  Maria  ', 'last_name' => '  Cruz  ', 'address' => '  Main Street  '];
+        $this->postJson('/api/customers', $input)->assertCreated()->assertJsonPath('customer.name', 'Maria Cruz')->assertJsonPath('customer.address', 'Main Street')->assertJsonPath('customer.creditLimit', '500.00');
+        $this->postJson('/api/customers', $input + ['address' => 'Other Street'])->assertCreated();
         $this->assertDatabaseCount('customers', 2);
         $this->assertSame(0, Customer::query()->firstOrFail()->orders()->count());
-        $this->postJson('/api/customers', ['name' => '  ', 'address' => 'Street'])->assertUnprocessable()->assertJsonValidationErrors('name');
-        $this->postJson('/api/customers', ['name' => 'Person', 'address' => '  '])->assertUnprocessable()->assertJsonValidationErrors('address');
-        $this->postJson('/api/customers', ['name' => str_repeat('A', 256), 'address' => 'Street'])->assertUnprocessable()->assertJsonValidationErrors('name');
-        $this->postJson('/api/customers', ['name' => 'Person', 'address' => str_repeat('A', 501)])->assertUnprocessable()->assertJsonValidationErrors('address');
+        $this->postJson('/api/customers', ['first_name' => ' ', 'last_name' => 'Cruz', 'address' => 'Street'])->assertUnprocessable()->assertJsonValidationErrors('first_name');
+        $this->postJson('/api/customers', ['first_name' => 'Maria', 'last_name' => 'Cruz', 'address' => ' '])->assertUnprocessable()->assertJsonValidationErrors('address');
+        $this->postJson('/api/customers', ['first_name' => 'Maria', 'last_name' => 'Cruz', 'address' => 'Street', 'credit_limit' => '500.125'])->assertUnprocessable()->assertJsonValidationErrors('credit_limit');
         $this->assertDatabaseCount('customers', 2);
     }
 

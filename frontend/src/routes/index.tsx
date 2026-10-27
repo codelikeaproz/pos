@@ -8,6 +8,7 @@ import { AppShell } from '../layouts/AppShell'
 import { CreditMonitoringPage } from '../pages/CreditMonitoringPage'
 import { CustomerManagementPage } from '../pages/CustomerManagementPage'
 import { DashboardPage } from '../pages/DashboardPage'
+import { AccountingDashboardPage } from '../pages/AccountingDashboardPage'
 import { CashierHomePage } from '../pages/CashierHomePage'
 import { EmployeesPage } from '../pages/EmployeesPage'
 import { ItemsPage } from '../pages/ItemsPage'
@@ -50,20 +51,23 @@ export const appRoutes: RouteObject[] = [
               { path: 'tax-configuration', element: <TaxConfigurationPage /> },
               { path: 'privilege', element: <PrivilegesPage /> },
               { path: 'privilege-assignment', element: <PrivilegeAssignmentsPage /> },
-              { path: 'sale-remittance', element: <SaleRemittancesPage /> },
-              { path: 'sales-report', element: <SalesReportPage /> },
-              { path: 'or-transactions', element: <OrTransactionsPage /> },
               { path: 'stations', element: <StationsPage /> },
               { path: 'station-inventory', element: <StationInventoryPage /> },
               { path: 'item-deliveries', element: <ItemDeliveriesPage /> },
-              { path: 'spoilages', element: <SpoilagesPage /> },
-              { path: 'credit-monitoring', element: <CreditMonitoringPage /> },
-              { path: 'customer-management', element: <CustomerManagementPage /> }
+              { path: 'spoilages', element: <SpoilagesPage /> }
             ]
           },
-          { path: 'cashier-home', element: <CashierHomePage /> },
+          { element: <RoleRoute allowedRoles={['admin', 'accounting']} />, children: [
+            { path: 'accounting-dashboard', element: <AccountingDashboardPage /> },
+            { path: 'sale-remittance', element: <SaleRemittancesPage /> },
+            { path: 'sales-report', element: <SalesReportPage /> },
+            { path: 'or-transactions', element: <OrTransactionsPage /> },
+            { path: 'credit-monitoring', element: <CreditMonitoringPage /> },
+            { path: 'customer-management', element: <CustomerManagementPage /> }
+          ] },
+          { element: <RoleRoute allowedRoles={['cashier']} />, children: [{ path: 'cashier-home', element: <CashierHomePage /> }] },
+          { element: <RoleRoute allowedRoles={['admin', 'cashier']} />, children: [{ path: 'transactions', element: <TransactionsPage /> }] },
           { element: <PosRoute />, children: [{ path: 'orders', element: <OrdersPage /> }] },
-          { path: 'transactions', element: <TransactionsPage /> },
           { path: '*', element: <RoleLanding /> }
         ]
       }
@@ -73,5 +77,5 @@ export const appRoutes: RouteObject[] = [
 
 function RoleLanding() {
   const { currentUser } = useAuth()
-  return <Navigate to={currentUser?.role === 'admin' ? '/dashboard' : '/cashier-home'} replace />
+  return <Navigate to={currentUser?.role === 'admin' ? '/dashboard' : currentUser?.role === 'accounting' ? '/accounting-dashboard' : '/cashier-home'} replace />
 }

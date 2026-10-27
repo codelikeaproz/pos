@@ -1,6 +1,6 @@
 # University HomeStay POS Context Router
 
-Current phase: Phase 10.23H.5 activates the Item-level reorder point. Product Management owns the threshold, while Station Inventory owns quantity; all low-stock surfaces use the same Item threshold.
+Current phase: Phase 10.23A adds the Accounting system role, normalized Customers, Customer credit limits, immutable Credit payments, derived outstanding balances, and automatic daily O.R Numbers.
 
 Use this file to choose the smallest relevant context set. Do not load every POS Memory document unless the task crosses domains.
 
@@ -36,6 +36,7 @@ Graphify accelerates discovery. Verify actual source and tests before changing c
 | Printing or hardware | `POS Memory/references/printing.md` | Electron IPC, receipt UI, and completed Order snapshots |
 | Sidebar, profile, or User Management | `POS Memory/phases/10.23UI-sidebar-profile/CONTEXT.md` | Current-user resource, user schema/forms, navigation configuration, and route guards |
 | Authentication or User integrity | `POS Memory/references/authentication.md`, `POS Memory/phases/10.23H-security-data-integrity/CONTEXT.md` | Auth controllers, User Management, Sanctum config, historical foreign keys, and tests |
+| Accounting, Customers, or Credit payments | `POS Memory/references/accounting.md`, `POS Memory/references/customers.md`, `POS Memory/references/credit-payments.md`, `POS Memory/phases/10.23A-accounting-credit/CONTEXT.md` | Roles, Customers, Credit Orders/payments, checkout limits, O.R numbers, reports, and tests |
 | New or postponed feature | `POS Memory/references/deferred.md` | Current user scope and relevant canonical rules |
 
 ## Graphify use

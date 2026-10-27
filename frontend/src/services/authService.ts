@@ -26,7 +26,7 @@ function isCurrentUser(value: unknown): value is CurrentUser {
     typeof record.name === 'string' &&
     typeof record.email === 'string' &&
     (record.sex === 'male' || record.sex === 'female') &&
-    (record.role === 'admin' || record.role === 'end_user') &&
+    (record.role === 'admin' || record.role === 'cashier' || record.role === 'accounting') &&
     hasValidStation
   )
 }

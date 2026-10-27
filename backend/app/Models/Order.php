@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     /** @var list<string> */
-    protected $fillable = ['order_number', 'ordered_at', 'station_id', 'cashier_id', 'customer_id', 'payment_method', 'customer_count', 'senior_count', 'subtotal_amount', 'discount_amount', 'tax_status_snapshot', 'vat_rate_snapshot', 'vat_exempt_sales', 'total_amount', 'cash_received', 'change_amount', 'remitted_at', 'remitted_by_id'];
+    protected $fillable = ['order_number', 'or_number', 'ordered_at', 'station_id', 'cashier_id', 'customer_id', 'payment_method', 'customer_count', 'senior_count', 'subtotal_amount', 'discount_amount', 'tax_status_snapshot', 'vat_rate_snapshot', 'vat_exempt_sales', 'total_amount', 'cash_received', 'change_amount', 'remitted_at', 'remitted_by_id'];
 
     protected static function booted(): void
     {
@@ -54,5 +54,10 @@ class Order extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function creditPayments(): HasMany
+    {
+        return $this->hasMany(CreditPayment::class);
     }
 }

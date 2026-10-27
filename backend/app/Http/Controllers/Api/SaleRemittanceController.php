@@ -26,7 +26,8 @@ class SaleRemittanceController extends Controller
             ->with(['customer', 'station', 'cashier', 'remittedBy'])
             ->when($search !== '', fn ($query) => $query->where(fn ($matches) => $matches
                 ->where('order_number', 'like', "%{$search}%")
-                ->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', "%{$search}%"))
+                ->orWhere('or_number', 'like', "%{$search}%")
+                ->orWhereHas('customer', fn ($customer) => $customer->where('employee_number', 'like', "%{$search}%")->orWhere('first_name', 'like', "%{$search}%")->orWhere('middle_name', 'like', "%{$search}%")->orWhere('last_name', 'like', "%{$search}%"))
                 ->orWhereHas('station', fn ($station) => $station->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('cashier', fn ($cashier) => $cashier->where('name', 'like', "%{$search}%"))))
             ->when(isset($validated['from_date']), fn ($query) => $query->where('ordered_at', '>=', CarbonImmutable::parse($validated['from_date'], 'Asia/Manila')->startOfDay()->utc()))

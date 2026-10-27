@@ -16,3 +16,5 @@
 - Orders and Order Items preserve historical values; checkout writes a negative SALE Inventory Movement with the stock deduction.
 - Any validation or write failure rolls back Order, items, stock, and movements together.
 - Cart quantities use at most two decimal places, and one checkout accepts at most 100 Item rows.
+- Credit checkout locks the active Customer, derives outstanding payments from persisted Credit Orders and immutable Credit Payments, and rejects totals above available credit.
+- Every successful Cash or Credit checkout atomically allocates an `OR#YYYYMMDD######` daily O.R Number while retaining the dash-free internal Order Number.

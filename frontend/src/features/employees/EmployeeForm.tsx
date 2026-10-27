@@ -20,7 +20,8 @@ type EmployeeFormProps = {
 
 const ROLES = [
   { value: 'admin', label: 'Admin' },
-  { value: 'end_user', label: 'End User' }
+  { value: 'cashier', label: 'Cashier' },
+  { value: 'accounting', label: 'Accounting' }
 ]
 
 export function EmployeeForm({
@@ -34,7 +35,7 @@ export function EmployeeForm({
   const [name, setName] = useState(employee?.name ?? '')
   const [email, setEmail] = useState(employee?.email ?? '')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<UserRole>(employee?.role ?? 'end_user')
+  const [role, setRole] = useState<UserRole>(employee?.role ?? 'cashier')
   const [sex, setSex] = useState<UserSex>(employee?.sex ?? 'male')
   const [stationId, setStationId] = useState(employee?.station?.id ?? 0)
 

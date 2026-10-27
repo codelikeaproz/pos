@@ -51,6 +51,11 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function accounting(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => UserRole::Accounting]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

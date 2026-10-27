@@ -1,2 +1,3 @@
-export type Customer = { id: number; name: string; address: string; balance: string | null }
+export type Customer = { id: number; employeeNumber: string | null; firstName: string; middleName: string | null; lastName: string; name: string; sex: 'male' | 'female' | null; birthDate: string | null; address: string; creditLimit: string; outstandingBalance: string; availableCredit: string; isActive: boolean }
 export type CustomerList = { customers: Customer[]; currentPage: number; lastPage: number; total: number }
+export type CustomerInput = { employee_number: string | null; first_name: string; middle_name: string | null; last_name: string; sex: 'male' | 'female' | null; birth_date: string | null; address: string; credit_limit: string; is_active: boolean }

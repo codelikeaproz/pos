@@ -70,7 +70,7 @@ class UserController extends Controller
         $user = DB::transaction(function () use ($user, $validatedData) {
             $admins = User::query()->where('role', UserRole::Admin->value)->where('is_active', true)->orderBy('id')->lockForUpdate()->get(['id']);
             $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
-            if ($locked->is_active && $locked->role === UserRole::Admin && $validatedData['role'] === UserRole::EndUser->value && $admins->count() === 1) {
+            if ($locked->is_active && $locked->role === UserRole::Admin && $validatedData['role'] !== UserRole::Admin->value && $admins->count() === 1) {
                 abort(409, 'The system must have at least one administrator.');
             }
 

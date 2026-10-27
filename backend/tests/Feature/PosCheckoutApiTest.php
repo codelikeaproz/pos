@@ -331,7 +331,7 @@ class PosCheckoutApiTest extends TestCase
     {
         [$user, , $item, $stock] = $this->context();
         $item->prices()->update(['amount' => '1000.00']);
-        $customer = Customer::query()->create(['name' => 'Senior Customer', 'address' => 'CMU']);
+        $customer = Customer::query()->create(['name' => 'Senior Customer', 'address' => 'CMU', 'credit_limit' => '1000.00']);
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/pos/checkout', [

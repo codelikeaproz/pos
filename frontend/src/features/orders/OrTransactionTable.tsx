@@ -8,8 +8,8 @@ import type { OrderHistoryRow } from '../../types/order'
 
 export function OrTransactionTable({ orders, emptyMessage, customerSort, onCustomerSort, onView }: { orders: OrderHistoryRow[]; emptyMessage: string; customerSort: CustomerSort; onCustomerSort: (value: CustomerSort) => void; onView: (order: OrderHistoryRow) => void }) {
   const columns: TableColumn<OrderHistoryRow>[] = [
+    { key: 'or-number', header: 'O.R Number', render: (order) => order.orNumber ?? '—' },
     { key: 'order-number', header: 'Order Number', render: (order) => order.orderNumber },
-    { key: 'or-number', header: 'O.R Number', render: () => '—' },
     { key: 'date', header: 'Date', render: (order) => formatManilaDateTime(order.orderedAt) },
     { key: 'customer', header: <CustomerSortHeader value={customerSort} onChange={onCustomerSort} />, render: (order) => order.customer?.name ?? 'Walk-in' },
     { key: 'station', header: 'Station', render: (order) => order.station.name },

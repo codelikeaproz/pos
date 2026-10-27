@@ -7,7 +7,7 @@ export function PaymentReceipt({ order }: { order: CheckoutOrder }) {
   const discounted = Number(order.discountAmount) > 0
 
   return <div className="pos-receipt-preview" tabIndex={0} aria-label="Scrollable receipt preview">
-    <article className="pos-receipt" aria-label={`Receipt for transaction ${order.orderNumber}`}>
+    <article className="pos-receipt" aria-label={`Receipt ${order.orNumber}`}>
       <header className="pos-receipt__header">
         <h3>CMU HomeStay</h3>
         <p>Sale Receipt</p>
@@ -16,7 +16,8 @@ export function PaymentReceipt({ order }: { order: CheckoutOrder }) {
       <dl className="pos-receipt__metadata">
         <div><dt>Station</dt><dd>{order.station.name}</dd></div>
         <div><dt>Date</dt><dd>{formatManilaDateTime(order.orderedAt)}</dd></div>
-        <div className="pos-receipt__transaction"><dt>Txn</dt><dd>{order.orderNumber}</dd></div>
+        <div className="pos-receipt__transaction"><dt>O.R No.</dt><dd>{order.orNumber}</dd></div>
+        <div className="pos-receipt__transaction"><dt>Order</dt><dd>{order.orderNumber}</dd></div>
         <div><dt>Cashier</dt><dd>{order.cashier.name}</dd></div>
         <div><dt>Customer</dt><dd>{order.customer?.name ?? 'Walk-in'}</dd></div>
         <div><dt>Payment</dt><dd>{order.paymentMethod === 'credit' ? 'Credit / Utang' : 'Cash'}</dd></div>

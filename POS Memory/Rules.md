@@ -1100,3 +1100,12 @@ The goal is to create a reliable system that matches the actual business workflo
 - A selected batch is atomic. Missing Station stock, zero variance, prior reconciliation, or a negative resulting balance rejects every selected change.
 - Every successful item creates a signed ADJUSTMENT movement and records its movement, Admin, and server timestamp. Original Monthly End snapshots remain immutable.
 - Generic stock adjustment, reconciliation reversal, tax, orders, sales reporting, and accounting effects remain outside this workflow.
+# Phase 10.23A Rules
+
+- Admin is administrative, Cashier is POS-focused, and Accounting may access only Accounting Dashboard, Customers, Credit Monitoring/payments, O.R Transactions, Sale Remittance, and Sales Report/export.
+- New Customers default to a ₱500.00 Credit Limit. Admin and Accounting may edit it, including below existing debt; available credit never becomes negative.
+- Inactive Customers cannot create new Credit Orders, but their history remains and payments against existing debt remain allowed.
+- Credit checkout requires `existing outstanding + new Order total <= credit_limit` and locks the Customer before calculating it.
+- Credit payment amounts are positive two-decimal values and cannot exceed current outstanding. Payments are immutable; status is derived as UNPAID, PARTIALLY_PAID, or PAID.
+- A Credit payment has no inventory, tax, Price, or Sales Report revenue effect.
+- Every new successful Cash or Credit sale receives a unique O.R Number in `OR#YYYYMMDD######` form. The six-digit sequence resets each Manila day. Order numbers stay dash-free.

@@ -352,3 +352,6 @@ The future customer system may display:
 
 This is outside the initial release.
 > Phase 10.22C status (2026-10-21): Finalized Monthly End details now show reconciliation counts, pending selection, a current-stock/result preview, and reconciliation audit details. Reconciliation changes live Station inventory through signed ADJUSTMENT movements while preserving the historical report. Generic adjustments, reversal, and exports remain deferred.
+# Phase 10.23A Product Outcome
+
+Accounting staff can sign in to a focused workspace, maintain Customers and Credit Limits, monitor outstanding Credit Orders, record partial payments, remit Cash sales, and review O.R transactions and Sales Reports without receiving inventory or User Administration access. Cashiers see available Customer credit during selection and receive clear server errors when a Credit sale exceeds the limit. Receipts lead with the automatically generated O.R Number while retaining the internal dash-free Order Number.

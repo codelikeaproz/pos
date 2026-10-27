@@ -63,7 +63,7 @@ class ReportExportService
             $hasOrders = true;
             $orderedAt = CarbonImmutable::instance($order->ordered_at)->setTimezone('Asia/Manila');
             $writer->addRow(Row::fromValuesWithStyles([
-                $orderedAt, $orderedAt, $order->order_number, $order->customer?->name ?? 'Walk-in',
+                $orderedAt, $orderedAt, $order->order_number, $order->customer?->display_name ?? 'Walk-in',
                 $order->payment_method === 'credit' ? 'Credit / Utang' : 'Cash', $order->station->name,
                 $order->cashier->name, (float) $order->discount_amount, (float) $order->total_amount,
             ], null, [0 => $this->dateStyle(), 1 => $this->timeStyle(), 7 => $money, 8 => $money]));

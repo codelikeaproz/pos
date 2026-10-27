@@ -1,0 +1,3 @@
+# Credit Payments Context
+
+Each immutable Credit Payment belongs to one Credit Order and its recording User. Payment Numbers use `PAYYYYYMMDD######`. Payment date/time entered in the desktop client is Manila time, stored as UTC, and displayed as Manila time. The server locks the Order, recalculates total paid and outstanding, and rejects zero, negative, over-precision, or overpayment values. Status is derived: zero paid is UNPAID; positive paid below the Order total is PARTIALLY_PAID; total paid at least the Order total is PAID. Payments do not touch inventory, tax, Price, or Sales Report revenue. Paid records remain viewable through read-only payment history.

@@ -9,12 +9,23 @@ class CustomerResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $outstanding = max((float) ($this->credit_orders_sum_total_amount ?? 0) - (float) ($this->credit_payments_sum_amount ?? 0), 0);
+        $available = max((float) $this->credit_limit - $outstanding, 0);
+
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'employeeNumber' => $this->employee_number,
+            'firstName' => $this->first_name,
+            'middleName' => $this->middle_name,
+            'lastName' => $this->last_name,
+            'name' => $this->display_name,
+            'sex' => $this->sex,
+            'birthDate' => $this->birth_date?->toDateString(),
             'address' => $this->address,
-            // Outstanding balance cannot be derived without Accounting Office settlements.
-            'balance' => null,
+            'creditLimit' => $this->credit_limit,
+            'outstandingBalance' => number_format($outstanding, 2, '.', ''),
+            'availableCredit' => number_format($available, 2, '.', ''),
+            'isActive' => $this->is_active,
         ];
     }
 }

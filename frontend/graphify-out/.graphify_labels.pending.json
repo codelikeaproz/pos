@@ -1,0 +1,21 @@
+{
+  "0": "getUserFacingApiMessage",
+  "1": "react",
+  "2": "index.tsx",
+  "3": "OrdersPage.tsx",
+  "4": "SalesReportPage.tsx",
+  "5": "apiClient.ts",
+  "6": "printing.ts",
+  "7": "package.json",
+  "8": "MonthlyEndInventoryPage.tsx",
+  "9": "EmployeesPage.tsx",
+  "10": "ItemsPage.tsx",
+  "11": "SpoilagesPage.tsx",
+  "12": "compilerOptions",
+  "13": "ItemDeliveriesPage.tsx",
+  "14": "SaleRemittancesPage.tsx",
+  "15": "compilerOptions",
+  "16": "vite-env.d.ts",
+  "17": "assets.d.ts",
+  "18": "tsconfig.json"
+}

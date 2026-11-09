@@ -4,6 +4,16 @@
 
 Phase 10.22B.1 keeps the detail modal open when Escape dismisses the Finalize confirmation. This interaction patch does not change report or inventory behavior.
 
+## UI Improvements (2026-11-09)
+
+Subsequent visual/layout improvements without API or behavior changes:
+- KPI summary cards stretch to full modal width (4-column grid)
+- Result badge "Over" changed to green (success tone) for positive outcomes
+- Variance values display in brand yellow (#ffc600)
+- Reconciliation preview modal uses table layout with headers (Item, Variance, Current, Result)
+- Removed "Finalized" and "Created" timestamps from meta section (kept accountability fields)
+- Removed "Uncounted" KPI from summary (status visible in table)
+
 ## Goal
 
 Record and finalize one historical physical inventory count per Station and month/year without adjusting operational stock.

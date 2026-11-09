@@ -4,6 +4,33 @@
 # University HomeStay POS
 ## Development Handoff
 
+## Toast Notification Standardization (2026-11-09)
+
+- Standardized Toast component with consistent design following POS Memory branding
+- Added close button (X) for manual dismiss on all toast notifications
+- Added support for warning and error tones (previously only success/info)
+- Updated styling: white background with 4px colored left border instead of full colored backgrounds
+- Tones use POS Memory colors: Success (green #067647), Info (blue #2f6f9f), Warning (orange #b54708), Error (red #b42318)
+- Added optional title parameter to showToast(message, tone, title) for structured messages
+- Increased toast width from 320px to 380px for better content display
+- Kept bottom-right positioning and 2.8-second auto-dismiss behavior
+- Backward compatible - existing showToast(message) calls continue to work
+- Added CSS module type declaration to assets.d.ts to fix TypeScript lint error
+- No API, database, or business logic changed; purely UI/UX improvements
+
+## Monthly End Inventory UI Improvements (2026-11-09)
+
+- KPI summary cards now stretch to full modal width (changed from 5-column to 4-column grid)
+- Result badge color: "Over" changed from warning (orange) to success (green) to align with positive outcomes
+- Variance values now display in POS Memory brand yellow (#ffc600) for better visibility
+- Reconciliation preview modal restructured as a table with headers (Item, Variance, Current, Result) for clarity
+- Removed "Finalized" timestamp from detail modal meta section (kept "Finalized By" for accountability)
+- Removed "Created" timestamp from detail modal meta section (kept "Created By")
+- Removed "Uncounted" KPI from summary since this status is already visible in the table's Result column
+- Added CSS module type declaration to fix TypeScript lint error for CSS imports
+- No API, database, inventory logic, or variance/finalization behavior changed; these are purely visual/layout improvements
+- Verification: frontend TypeScript checking passed
+
 ## Phase 10.23A — Accounting/Credit UI and payment-time corrections (2026-10-27)
 
 - Removed the accidental second O.R Number placeholder column from O.R Transactions; the table now shows the current generated O.R value once.

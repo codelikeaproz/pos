@@ -20,7 +20,7 @@ export function AppShell() {
           </main>
         </div>
       </div>
-      {!isPos ? <footer className="app-shell__footer">© 2026 Central Mindanao University · University HomeStay POS</footer> : null}
+      {!isPos ? <footer className="app-shell__footer">Copyright © 2026 Software Development Department. All Rights Reserved.</footer> : null}
     </div>
   )
 }

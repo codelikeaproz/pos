@@ -31,7 +31,19 @@ class ItemController extends Controller
             ->paginate($this->pageSize($request))
             ->withQueryString();
 
-        return ItemResource::collection($items)->response();
+        $usedUnits = Item::query()
+            ->where('units_backup', '!=', '')
+            ->distinct()
+            ->orderByRaw('lower(units_backup)')
+            ->pluck('units_backup')
+            ->values()
+            ->all();
+
+        return ItemResource::collection($items)->additional([
+            'meta' => [
+                'used_units' => $usedUnits,
+            ],
+        ])->response();
     }
 
     public function store(StoreItemRequest $request): JsonResponse

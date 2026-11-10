@@ -1,13 +1,20 @@
 import { FormEvent, useState } from 'react'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
-import { ITEM_UNITS, type Item, type ItemInput } from '../../types/item'
+import type { Item, ItemInput } from '../../types/item'
 
 export type ItemFieldErrors = Partial<Record<'item_code' | 'name' | 'units_backup' | 'unit' | 'price', string>>
 
-type Props = { formId: string; item?: Item; errors: ItemFieldErrors; disabled?: boolean; onSubmit: (input: ItemInput) => void }
+type Props = {
+  formId: string
+  item?: Item
+  errors: ItemFieldErrors
+  disabled?: boolean
+  unitSuggestions: readonly string[]
+  onSubmit: (input: ItemInput) => void
+}
 
-export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: Props) {
+export function ItemForm({ formId, item, errors, disabled = false, unitSuggestions, onSubmit }: Props) {
   const [itemCode, setItemCode] = useState(item?.item_code ?? '')
   const [name, setName] = useState(item?.name ?? '')
   const [unitsBackup, setUnitsBackup] = useState(item?.units_backup ?? 'pcs')
@@ -33,12 +40,12 @@ export function ItemForm({ formId, item, errors, disabled = false, onSubmit }: P
         {errors.name ? <span id={`${formId}-name-error`} className="page__field-error">{errors.name}</span> : null}
       </div>
       <div className="item-form__field">
-          <Label htmlFor={`${formId}-units-backup`} required>Unit</Label>
-          <Input id={`${formId}-units-backup`} list={`${formId}-unit-suggestions`} value={unitsBackup} onChange={(event) => setUnitsBackup(event.target.value)} required maxLength={50} disabled={disabled} error={Boolean(errors.units_backup)} aria-describedby={errors.units_backup ? `${formId}-units-backup-error` : undefined} placeholder="Select or type a unit" />
-          <datalist id={`${formId}-unit-suggestions`}>
-            {ITEM_UNITS.map((option) => <option key={option} value={option} />)}
-          </datalist>
-          {errors.units_backup ? <span id={`${formId}-units-backup-error`} className="page__field-error">{errors.units_backup}</span> : null}
+        <Label htmlFor={`${formId}-units-backup`} required>Unit</Label>
+        <Input id={`${formId}-units-backup`} list={`${formId}-unit-suggestions`} value={unitsBackup} onChange={(event) => setUnitsBackup(event.target.value)} required maxLength={50} disabled={disabled} error={Boolean(errors.units_backup)} aria-describedby={errors.units_backup ? `${formId}-units-backup-error` : undefined} placeholder="Select or type a unit" />
+        <datalist id={`${formId}-unit-suggestions`}>
+          {unitSuggestions.map((option) => <option key={option.toLowerCase()} value={option} />)}
+        </datalist>
+        {errors.units_backup ? <span id={`${formId}-units-backup-error`} className="page__field-error">{errors.units_backup}</span> : null}
       </div>
       <div className="item-form__field">
         <Label htmlFor={`${formId}-price`} required={!item}>{item ? 'Current Price' : 'Initial Price'}</Label>

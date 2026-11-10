@@ -31,9 +31,10 @@ POS Memory/.obsidian/workspace.json
 # Electron
 *.asar
 
-# Graphify derived output (keep the compact human report)
+# Graphify derived output (keep the compact human report at repo root)
 graphify-out/*
 !graphify-out/GRAPH_REPORT.md
+frontend/graphify-out/
 
 # PHP / Laravel (future)
 backend/vendor/

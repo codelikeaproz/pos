@@ -77,6 +77,12 @@ function createWindow(): void {
     mainWindow.show()
   })
 
+  // Keep renderer at 100% so View/Ctrl+/- zoom cannot shrink the POS UI into a postage stamp.
+  void mainWindow.webContents.setVisualZoomLevelLimits(1, 1)
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.setZoomFactor(1)
+  })
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }

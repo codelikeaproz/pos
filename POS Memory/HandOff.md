@@ -4,6 +4,32 @@
 # University HomeStay POS
 ## Development Handoff
 
+## Desktop UX and Product Management polish (2026-11-10)
+
+Session changes kept in ICM/POS Memory track (Obsidian docs + regenerable root Graphify). No units master table and no commit of `frontend/graphify-out/`.
+
+### Login and Electron readability
+- Electron Main locks visual zoom to 100% and resets zoom after load so View/Ctrl+/- cannot shrink the desktop UI.
+- Login card capped near 480px with slightly larger brand/title/subtitle; 50/50 slideshow split unchanged.
+
+### Shared footer
+- Non-POS footer: `Copyright © 2026 Software Development Department. All Rights Reserved.`
+- POS operational footer unchanged.
+
+### Admin pagination
+- Rows-per-page 20/50/100 now refetch because `pageSize` is in refresh dependencies on Product Management, Stations, User Management, and Transactions.
+
+### Product Management units
+- `GET /api/items` meta `used_units` returns distinct saved `units_backup` values (unfiltered by search).
+- Unit suggestions merge fixed defaults with `used_units`; custom units such as `pieces` appear after save.
+- Unit field keeps Electron’s native `<datalist>` suggestion UI; free-text entry remains.
+- Focused Item Management API coverage includes `used_units`; frontend typecheck passed.
+
+### Graphify / ICM
+- Removed accidental tracked `frontend/graphify-out/` and ignore that path.
+- Canonical Graphify remains repo-root `graphify-out/`; only `GRAPH_REPORT.md` is tracked. `graph.html` / `graph.json` stay local and regenerable via `graphify .`.
+- Obsidian POS Memory and ICM routers remain the authority for business context.
+
 ## Toast Notification Standardization (2026-11-09)
 
 - Standardized Toast component with consistent design following POS Memory branding

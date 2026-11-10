@@ -3,7 +3,7 @@ import { apiRequest } from './apiClient'
 
 type PaginatedItemsResponse = {
   data: Item[]
-  meta: { current_page: number; last_page: number; total: number }
+  meta: { current_page: number; last_page: number; total: number; used_units?: string[] }
 }
 
 type ItemResponse = { message: string; item: Item }
@@ -12,7 +12,13 @@ export async function loadItems(search: string, page: number, perPage: number, s
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (search.trim()) params.set('search', search.trim())
   const response = await apiRequest<PaginatedItemsResponse>(`/api/items?${params.toString()}`, { signal })
-  return { items: response.data, currentPage: response.meta.current_page, lastPage: response.meta.last_page, total: response.meta.total }
+  return {
+    items: response.data,
+    currentPage: response.meta.current_page,
+    lastPage: response.meta.last_page,
+    total: response.meta.total,
+    usedUnits: response.meta.used_units ?? [],
+  }
 }
 
 export function createItem(input: ItemInput): Promise<ItemResponse> {

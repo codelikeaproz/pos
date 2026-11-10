@@ -51,7 +51,7 @@ export function TransactionsPage() {
     try { setList(await loadOrderHistory({ search, fromDate, toDate, stationId, page, perPage: pageSize }, signal)) }
     catch (loadError) { if (!signal?.aborted) { setList(EMPTY); setError(getUserFacingApiMessage(loadError)) } }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [fromDate, page, search, stationId, toDate])
+  }, [fromDate, page, pageSize, search, stationId, toDate])
 
   useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort() }, [load])
 

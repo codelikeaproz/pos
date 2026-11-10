@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from '../components/feedback/Alert'
 import { LoadingState } from '../components/feedback/LoadingState'
 import { Modal } from '../components/feedback/Modal'
@@ -11,11 +11,11 @@ import { ItemTable } from '../features/items/ItemTable'
 import { AppIcons, iconSize, iconStroke } from '../lib/icons'
 import { ApiError, getUserFacingApiMessage } from '../services/apiClient'
 import { createItem, loadItems, updateItem } from '../services/itemService'
-import type { Item, ItemInput, ItemList } from '../types/item'
+import { ITEM_UNITS, mergeUnitSuggestions, type Item, type ItemInput, type ItemList } from '../types/item'
 import './items-page.css'
 
 type FormDialog = { mode: 'create' } | { mode: 'edit'; item: Item }
-const EMPTY_LIST: ItemList = { items: [], currentPage: 1, lastPage: 1, total: 0 }
+const EMPTY_LIST: ItemList = { items: [], currentPage: 1, lastPage: 1, total: 0, usedUnits: [] }
 
 function fieldErrorsFrom(error: unknown): ItemFieldErrors {
   if (!(error instanceof ApiError)) return {}
@@ -42,7 +42,7 @@ export function ItemsPage() {
     try { setItemList(await loadItems(search, page, pageSize, signal)) }
     catch (error) { if (!signal?.aborted) setPageError(getUserFacingApiMessage(error)) }
     finally { if (!signal?.aborted) setLoading(false) }
-  }, [page, search])
+  }, [page, pageSize, search])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => { setPage(1); setSearch(searchInput.trim()) }, 350)
@@ -80,6 +80,10 @@ export function ItemsPage() {
 
   const editingItem = formDialog?.mode === 'edit' ? formDialog.item : undefined
   const formId = editingItem ? `edit-item-${editingItem.id}` : 'add-item'
+  const unitSuggestions = useMemo(
+    () => mergeUnitSuggestions(ITEM_UNITS, itemList.usedUnits),
+    [itemList.usedUnits],
+  )
 
   return (
     <section className="page item-page">
@@ -99,7 +103,7 @@ export function ItemsPage() {
 
       <Modal open={formDialog !== null} title={editingItem ? 'Edit Item' : 'Add Item'} onClose={closeForm} actions={<Button type="submit" form={formId} disabled={submitting} icon={<AppIcons.save size={iconSize} strokeWidth={iconStroke} />}>{submitting ? 'Saving…' : editingItem ? 'Save Changes' : 'Save Item'}</Button>}>
         {formError ? <Alert tone="error" title="Item could not be saved">{formError}</Alert> : null}
-        {formDialog ? <ItemForm key={formId} formId={formId} item={editingItem} errors={fieldErrors} disabled={submitting} onSubmit={(input) => void save(input)} /> : null}
+        {formDialog ? <ItemForm key={formId} formId={formId} item={editingItem} errors={fieldErrors} disabled={submitting} unitSuggestions={unitSuggestions} onSubmit={(input) => void save(input)} /> : null}
       </Modal>
 
       <Modal open={deactivateTarget !== null} title="Deactivate Item?" onClose={() => { if (!submitting) { setDeactivateTarget(null); setFormError(null) } }} actions={<Button variant="danger" disabled={submitting} onClick={() => deactivateTarget && void changeStatus(deactivateTarget, false)}>Deactivate Item</Button>}>

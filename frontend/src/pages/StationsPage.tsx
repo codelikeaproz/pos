@@ -51,7 +51,7 @@ export function StationsPage() {
     } finally {
       if (!signal?.aborted) setLoading(false)
     }
-  }, [page, search])
+  }, [page, pageSize, search])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {

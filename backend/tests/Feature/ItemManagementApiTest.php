@@ -181,6 +181,27 @@ class ItemManagementApiTest extends TestCase
         $this->getJson('/api/items?per_page=500')->assertUnprocessable()->assertJsonValidationErrors('per_page');
     }
 
+    public function test_item_index_includes_distinct_used_units_for_suggestions(): void
+    {
+        Sanctum::actingAs(User::factory()->admin()->create());
+
+        $this->postJson('/api/items', $this->validItem([
+            'item_code' => 'UNIT-PCS',
+            'name' => 'Piece Item',
+            'units_backup' => 'pieces',
+        ]))->assertCreated();
+        $this->postJson('/api/items', $this->validItem([
+            'item_code' => 'UNIT-TRAY',
+            'name' => 'Tray Item',
+            'units_backup' => 'TRAY',
+        ]))->assertCreated();
+
+        $this->getJson('/api/items?search=missing')
+            ->assertOk()
+            ->assertJsonCount(0, 'data')
+            ->assertJsonPath('meta.used_units', ['pieces', 'TRAY']);
+    }
+
     /** @param array<string, mixed> $overrides */
     private function validItem(array $overrides = []): array
     {

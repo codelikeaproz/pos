@@ -88,7 +88,7 @@ export function EmployeesPage() {
         }
       }
     },
-    [page, search]
+    [page, pageSize, search]
   )
 
   useEffect(() => {
